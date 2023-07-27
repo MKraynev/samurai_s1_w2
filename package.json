@@ -7,7 +7,7 @@
     "express": "^4.18.2"
   },
   "scripts": {
-    "dev": "yarn nodemon --inspect dist/index.js",
+    "dev": "yarn nodemon --inspect src/app.ts",
     "test": "jest =i --forceExit",
     "watch": "tsc -w"
   },
