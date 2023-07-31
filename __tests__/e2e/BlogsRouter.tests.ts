@@ -13,13 +13,13 @@ describe("Blogs test", () => {
                 "name": "Jamie Oliver",
                 "description": "How to cook fast and delicious",
                 "websiteUrl": "www.jamoli.com",
-                "id": 1
+                "id": "1"
             },
             {
                 "name": "Jacky Chan",
                 "description": "Kiya!",
                 "websiteUrl": "www.chanchan.cn",
-                "id": 2
+                "id": "2"
             }
         ])
     })
@@ -32,7 +32,7 @@ describe("Blogs test", () => {
                 "name": "Jamie Oliver",
                 "description": "How to cook fast and delicious",
                 "websiteUrl": "www.jamoli.com",
-                "id": 1
+                "id": "1"
             })
     })
 
@@ -43,7 +43,7 @@ describe("Blogs test", () => {
                 "name": "Jacky Chan",
                 "description": "Kiya!",
                 "websiteUrl": "www.chanchan.cn",
-                "id": 2
+                "id": "2"
             })
     })
     it("GET 404 STRING ID", async () => {
@@ -65,7 +65,7 @@ describe("Blogs test", () => {
         .expect(201);
 
         expect(response.body).toEqual({
-            id: expect.any(Number),
+            id: expect.any(String),
             "name": "Elon Mask",
             "description": "I did another stupid thing",
             "websiteUrl": "www.elonmelon.com"

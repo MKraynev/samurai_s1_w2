@@ -9,8 +9,8 @@ blogRouter.get("", (request: Request, response: Response) => {
 })
 blogRouter.get("/:id",
     RequestContainsId,
-    (request: RequestWithParams<{ id: number }>, response: Response) => {
-        let requestedId: number = +request.params.id;
+    (request: RequestWithParams<{ id: string }>, response: Response) => {
+        let requestedId = request.params.id;
         let requestedData = _BLOGS_.take(requestedId);
 
         if (!requestedData) {
@@ -31,8 +31,8 @@ blogRouter.put("/:id",
     RequestContainsId,
     RequestAuthorized,
     RequestContainsBlog,
-    (request: RequestWithParamsAndBody<{ id: number }, Blog>, response: Response) => {
-        let requestedId = +request.params.id;
+    (request: RequestWithParamsAndBody<{ id: string }, Blog>, response: Response) => {
+        let requestedId = request.params.id;
         let updateResultIsPositive = _BLOGS_.update(requestedId, request.body);
 
         if (updateResultIsPositive) {
@@ -45,15 +45,15 @@ blogRouter.put("/:id",
 blogRouter.delete("/:id",
     RequestContainsId,
     RequestAuthorized,
-    (request: RequestWithParams<{ id: number }>, response: Response) => {
-        let idVal = +request.params.id;
+    (request: RequestWithParams<{ id: string }>, response: Response) => {
+        let idVal = request.params.id;
 
         let blogIsDeleted = _BLOGS_.delete(idVal);
-        
-        if(blogIsDeleted){
+
+        if (blogIsDeleted) {
             response.sendStatus(204)
         }
-        else{
+        else {
             response.sendStatus(404);
         }
     })

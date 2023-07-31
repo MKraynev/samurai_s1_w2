@@ -9,7 +9,7 @@ export class Blog {
 }
 
 class NumberedBlog extends Blog{
-    constructor(readonly id:number, blog: Blog){
+    constructor(readonly id:string, blog: Blog){
         super(blog.name, blog.description, blog.websiteUrl)
     }
 }
@@ -23,8 +23,8 @@ class BlogRepo implements IRepo<NumberedBlog>{
         blogs.forEach(blog => this.add(blog));
     }
 
-    take(id: number = -1): NumberedBlog | NumberedBlog[] | null {
-        if (id !== -1) {
+    take(id: string = ""): NumberedBlog | NumberedBlog[] | null {
+        if (id !== "") {
             let foundedBlog = this._blogs.find(blog => blog.id === id)
             return foundedBlog || null;
         }
@@ -34,12 +34,12 @@ class BlogRepo implements IRepo<NumberedBlog>{
 
     add(element: Blog): NumberedBlog | null {
         
-        let newNumberedBlog = new NumberedBlog(this._counter++, element);
+        let newNumberedBlog = new NumberedBlog((this._counter++).toString(), element);
         this._blogs.push(newNumberedBlog);
         return newNumberedBlog;
     }
 
-    update(id: number, elementData: Blog): boolean {
+    update(id: string, elementData: Blog): boolean {
         let blogIndex = this._blogs.findIndex(blog => blog.id === id)
         if (blogIndex === -1) return false;
 
@@ -47,7 +47,7 @@ class BlogRepo implements IRepo<NumberedBlog>{
         return true;
     }
 
-    delete(id: number): boolean {
+    delete(id: string): boolean {
         let blogIndex = this._blogs.findIndex(blog => blog.id === id)
 
         if (blogIndex === -1) return false;

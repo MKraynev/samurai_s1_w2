@@ -1,6 +1,6 @@
 export interface IRepo<T> {
-    take(id?: number): T[] | T | null,
+    take(id: string): T[] | T | null,
     add(element: T): T | null,
-    update(id: number, elementData: T): boolean,
-    delete(id: number): boolean
+    update(id: string, elementData: T): boolean,
+    delete(id: string): boolean
 }
