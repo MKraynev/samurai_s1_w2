@@ -23,9 +23,8 @@ class BlogRepo implements IRepo<NumberedBlog>{
         blogs.forEach(blog => this.add(blog));
     }
 
-    take(id?: number | undefined): NumberedBlog | NumberedBlog[] | null {
-
-        if (id !== undefined) {
+    take(id: number = -1): NumberedBlog | NumberedBlog[] | null {
+        if (id !== -1) {
             let foundedBlog = this._blogs.find(blog => blog.id === id)
             return foundedBlog || null;
         }
@@ -51,7 +50,7 @@ class BlogRepo implements IRepo<NumberedBlog>{
     delete(id: number): boolean {
         let blogIndex = this._blogs.findIndex(blog => blog.id === id)
 
-        if (!blogIndex) return false;
+        if (blogIndex === -1) return false;
         this._blogs.splice(blogIndex, 1);
         return true;
     }

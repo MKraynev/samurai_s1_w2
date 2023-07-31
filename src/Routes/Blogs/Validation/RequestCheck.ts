@@ -23,6 +23,15 @@ export const RequestContainsBlog = (
     }
 }
 
+export const RequestContainsId = (
+    request: Request<{id:number}, {}, {}, {}>, reponse: Response, next: NextFunction) =>{
+        let requestedId: number = +request.params.id;
+        if(isNaN(requestedId) || undefined){
+            response.sendStatus(404);
+        }
+        next();
+}
+
 export const RequestAuthorized =
     (request: Request<{}, {}, {}, {}>, reponse: Response, next: NextFunction) => {
         let authorizator = basicAothorizer;

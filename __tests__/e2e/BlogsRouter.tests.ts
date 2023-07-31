@@ -46,6 +46,13 @@ describe("Blogs test", () => {
                 "id": 2
             })
     })
+    it("GET 404 STRING ID", async () => {
+        let resp_2 = await request(app).get(`${BlogsPath}/sdfs`).expect(404);
+    })
+    it("GET 404 NOT SUPPORTED ID", async () => {
+        let resp_2 = await request(app).get(`${BlogsPath}/10000`).expect(404);
+    })
+
 
     it("POST 201", async () => {
         let response = await request(app).post(BlogsPath)
@@ -72,6 +79,17 @@ describe("Blogs test", () => {
             "websiteUrl": "www.elonmelon.com"
         }).expect(401);
     })
+    it("POST 401 WRONG AUTH", async () => {
+        let response = await request(app)
+        .post(BlogsPath)
+        .set({ Authorization: `Bosic ${12345}`})
+        .send({
+            "name": "Elon Mask",
+            "description": "I did another stupid thing",
+            "websiteUrl": "www.elonmelon.com"
+        }).expect(401);
+    })
+
 
     it("POST 400 WRONG FIELD NAME(name)", async () => {
         await request(app).post(BlogsPath)
@@ -116,7 +134,7 @@ describe("Blogs test", () => {
         }).expect(204);
     })
 
-    it("PUT 401 NO AUT", async () =>{
+    it("PUT 401 NO AUTH", async () =>{
         let response = await request(app)
         .put(`${BlogsPath}/1`)
         .send({
@@ -125,6 +143,17 @@ describe("Blogs test", () => {
             "websiteUrl": "www.elonmelon.com"
         }).expect(401);
     })
+    it("PUT 401 WRONG AUTH", async () =>{
+        let response = await request(app)
+        .put(`${BlogsPath}/1`)
+        .set({ Authorization: `Basic ${5678456}`})
+        .send({
+            "name": "Elon Mask",
+            "description": "I did another stupid thing",
+            "websiteUrl": "www.elonmelon.com"
+        }).expect(401);
+    })
+
     it("PUT 400 WRONG FIELD NAME(name)", async () =>{
         let response = await request(app)
         .put(`${BlogsPath}/1`)
@@ -161,5 +190,24 @@ describe("Blogs test", () => {
         .set({ Authorization: `Basic ${_encodedKey}`})
         .send()
         .expect(400);
+    })
+
+    it("DELETE 204", async () =>{
+        let response = await request(app)
+        .delete(`${BlogsPath}/1`)
+        .set({ Authorization: `Basic ${_encodedKey}`})
+        .expect(204);
+    })
+
+    it("DELETE 404 NOT SUPPORTED ID", async () =>{
+        let response = await request(app)
+        .delete(`${BlogsPath}/1000`)
+        .set({ Authorization: `Basic ${_encodedKey}`})
+        .expect(404);
+    })
+    it("DELETE 401 NO AUTH", async () =>{
+        let response = await request(app)
+        .delete(`${BlogsPath}/1`)
+        .expect(401);
     })
 })
