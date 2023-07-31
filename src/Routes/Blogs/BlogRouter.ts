@@ -22,23 +22,22 @@ blogRouter.get("/:id",
 blogRouter.post("",
     RequestAuthorized,
     RequestContainsBlog,
-    bodyFieldNotEmpty("name"), bodyFieldLength("name", 3, 40),
-    bodyFieldNotEmpty("description"), bodyFieldLength("description", 3, 40),
-    bodyFieldNotEmpty("websiteUrl"), bodyFieldLength("websiteUrl", 3, 40), bodyFieldIsUri("websiteUrl"),
-    CheckFormatErrors,
     (request: RequestWithBody<Blog>, response: Response) => {
         let savedBlog = _BLOGS_.add(request.body);
         response.status(201).send(savedBlog);
     })
 
+
+    // bodyFieldNotEmpty("name"), bodyFieldLength("name", 3, 40),
+    // bodyFieldNotEmpty("description"), bodyFieldLength("description", 3, 40),
+    // bodyFieldNotEmpty("websiteUrl"), bodyFieldLength("websiteUrl", 3, 40), bodyFieldIsUri("websiteUrl"),
+    // CheckFormatErrors,
+    
+
 blogRouter.put("/:id",
     RequestContainsId,
     RequestAuthorized,
     RequestContainsBlog,
-    bodyFieldNotEmpty("name"), bodyFieldLength("name", 3, 40),
-    bodyFieldNotEmpty("description"), bodyFieldLength("description", 3, 40),
-    bodyFieldNotEmpty("websiteUrl"), bodyFieldLength("websiteUrl", 3, 40), bodyFieldIsUri("websiteUrl"),
-    CheckFormatErrors,
     (request: RequestWithParamsAndBody<{ id: string }, Blog>, response: Response) => {
         let requestedId = request.params.id;
         let updateResultIsPositive = _BLOGS_.update(requestedId, request.body);
