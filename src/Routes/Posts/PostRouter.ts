@@ -1,19 +1,19 @@
 import { Request, Response, Router } from "express";
-import { _BlogRepo, Blog } from "../../Repos/Blogs/BlogRepo";
+import { PostData, _PostRepo } from "../../Repos/Posts/PostRepo";
 import { RequestWithBody, RequestWithParams, RequestWithParamsAndBody } from "../Types/Requests";
-import { CheckFormatErrors, RequestAuthorized, RequestContainsBlog, ValidBlogFields } from "../Validation/RequestCheck";
+import { CheckFormatErrors, RequestAuthorized, RequestContainsBlog, ValidBlogFields, ValidPostFields } from "../Validation/RequestCheck";
 
 
-export const blogRouter = Router();
+export const postRouter = Router();
 
-blogRouter.get("", (request: Request, response: Response) => {
-    response.send(_BlogRepo.take())
+postRouter.get("", (request: Request, response: Response) => {
+    response.send(_PostRepo.take())
 })
 
-blogRouter.get("/:id",
+postRouter.get("/:id",
     (request: RequestWithParams<{ id: string }>, response: Response) => {
         let requestedId = request.params.id;
-        let requestedData = _BlogRepo.take(requestedId);
+        let requestedData = _PostRepo.take(requestedId);
 
         if (!requestedData) {
             response.send(404);
@@ -21,25 +21,23 @@ blogRouter.get("/:id",
         response.send(requestedData);
     })
 
-blogRouter.post("",
+postRouter.post("",
     RequestAuthorized,
-    RequestContainsBlog,
-    ValidBlogFields,
+    ValidPostFields,
     CheckFormatErrors,
-    (request: RequestWithBody<Blog>, response: Response) => {
-        let savedBlog = _BlogRepo.add(request.body);
+    (request: RequestWithBody<PostData>, response: Response) => {
+        let savedBlog = _PostRepo.add(request.body);
         response.status(201).send(savedBlog);
     })
 
 
-blogRouter.put("/:id",
+postRouter.put("/:id",
     RequestAuthorized,
-    RequestContainsBlog,
-    ValidBlogFields,
+    ValidPostFields,
     CheckFormatErrors,
-    (request: RequestWithParamsAndBody<{ id: string }, Blog>, response: Response) => {
+    (request: RequestWithParamsAndBody<{ id: string }, PostData>, response: Response) => {
         let requestedId = request.params.id;
-        let updateResultIsPositive = _BlogRepo.update(requestedId, request.body);
+        let updateResultIsPositive = _PostRepo.update(requestedId, request.body);
 
         if (updateResultIsPositive) {
             response.sendStatus(204);
@@ -48,12 +46,12 @@ blogRouter.put("/:id",
         response.sendStatus(404);
     })
 
-blogRouter.delete("/:id",
+postRouter.delete("/:id",
     RequestAuthorized,
     (request: RequestWithParams<{ id: string }>, response: Response) => {
         let idVal = request.params.id;
 
-        let blogIsDeleted = _BlogRepo.delete(idVal);
+        let blogIsDeleted = _PostRepo.delete(idVal);
 
         if (blogIsDeleted) {
             response.sendStatus(204)

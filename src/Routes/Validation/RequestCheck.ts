@@ -63,9 +63,16 @@ const FieldMaxLength = (fieldName: string, maxLength: number) => body(fieldName)
 
 export const ValidBlogFields = [
     FieldNotEmpty("name"), FieldMinLength("name", 5), FieldMaxLength("name", 30),
-    FieldNotEmpty("description"), FieldMinLength("description", 5),
+    FieldNotEmpty("description"), FieldMinLength("description", 3),
     FieldNotEmpty("websiteUrl"), FieldIsUri("websiteUrl"), FieldMinLength("description", 5)
 ];
+export const ValidPostFields = [
+    FieldNotEmpty("title"), FieldMinLength("title", 5), FieldMaxLength("title", 30),
+    FieldNotEmpty("shortDescription"), FieldMinLength("shortDescription", 5), FieldMaxLength("shortDescription", 40),
+    FieldNotEmpty("content"), FieldMinLength("content", 5),
+    FieldNotEmpty("blogId"), FieldMinLength("blogId", 5)
+];
+
 
 export const CheckFormatErrors =
     (request: Request<{}, {}, {}, {}>, response: Response, next: NextFunction) => {
