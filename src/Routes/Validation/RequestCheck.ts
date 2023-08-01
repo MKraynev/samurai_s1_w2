@@ -4,6 +4,7 @@ import { basicAothorizer } from "../../Authorization/BasicAuthorization/BasicAut
 import { AuthorizationStatus } from "../../Authorization/IAuthorizer";
 import { header, body, validationResult } from "express-validator"
 import { ErrorLog } from "../../Errors/Error";
+import { PostData } from "../../Repos/Posts/PostRepo";
 
 
 export const RequestContainsBlog = (
@@ -24,14 +25,23 @@ export const RequestContainsBlog = (
         return;
     }
 }
+export const RequestContainsPost = (
+    request: Request<{}, {}, {}, {}>, reponse: Response, next: NextFunction) => {
+    let errors = new ErrorLog();
+    let reqData = request.body;
 
-export const RequestContainsId = (
-    request: Request<{ id: string }, {}, {}, {}>, reponse: Response, next: NextFunction) => {
-    let requestedId: string = request.params.id;
-    if (undefined || requestedId.trim() === "") {
-        response.sendStatus(404);
+    let blogObjProperties = Object.getOwnPropertyNames(new PostData()).sort().toString();
+    let reqObjProperties = Object.getOwnPropertyNames(reqData).sort().toString();
+
+    if (blogObjProperties === reqObjProperties) {
+        next();
     }
-    next();
+    else {
+        //TODO Выдает ошибку 500 при установке сразу через send
+        errors.add("Request", "Request doesn't contain Blog fields")
+        response.status(400).send(errors);
+        return;
+    }
 }
 
 export const RequestAuthorized =
