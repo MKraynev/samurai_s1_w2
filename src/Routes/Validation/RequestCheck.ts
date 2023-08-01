@@ -1,9 +1,9 @@
 import { Request, Response, NextFunction, response } from "express";
-import { Blog } from "../../../Repos/Blogs/BlogRepo";
-import { basicAothorizer } from "../../../Authorization/BasicAuthorization/BasicAuthorization";
-import { AuthorizationStatus } from "../../../Authorization/IAuthorizer";
+import { Blog } from "../../Repos/Blogs/BlogRepo";
+import { basicAothorizer } from "../../Authorization/BasicAuthorization/BasicAuthorization";
+import { AuthorizationStatus } from "../../Authorization/IAuthorizer";
 import { header, body, validationResult } from "express-validator"
-import { ErrorLog } from "../../../Errors/Error";
+import { ErrorLog } from "../../Errors/Error";
 
 
 export const RequestContainsBlog = (
@@ -45,7 +45,7 @@ export const RequestAuthorized =
 
             case AuthorizationStatus.DataIsMissing:
                 error.add("Request", "Missing authorization data")
-                response.sendStatus(401);
+                response.status(401).send(error);
                 break;
 
             case AuthorizationStatus.WrongLoginPassword:
@@ -56,23 +56,25 @@ export const RequestAuthorized =
 
     }
 
-export const bodyFieldNotEmpty = (fieldName: string) => body(fieldName).notEmpty().withMessage(`Empty field: ${fieldName}`);
-export const bodyFieldIsUri = (fieldName: string) => body(fieldName).isURL().withMessage(`Wrong URL value: ${fieldName}`);
-export const bodyFieldContainNumber = (fieldName: string) => body(fieldName).isNumeric().withMessage(`Wrong Id value: ${fieldName}`);
-export const bodyFieldLength = (
-    fieldName: string,
-    minLength: number,
-    maxLength: number) => body(fieldName).trim().isLength({ min: minLength, max: maxLength }).withMessage(`Wrong length, expect between ${minLength} to ${maxLength}: ${fieldName}`)
+const FieldNotEmpty = (fieldName: string) => body(fieldName).notEmpty().withMessage(`Empty field: ${fieldName}`);
+const FieldIsUri = (fieldName: string) => body(fieldName).isURL().withMessage(`Wrong URL value: ${fieldName}`);
+const FieldMinLength = (fieldName: string, minLength: number) => body(fieldName).trim().isLength({ min: minLength}).withMessage(`Wrong length, too short ${minLength}: ${fieldName}`)
+const FieldMaxLength = (fieldName: string, maxLength: number) => body(fieldName).trim().isLength({ max: maxLength}).withMessage(`Wrong length, too long ${maxLength}: ${fieldName}`)
 
+export const ValidBlogFields = [
+    FieldNotEmpty("name"), FieldMinLength("name", 5), FieldMaxLength("name", 30),
+    FieldNotEmpty("description"), FieldMinLength("description", 5),
+    FieldNotEmpty("websiteUrl"), FieldIsUri("websiteUrl"), FieldMinLength("description", 5)
+];
 
 export const CheckFormatErrors =
     (request: Request<{}, {}, {}, {}>, response: Response, next: NextFunction) => {
         let errorResult = validationResult(request);
         if (!errorResult.isEmpty()) {
             let errors = new ErrorLog();
-            let errs = errorResult.array({ onlyFirstError: true })
+            let errsByExpressValidator = errorResult.array({ onlyFirstError: true })
 
-            errs.forEach(errVal => {
+            errsByExpressValidator.forEach(errVal => {
                 let allMessage: string = errVal.msg;
                 let field = allMessage.split(": ")[1];
                 let message = allMessage.split(": ")[0];
@@ -81,5 +83,5 @@ export const CheckFormatErrors =
             })
             response.status(400).send(errors);
         }
-
+        next()
     }

@@ -1,5 +1,5 @@
 import request from "supertest"
-import { app, BlogsPath } from "../../src/app"
+import { app, BlogsPath, TestClearAllPath } from "../../src/app"
 import { basicAothorizer } from "../../src/Authorization/BasicAuthorization/BasicAuthorization"
 
 const _encodedKey = basicAothorizer.Encode("admin:qwerty");
@@ -26,7 +26,6 @@ describe("Blogs test", () => {
 
     it("GET ID_1 200", async () => {
         let resp_1 = await request(app).get(`${BlogsPath}/1`).expect(200);
-        let resp_2 = await request(app).get(`${BlogsPath}/2`).expect(200);
         expect(resp_1.body).toEqual(
             {
                 "name": "Jamie Oliver",
@@ -210,4 +209,16 @@ describe("Blogs test", () => {
         .delete(`${BlogsPath}/1`)
         .expect(401);
     })
+
+    it("DELETE ALL 204", async () =>{
+        await request(app).delete(TestClearAllPath).expect(204);
+
+        let response = await request(app).get(BlogsPath).expect(200);
+        
+        await request(app).get(`${BlogsPath}/1`).expect(404);
+
+        
+        expect(response.body).toEqual([]);
+    })
+    
 })

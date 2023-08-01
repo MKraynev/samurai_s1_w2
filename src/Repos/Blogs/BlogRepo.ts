@@ -23,8 +23,8 @@ class BlogRepo implements IRepo<NumberedBlog>{
         blogs.forEach(blog => this.add(blog));
     }
 
-    take(id: string = ""): NumberedBlog | NumberedBlog[] | null {
-        if (id !== "") {
+    take(id?: string): NumberedBlog | NumberedBlog[] | null {
+        if (id) {
             let foundedBlog = this._blogs.find(blog => blog.id === id)
             return foundedBlog || null;
         }
@@ -55,10 +55,13 @@ class BlogRepo implements IRepo<NumberedBlog>{
         return true;
     }
 
+    __clear__(): void {
+        this._blogs = [];
+    }
 }
 
 let blogs = [
     new Blog("Jamie Oliver", "How to cook fast and delicious", "www.jamoli.com"),
     new Blog("Jacky Chan", "Kiya!", "www.chanchan.cn")
 ]
-export const _BLOGS_ = new BlogRepo(blogs)
+export const _BlogRepo = new BlogRepo(blogs)

@@ -3,4 +3,5 @@ export interface IRepo<T> {
     add(element: T): T | null,
     update(id: string, elementData: T): boolean,
     delete(id: string): boolean
+    __clear__(): void;
 }
