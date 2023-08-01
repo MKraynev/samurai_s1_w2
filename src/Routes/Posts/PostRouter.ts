@@ -22,8 +22,8 @@ postRouter.get("/:id",
     })
 
 postRouter.post("",
-    RequestContainsPost,
     RequestAuthorized,
+    RequestContainsPost,
     ValidPostFields,
     CheckFormatErrors,
     (request: RequestWithBody<PostData>, response: Response) => {
@@ -33,8 +33,8 @@ postRouter.post("",
 
 
 postRouter.put("/:id",
-    RequestContainsPost,
     RequestAuthorized,
+    RequestContainsPost,
     ValidPostFields,
     CheckFormatErrors,
     (request: RequestWithParamsAndBody<{ id: string }, PostData>, response: Response) => {
