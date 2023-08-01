@@ -22,8 +22,8 @@ blogRouter.get("/:id",
     })
 
 blogRouter.post("",
-    RequestContainsBlog,
     RequestAuthorized,
+    RequestContainsBlog,
     ValidBlogFields,
     CheckFormatErrors,
     (request: RequestWithBody<Blog>, response: Response) => {
@@ -33,8 +33,8 @@ blogRouter.post("",
 
 
 blogRouter.put("/:id",
-    RequestContainsBlog,
     RequestAuthorized,
+    RequestContainsBlog,
     ValidBlogFields,
     CheckFormatErrors,
     (request: RequestWithParamsAndBody<{ id: string }, Blog>, response: Response) => {
