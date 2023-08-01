@@ -38,7 +38,7 @@ export const RequestContainsPost = (
     }
     else {
         //TODO Выдает ошибку 500 при установке сразу через send
-        errors.add("Request", "Request doesn't contain Post fields")
+        errors.add("Request", "Request doesn't contain Blog fields")
         response.status(400).send(errors);
         return;
     }
@@ -80,7 +80,7 @@ export const ValidPostFields = [
     FieldNotEmpty("title"), FieldMinLength("title", 5), FieldMaxLength("title", 30),
     FieldNotEmpty("shortDescription"), FieldMinLength("shortDescription", 5), FieldMaxLength("shortDescription", 40),
     FieldNotEmpty("content"), FieldMinLength("content", 5),
-    FieldNotEmpty("blogId")
+    FieldNotEmpty("blogId"), FieldMinLength("blogId", 5)
 ];
 
 
