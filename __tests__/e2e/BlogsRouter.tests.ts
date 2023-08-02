@@ -259,7 +259,7 @@ describe("Blogs test", () => {
     it("DELETE ALL 204", async () => {
         await request(app).delete(TestClearAllPath).expect(204);
 
-        let response = await request(app).get(BlogsPath);
+        let response = await request(app).get(BlogsPath).expect(200);
 
         await request(app).get(`${BlogsPath}/1`).expect(404);
 

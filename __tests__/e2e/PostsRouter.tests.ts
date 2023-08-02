@@ -121,7 +121,7 @@ describe("Posts test", () => {
     it("DELETE ALL 204", async () => {
         await request(app).delete(TestClearAllPath).expect(204);
 
-        let response = await request(app).get(PostsPath);
+        let response = await request(app).get(PostsPath).expect(200);
 
         await request(app).get(`${PostsPath}/1`).expect(404);
 

@@ -7,7 +7,7 @@ import { CheckFormatErrors, RequestAuthorized, ValidPostFields } from "../Valida
 export const postRouter = Router();
 
 postRouter.get("", (request: Request, response: Response) => {
-    response.send(_PostRepo.take())
+    response.status(200).send(_PostRepo.take())
 })
 
 postRouter.get("/:id",
@@ -16,9 +16,9 @@ postRouter.get("/:id",
         let requestedData = _PostRepo.take(requestedId);
 
         if (!requestedData) {
-            response.send(404);
+            response.sendStatus(404);
         }
-        response.send(requestedData);
+        response.status(200).send(requestedData);
     })
 
 postRouter.post("",

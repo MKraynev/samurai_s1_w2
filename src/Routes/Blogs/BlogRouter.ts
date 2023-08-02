@@ -7,7 +7,7 @@ import { CheckFormatErrors, RequestAuthorized, ValidBlogFields } from "../Valida
 export const blogRouter = Router();
 
 blogRouter.get("", (request: Request, response: Response) => {
-    response.send(_BlogRepo.take())
+    response.status(200).send(_BlogRepo.take())
 })
 
 blogRouter.get("/:id",
@@ -16,9 +16,9 @@ blogRouter.get("/:id",
         let requestedData = _BlogRepo.take(requestedId);
 
         if (!requestedData) {
-            response.send(404);
+            response.sendStatus(404);
         }
-        response.send(requestedData);
+        response.status(200).send(requestedData);
     })
 
 blogRouter.post("",
