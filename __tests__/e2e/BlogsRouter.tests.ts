@@ -93,14 +93,23 @@ describe("Blogs test", () => {
 
 
     it("POST 400 WRONG FIELD NAME(name)", async () => {
-        await request(app).post(BlogsPath)
+        let response = await request(app).post(BlogsPath)
             .set({ Authorization: `Basic ${_encodedKey}` })
             .send({
-                "nam": "Elon Mask",
-                "description": "I did another stupid thing",
-                "websiteUrl": "www.elonmelon.com"
-            }).expect(400);
-    })
+                "nam": "somename",
+                "websiteUrl": "invalid-url",
+                "description": "description"
+            })
+            .expect(400);
+        expect(response.body).toEqual({
+            errorsMessages: [{
+                field: expect.any(String),
+                message: expect.any(String)
+            }]
+
+        })
+    });
+
     it("POST 400 WRONG FIELD NAME(description)", async () => {
         await request(app).post(BlogsPath)
             .set({ Authorization: `Basic ${_encodedKey}` })
