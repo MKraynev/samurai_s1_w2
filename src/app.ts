@@ -15,6 +15,10 @@ app.use(BlogsPath, blogRouter);
 app.use(PostsPath, postRouter);
 app.use(TestClearAllPath, _TestClearAllRouter);
 
+const PORT: number = 5001;
 
+app.listen(PORT, () => {
+    console.log("app start");
+})
 
 
