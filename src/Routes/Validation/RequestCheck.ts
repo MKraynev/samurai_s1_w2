@@ -34,7 +34,7 @@ const FieldMinLength = (fieldName: string, minLength: number) => body(fieldName)
 const FieldMaxLength = (fieldName: string, maxLength: number) => body(fieldName).trim().isLength({ max: maxLength}).withMessage(`Wrong length, too long ${maxLength}: ${fieldName}`)
 
 export const ValidBlogFields = [
-    FieldNotEmpty("name"), FieldMinLength("name", 5), FieldMaxLength("name", 30),
+    FieldNotEmpty("name"), FieldMinLength("name", 5), FieldMaxLength("name", 20),
     FieldNotEmpty("description"), FieldMinLength("description", 3),
     FieldNotEmpty("websiteUrl"), FieldIsUri("websiteUrl"), FieldMinLength("websiteUrl", 5)
 ];
@@ -42,7 +42,7 @@ export const ValidPostFields = [
     FieldNotEmpty("title"), FieldMinLength("title", 5), FieldMaxLength("title", 30),
     FieldNotEmpty("shortDescription"), FieldMinLength("shortDescription", 5), FieldMaxLength("shortDescription", 40),
     FieldNotEmpty("content"), FieldMinLength("content", 5),
-    FieldNotEmpty("blogId"), FieldMinLength("blogId", 5)
+    FieldNotEmpty("blogId"), FieldMinLength("blogId", 1)
 ];
 
 
