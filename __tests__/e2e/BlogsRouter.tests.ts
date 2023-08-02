@@ -1,10 +1,10 @@
 import request from "supertest"
 import { BlogsPath, TestClearAllPath, app } from "../../src/app"
 
-import { basicAothorizer } from "../../src/Authorization/BasicAuthorization/BasicAuthorization"
+import { Encode64 } from "../../src/Authorization/BasicAuthorization/BasicAuthorization"
 
 
-const _encodedKey = basicAothorizer.Encode("admin:qwerty");
+const _encodedKey = Encode64("admin:qwerty");
 
 describe("Blogs test", () => {
     it("GET 200", async () => {

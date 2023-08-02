@@ -1,5 +1,5 @@
 import { Request, Response, NextFunction, response } from "express";
-import { basicAothorizer } from "../../Authorization/BasicAuthorization/BasicAuthorization";
+import { ValidBase64Key, } from "../../Authorization/BasicAuthorization/BasicAuthorization";
 import { AuthorizationStatus } from "../../Authorization/IAuthorizer";
 import { header, body, validationResult } from "express-validator"
 import { ErrorLog } from "../../Errors/Error";
@@ -8,9 +8,9 @@ import { ErrorLog } from "../../Errors/Error";
 
 export const RequestAuthorized =
     (request: Request<{}, {}, {}, {}>, reponse: Response, next: NextFunction) => {
-        let authorizator = basicAothorizer;
+        let headerValue = request.header("authorization");
         let error = new ErrorLog();
-        switch (authorizator.RequestIsAuthorized(request)) {
+        switch (ValidBase64Key(headerValue)) {
             case AuthorizationStatus.AccessAllowed:
                 next();
                 return;

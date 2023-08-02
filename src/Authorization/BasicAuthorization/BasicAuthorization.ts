@@ -1,42 +1,18 @@
-import { Request } from "express";
-import { AuthorizationStatus, IAuthorizer } from "../IAuthorizer";
 
+import { AuthorizationStatus } from "../IAuthorizer";
 
-const KEY: string = "admin:qwerty";
-
-class BasicAutorizer implements IAuthorizer {
-    private _KEY: string;
-
-    RequestIsAuthorized(req: Request<{}, {}, {}, {}>): AuthorizationStatus {
-        let headerVal = req.header("authorization");
-        
-        //Scenario_1
-        //Логин/Пароль отутствует
-        if ((!headerVal) ||
-            (headerVal.indexOf("Basic ") !== 0)) {
-            return AuthorizationStatus.DataIsMissing;
-        }
-
-        //Scenario_2
-        //Неправильный логин/пароль
-        let encodeKey = this.Encode(this._KEY);
-        if(headerVal.slice(6) !== encodeKey){
+export const ValidBase64Key = (encodedKeyValue : string|undefined): AuthorizationStatus => {
+    
+    if((!!encodedKeyValue) && encodedKeyValue.startsWith("Basic ")){
+        let expectedKeyVal = Encode64("admin:qwerty");
+        let keyFromRequest = encodedKeyValue.slice(6);
+        if(keyFromRequest !== expectedKeyVal){
             return AuthorizationStatus.WrongLoginPassword;
         }
-
-        //Scenario_3
-        //Верный логин/пароль
         return AuthorizationStatus.AccessAllowed;
     }
-
-
-    constructor(key: string = "admin:qwerty") {
-        this._KEY = key;
-    }
-
-    public Decode = (str: string): string => Buffer.from(str, 'base64').toString('binary');
-    public Encode = (str: string): string => Buffer.from(str, 'binary').toString('base64');
-
+    return AuthorizationStatus.DataIsMissing;
 }
 
-export const basicAothorizer = new BasicAutorizer(KEY);
+export const Decode64 = (str: string): string => Buffer.from(str, 'base64').toString('binary');
+export const Encode64 = (str: string): string => Buffer.from(str, 'binary').toString('base64');
