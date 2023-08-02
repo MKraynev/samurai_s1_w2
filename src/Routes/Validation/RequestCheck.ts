@@ -57,8 +57,8 @@ export const CheckFormatErrors =
                 let allMessage: string = errVal.msg;
                 let field = allMessage.split(": ")[1];
                 let message = allMessage.split(": ")[0];
-
-                if(errors.errorsMessages.findIndex(errMsg => errMsg.field === field) !== -1){
+                let errIndex = errors.errorsMessages.findIndex(errMsg => errMsg.field === field);
+                if( errIndex === -1){
                     errors.add(field, message);
                 }
                 
