@@ -2,7 +2,7 @@ import { Request, Response, NextFunction, response } from "express";
 import { basicAothorizer } from "../../Authorization/BasicAuthorization/BasicAuthorization";
 import { AuthorizationStatus } from "../../Authorization/IAuthorizer";
 import { header, body, validationResult } from "express-validator"
-import { ErrorLog } from "../../Errors/Error";
+import { ErrorLog, ErrorMessage} from "../../Errors/Error";
 
 
 
@@ -36,7 +36,7 @@ const FieldMaxLength = (fieldName: string, maxLength: number) => body(fieldName)
 export const ValidBlogFields = [
     FieldNotEmpty("name"), FieldMinLength("name", 5), FieldMaxLength("name", 15),
     FieldNotEmpty("description"), FieldMinLength("description", 3),
-    FieldNotEmpty("websiteUrl"), FieldIsUri("websiteUrl"), FieldMinLength("websiteUrl", 5)
+    FieldNotEmpty("websiteUrl"), FieldIsUri("websiteUrl")
 ];
 export const ValidPostFields = [
     FieldNotEmpty("title"), FieldMinLength("title", 5), FieldMaxLength("title", 30),
@@ -58,7 +58,10 @@ export const CheckFormatErrors =
                 let field = allMessage.split(": ")[1];
                 let message = allMessage.split(": ")[0];
 
-                errors.add(field, message);
+                if(errors.errorsMessages.findIndex(errMsg => errMsg.field == field) !== -1){
+                    errors.add(field, message);
+                }
+                
             })
             response.status(400).send(errors);
             return;
