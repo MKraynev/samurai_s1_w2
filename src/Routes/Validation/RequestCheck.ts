@@ -28,7 +28,7 @@ export const RequestAuthorized =
 
     }
 
-const FieldNotEmpty = (fieldName: string) => body(fieldName).notEmpty().withMessage(`Empty field: ${fieldName}`);
+const FieldNotEmpty = (fieldName: string) => body(fieldName).trim().notEmpty().withMessage(`Empty field: ${fieldName}`);
 const FieldIsUri = (fieldName: string) => body(fieldName).isURL().withMessage(`Wrong URL value: ${fieldName}`);
 const FieldMinLength = (fieldName: string, minLength: number) => body(fieldName).trim().isLength({ min: minLength}).withMessage(`Wrong length, too short ${minLength}: ${fieldName}`)
 const FieldMaxLength = (fieldName: string, maxLength: number) => body(fieldName).trim().isLength({ max: maxLength}).withMessage(`Wrong length, too long ${maxLength}: ${fieldName}`)
@@ -41,7 +41,7 @@ export const ValidBlogFields = [
 export const ValidPostFields = [
     FieldNotEmpty("title"), FieldMinLength("title", 5), FieldMaxLength("title", 30),
     FieldNotEmpty("shortDescription"), FieldMinLength("shortDescription", 5), FieldMaxLength("shortDescription", 40),
-    FieldNotEmpty("content"), FieldMinLength("content", 5),
+    FieldNotEmpty("content"), FieldMinLength("content", 5), FieldMaxLength("content", 1000),
     FieldNotEmpty("blogId"), FieldMinLength("blogId", 1)
 ];
 
