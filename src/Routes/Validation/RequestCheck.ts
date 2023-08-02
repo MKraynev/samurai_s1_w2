@@ -51,7 +51,7 @@ export const CheckFormatErrors =
         let errorResult = validationResult(request);
         if (!errorResult.isEmpty()) {
             let errors = new ErrorLog();
-            let errsByExpressValidator = errorResult.array({ onlyFirstError: true })
+            let errsByExpressValidator = errorResult.array()
 
             errsByExpressValidator.forEach(errVal => {
                 let allMessage: string = errVal.msg;
