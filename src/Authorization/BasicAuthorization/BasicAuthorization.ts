@@ -7,7 +7,7 @@ const KEY: string = "admin:qwerty";
 class BasicAutorizer implements IAuthorizer {
     private _KEY: string;
 
-    RequestIsAuthorized(req: Request<{}, {}, {}, {}, Record<string, any>>): AuthorizationStatus {
+    RequestIsAuthorized(req: Request<{}, {}, {}, {}>): AuthorizationStatus {
         let headerVal = req.header("authorization");
         
         //Scenario_1
