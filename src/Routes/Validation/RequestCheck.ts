@@ -7,8 +7,7 @@ import { ErrorLog } from "../../Errors/Error";
 import { PostData } from "../../Repos/Posts/PostRepo";
 
 
-export const RequestContainsBlog = (
-    request: Request<{}, {}, {}, {}>, reponse: Response, next: NextFunction) => {
+export const RequestContainsBlog = (request: Request<{}, {}, {}, {}>, response: Response, next: NextFunction) => {
     let errors = new ErrorLog();
     let reqData = request.body;
 
@@ -25,8 +24,9 @@ export const RequestContainsBlog = (
         return;
     }
 }
+
 export const RequestContainsPost = (
-    request: Request<{}, {}, {}, {}>, reponse: Response, next: NextFunction) => {
+    request: Request<{}, {}, {}, {}>, response: Response, next: NextFunction) => {
     let errors = new ErrorLog();
     let reqData = request.body;
 
