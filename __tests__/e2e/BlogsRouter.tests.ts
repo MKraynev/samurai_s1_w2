@@ -105,33 +105,68 @@ describe("Blogs test", () => {
             errorsMessages: [{
                 field: expect.any(String),
                 message: expect.any(String)
+            },
+            {
+                field: expect.any(String),
+                message: expect.any(String)
             }]
 
         })
     });
 
     it("POST 400 WRONG FIELD NAME(description)", async () => {
-        await request(app).post(BlogsPath)
+        let response = await request(app).post(BlogsPath)
             .set({ Authorization: `Basic ${_encodedKey}` })
             .send({
                 "name": "Elon Mask",
                 "descption": "I did another stupid thing",
                 "websiteUrl": "www.elonmelon.com"
             }).expect(400);
+        expect(response.body).toEqual({
+            errorsMessages: [{
+                field: expect.any(String),
+                message: expect.any(String)
+            }]
+
+        })
     })
     it("POST 400 WRONG FIELD NAME(Url)", async () => {
-        await request(app).post(BlogsPath)
+        let response = await request(app).post(BlogsPath)
             .set({ Authorization: `Basic ${_encodedKey}` })
             .send({
                 "name": "Elon Mask",
                 "description": "I did another stupid thing",
                 "websitUrl": "www.elonmelon.com"
             }).expect(400);
+
+        expect(response.body).toEqual({
+            errorsMessages: [{
+                field: expect.any(String),
+                message: expect.any(String)
+            }]
+
+        })
     })
     it("POST 400 EMPY BODY", async () => {
-        await request(app).post(BlogsPath)
+        let response = await request(app).post(BlogsPath)
             .set({ Authorization: `Basic ${_encodedKey}` })
             .send().expect(400);
+
+        expect(response.body).toEqual({
+            errorsMessages: [{
+                field: expect.any(String),
+                message: expect.any(String)
+            },
+            {
+                field: expect.any(String),
+                message: expect.any(String)
+            },
+            {
+                field: expect.any(String),
+                message: expect.any(String)
+            }]
+
+        })
     })
 
     it("PUT 204", async () => {

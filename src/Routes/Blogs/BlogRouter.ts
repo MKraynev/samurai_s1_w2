@@ -1,7 +1,7 @@
 import { Request, Response, Router } from "express";
 import { _BlogRepo, Blog } from "../../Repos/Blogs/BlogRepo";
 import { RequestWithBody, RequestWithParams, RequestWithParamsAndBody } from "../Types/Requests";
-import { CheckFormatErrors, RequestAuthorized, RequestContainsBlog, ValidBlogFields } from "../Validation/RequestCheck";
+import { CheckFormatErrors, RequestAuthorized, ValidBlogFields } from "../Validation/RequestCheck";
 
 
 export const blogRouter = Router();
@@ -23,7 +23,6 @@ blogRouter.get("/:id",
 
 blogRouter.post("",
     RequestAuthorized,
-    RequestContainsBlog,
     ValidBlogFields,
     CheckFormatErrors,
     (request: RequestWithBody<Blog>, response: Response) => {
@@ -34,7 +33,6 @@ blogRouter.post("",
 
 blogRouter.put("/:id",
     RequestAuthorized,
-    RequestContainsBlog,
     ValidBlogFields,
     CheckFormatErrors,
     (request: RequestWithParamsAndBody<{ id: string }, Blog>, response: Response) => {

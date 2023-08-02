@@ -4,7 +4,7 @@ class ErrorMessage {
 }
 
 export class ErrorLog{
-    readonly errorsMessages: ErrorMessage[] = []
+    errorsMessages: ErrorMessage[] = []
     public add = (field: string, description: string) =>{
         this.errorsMessages.push(new ErrorMessage(description, field));
     }

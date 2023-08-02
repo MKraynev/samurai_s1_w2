@@ -1,7 +1,7 @@
 import { Request, Response, Router } from "express";
 import { PostData, _PostRepo } from "../../Repos/Posts/PostRepo";
 import { RequestWithBody, RequestWithParams, RequestWithParamsAndBody } from "../Types/Requests";
-import { CheckFormatErrors, RequestAuthorized, RequestContainsBlog, RequestContainsPost, ValidBlogFields, ValidPostFields } from "../Validation/RequestCheck";
+import { CheckFormatErrors, RequestAuthorized, ValidPostFields } from "../Validation/RequestCheck";
 
 
 export const postRouter = Router();
@@ -23,7 +23,6 @@ postRouter.get("/:id",
 
 postRouter.post("",
     RequestAuthorized,
-    RequestContainsPost,
     ValidPostFields,
     CheckFormatErrors,
     (request: RequestWithBody<PostData>, response: Response) => {
@@ -34,7 +33,6 @@ postRouter.post("",
 
 postRouter.put("/:id",
     RequestAuthorized,
-    RequestContainsPost,
     ValidPostFields,
     CheckFormatErrors,
     (request: RequestWithParamsAndBody<{ id: string }, PostData>, response: Response) => {

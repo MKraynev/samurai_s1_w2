@@ -1,48 +1,10 @@
 import { Request, Response, NextFunction, response } from "express";
-import { Blog } from "../../Repos/Blogs/BlogRepo";
 import { basicAothorizer } from "../../Authorization/BasicAuthorization/BasicAuthorization";
 import { AuthorizationStatus } from "../../Authorization/IAuthorizer";
 import { header, body, validationResult } from "express-validator"
 import { ErrorLog } from "../../Errors/Error";
-import { PostData } from "../../Repos/Posts/PostRepo";
 
 
-export const RequestContainsBlog = (request: Request<{}, {}, {}, {}>, response: Response, next: NextFunction) => {
-    let errors = new ErrorLog();
-    let reqData = request.body;
-
-    let blogObjProperties = Object.getOwnPropertyNames(new Blog()).sort().toString();
-    let reqObjProperties = Object.getOwnPropertyNames(reqData).sort().toString();
-
-    if (blogObjProperties === reqObjProperties) {
-        next();
-    }
-    else {
-        //TODO Выдает ошибку 500 при установке сразу через send
-        errors.add("Request", "Request doesn't contain Blog fields")
-        response.status(400).send(errors);
-        return;
-    }
-}
-
-export const RequestContainsPost = (
-    request: Request<{}, {}, {}, {}>, response: Response, next: NextFunction) => {
-    let errors = new ErrorLog();
-    let reqData = request.body;
-
-    let blogObjProperties = Object.getOwnPropertyNames(new PostData()).sort().toString();
-    let reqObjProperties = Object.getOwnPropertyNames(reqData).sort().toString();
-
-    if (blogObjProperties === reqObjProperties) {
-        next();
-    }
-    else {
-        //TODO Выдает ошибку 500 при установке сразу через send
-        errors.add("Request", "Request doesn't contain Blog fields")
-        response.status(400).send(errors);
-        return;
-    }
-}
 
 export const RequestAuthorized =
     (request: Request<{}, {}, {}, {}>, reponse: Response, next: NextFunction) => {
@@ -74,7 +36,7 @@ const FieldMaxLength = (fieldName: string, maxLength: number) => body(fieldName)
 export const ValidBlogFields = [
     FieldNotEmpty("name"), FieldMinLength("name", 5), FieldMaxLength("name", 30),
     FieldNotEmpty("description"), FieldMinLength("description", 3),
-    FieldNotEmpty("websiteUrl"), FieldIsUri("websiteUrl"), FieldMinLength("description", 5)
+    FieldNotEmpty("websiteUrl"), FieldIsUri("websiteUrl"), FieldMinLength("websiteUrl", 5)
 ];
 export const ValidPostFields = [
     FieldNotEmpty("title"), FieldMinLength("title", 5), FieldMaxLength("title", 30),
@@ -96,9 +58,10 @@ export const CheckFormatErrors =
                 let field = allMessage.split(": ")[1];
                 let message = allMessage.split(": ")[0];
 
-                errors.add(field, message)
+                errors.add(field, message);
             })
             response.status(400).send(errors);
+            return;
         }
         next()
     }
