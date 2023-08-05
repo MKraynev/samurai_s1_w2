@@ -1,5 +1,5 @@
 import { Request, Response, Router } from "express";
-import { PostData, _PostRepo } from "../../Repos/Posts/PostRepo";
+import { Post, _PostRepo } from "../../Repos/Entities/Post";
 import { RequestWithBody, RequestWithParams, RequestWithParamsAndBody } from "../Types/Requests";
 import { CheckFormatErrors, RequestAuthorized, ValidPostFields } from "../Validation/RequestCheck";
 
@@ -25,7 +25,7 @@ postRouter.post("",
     RequestAuthorized,
     ValidPostFields,
     CheckFormatErrors,
-    (request: RequestWithBody<PostData>, response: Response) => {
+    (request: RequestWithBody<Post>, response: Response) => {
         let savedBlog = _PostRepo.add(request.body);
         response.status(201).send(savedBlog);
     })
@@ -35,7 +35,7 @@ postRouter.put("/:id",
     RequestAuthorized,
     ValidPostFields,
     CheckFormatErrors,
-    (request: RequestWithParamsAndBody<{ id: string }, PostData>, response: Response) => {
+    (request: RequestWithParamsAndBody<{ id: string }, Post>, response: Response) => {
         let requestedId = request.params.id;
         let updateResultIsPositive = _PostRepo.update(requestedId, request.body);
 

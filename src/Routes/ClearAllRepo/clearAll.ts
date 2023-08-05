@@ -1,6 +1,6 @@
 import { Request, Response, Router } from "express";
-import { _BlogRepo } from "../../Repos/Blogs/BlogRepo";
-import { _PostRepo } from "../../Repos/Posts/PostRepo";
+import { _BlogRepo } from "../../Repos/Entities/Blog";
+import { _PostRepo } from "../../Repos/Entities/Post";
 
 export const _TestClearAllRouter = Router();
 

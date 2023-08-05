@@ -1,7 +1,8 @@
 import { Request, Response, Router } from "express";
-import { _BlogRepo, Blog } from "../../Repos/Blogs/BlogRepo";
+import { Blog } from "../../Repos/Entities/Blog";
 import { RequestWithBody, RequestWithParams, RequestWithParamsAndBody } from "../Types/Requests";
 import { CheckFormatErrors, RequestAuthorized, ValidBlogFields } from "../Validation/RequestCheck";
+
 
 
 export const blogRouter = Router();
