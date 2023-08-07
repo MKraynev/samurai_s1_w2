@@ -24,6 +24,7 @@ class BlogRepo implements IRepo<Blog>{
     }
     async add(element: Blog): Promise<Blog | null> {
         let newBlog = {
+            ...new Blog(),
             ...element,
             id: (this._idCounter++).toString(),
             createdAt: (new Date()).toISOString()
