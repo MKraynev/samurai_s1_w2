@@ -1,56 +1,72 @@
+import { ObjectId } from "mongodb";
 import { _postCollection } from "./DB/MongoDB/MongoDbHandler";
-import { Post } from "./Entities/Post";
+import { RequestPostData, ResponsePostData } from "./Entities/Post";
 import { IRepo } from "./Interfaces/IRepo";
 
-class PostRepo implements IRepo<Post>{
-    private _idCounter = 1;
+class PostRepo implements IRepo<RequestPostData>{
+    async take(id: string | undefined): Promise<ResponsePostData | null> {
+        try {
+            let foundedValue = await _postCollection.findOne({ "_id": new ObjectId(id) })
+            if (foundedValue)
+                return new ResponsePostData(foundedValue._id, foundedValue);
+        }
+        catch {
 
-    async take(id?: string): Promise<Post | Post[] | null> {
-        let foundedValue;
-        //, { projection: { _id: false } }
-        if(id){
-            foundedValue = await _postCollection.findOne({id : id}, { projection: { _id: false } })
-        }
-        else{
-            foundedValue = await _postCollection.find({}, { projection: { _id: false } }).toArray();
-        }
-
-        if(foundedValue){
-            return foundedValue;
-        }
-        return null;
-        
-    }
-    async add(element: Post): Promise<Post | null> {
-        let newPost = 
-        {
-            ...new Post(), 
-            id: (this._idCounter++).toString(),
-            ...element,
-            createdAt: (new Date()).toISOString()
-        }
-
-        let addResult = await _postCollection.insertOne(newPost);
-        if(addResult.acknowledged){
-            return newPost;
         }
         return null;
     }
-    async update(id: string, elementData: Post): Promise<boolean> {
-        let updateResult = await _postCollection.updateOne({id : id}, {$set : {elementData}})
-        return updateResult.matchedCount === 1;
+    async takeAll(): Promise<RequestPostData[]> {
+        let posts: ResponsePostData[] = [];
+        try {
+            let foundedValues = await _postCollection.find({}).toArray();
+            if (foundedValues) {
+                foundedValues.forEach(rawBlog => {
+                    posts.push(new ResponsePostData(rawBlog._id, rawBlog))
+                })
+            }
+        }
+        catch {
+        }
+        return posts;
+    }
+    async add(element: RequestPostData): Promise<ResponsePostData | null> {
+        try {
+            let addResult = await _postCollection.insertOne(element);
+            if (addResult.acknowledged) {
+                return new ResponsePostData(addResult.insertedId, element);
+            }
+        }
+        catch {
+        }
+        return null;
+    }
+    async update(id: string, elementData: RequestPostData): Promise<boolean> {
+        try {
+            let updateResult = await _postCollection.updateOne({ _id: new ObjectId(id) }, { elementData })
+            return updateResult.matchedCount === 1;
+        }
+        catch {
+        }
+        return false;
     }
     async delete(id: string): Promise<boolean> {
-        let delResult = await _postCollection.deleteOne({id: id})
-        return delResult.acknowledged;
+        try {
+            let delResult = await _postCollection.deleteOne({ _id: new ObjectId(id) })
+            return delResult.acknowledged;
+        }
+        catch {
+            return false;
+        }
     }
-
     async __clear__(): Promise<boolean> {
-        let delResult = await _postCollection.deleteMany({})
-        this._idCounter = 0;
-        return delResult.acknowledged;
+        try {
+            let delResult = await _postCollection.deleteMany({})
+            return delResult.acknowledged;
+        }
+        catch {
+            return false;
+        }
     }
-    
 }
 
 

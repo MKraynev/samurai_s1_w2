@@ -1,4 +1,6 @@
-export class Post {
+import { ObjectId } from "mongodb";
+
+export class RequestPostData {
     constructor(
         public title: string = "",
         public shortDescription: string = "",
@@ -10,8 +12,8 @@ export class Post {
     ) { }
 }
 
-
-// let posts = [
-//     new PostData("Бесконечность не предел", "космос", "бла бла бла бла бла", "12S_43F"),
-//     new PostData("Кухни мира", "еда", "бла бла бла бла бла бла", "54M_06K")
-// ]
+export class ResponsePostData extends RequestPostData{
+    constructor(_id: ObjectId, data: RequestPostData){
+        super(data.title, data.shortDescription, data.content, data.blogId, data.blogName, data.createdAt, data.isMembership)
+    }
+}
