@@ -4,7 +4,7 @@ import { postRouter } from "./Routes/Posts/PostRouter";
 import { _TestClearAllRouter } from "./Routes/ClearAllRepo/clearAll";
 import { RunDB } from "./Repos/DB/MongoDB/MongoDbHandler";
 
-const PORT: number = 5001;
+
 export const BlogsPath = "/blogs";
 export const PostsPath = "/posts";
 export const TestClearAllPath = "/testing/all-data";
@@ -16,6 +16,7 @@ app.use(BlogsPath, blogRouter);
 app.use(PostsPath, postRouter);
 app.use(TestClearAllPath, _TestClearAllRouter);
 
+const PORT: number = 5001;
 const StartApp = async () => {
     await RunDB();
     app.listen(PORT, () => {
