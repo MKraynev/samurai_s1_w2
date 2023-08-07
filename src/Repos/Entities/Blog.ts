@@ -5,7 +5,7 @@ export class RequestBlogData {
         public name: string = "",
         public description: string = "",
         public websiteUrl: string = "",
-        public createdAt: string = "",
+        public createdAt: string = (new Date()).toISOString(),
         public isMembership: boolean = false
     ) { }
 }

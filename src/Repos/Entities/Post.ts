@@ -7,7 +7,7 @@ export class RequestPostData {
         public content: string = "",
         public blogId: string = "",
         public blogName: string = "",
-        public createdAt: string = "",
+        public createdAt: string = (new Date()).toISOString(),
         public isMembership: boolean = false
     ) { }
 }

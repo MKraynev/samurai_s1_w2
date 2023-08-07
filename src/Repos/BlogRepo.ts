@@ -35,7 +35,9 @@ class BlogRepo implements IRepo<RequestBlogData>{
 
     async add(element: RequestBlogData): Promise<ResponseBlogData | null> {
         try {
-            let addResult = await _blogCollection.insertOne(element);
+            let addResult = await _blogCollection.insertOne({
+                ...new RequestBlogData(),
+                ...element});
             if (addResult.acknowledged) {
                 return new ResponseBlogData(addResult.insertedId, element);
             }
