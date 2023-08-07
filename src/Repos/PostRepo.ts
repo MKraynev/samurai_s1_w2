@@ -9,10 +9,10 @@ class PostRepo implements IRepo<Post>{
         let foundedValue;
         //, { projection: { _id: false } }
         if(id){
-            foundedValue = await _postCollection.findOne({id : id})
+            foundedValue = await _postCollection.findOne({id : id}, { projection: { _id: false } })
         }
         else{
-            foundedValue = await _postCollection.find({}).toArray();
+            foundedValue = await _postCollection.find({}, { projection: { _id: false } }).toArray();
         }
 
         if(foundedValue){
