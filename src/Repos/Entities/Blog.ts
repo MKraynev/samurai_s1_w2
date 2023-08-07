@@ -5,17 +5,26 @@ export class RequestBlogData {
         public name: string = "",
         public description: string = "",
         public websiteUrl: string = "",
-        public createdAt: string = (new Date()).toISOString(),
-        public isMembership: boolean = false
     ) { }
 }
 
-export class ResponseBlogData extends RequestBlogData {
+export class RequestSaveBlogData extends RequestBlogData{
+    constructor(
+        reqData: RequestBlogData,
+        public createdAt: string = (new Date()).toISOString(),
+        public isMembership: boolean = false
+    ){
+        super(reqData.name, reqData.description, reqData.websiteUrl)
+    }
+}
+
+export class ResponseBlogData extends RequestSaveBlogData {
     public id: string;
     constructor(
         _id: ObjectId,
-        blogData: RequestBlogData) {
-            super(blogData.name, blogData.description, blogData.websiteUrl, blogData.createdAt, blogData.isMembership)
-            this.id = _id.toString();
+        blogData: RequestSaveBlogData,
+    ) {
+        super(blogData)
+        this.id = _id.toString();
     }
 }

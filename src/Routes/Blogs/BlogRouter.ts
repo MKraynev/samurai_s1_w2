@@ -1,5 +1,5 @@
 import { Request, Response, Router } from "express";
-import { Blog } from "../../Repos/Entities/Blog";
+import { RequestBlogData } from "../../Repos/Entities/Blog";
 import { RequestWithBody, RequestWithParams, RequestWithParamsAndBody } from "../Types/Requests";
 import { CheckFormatErrors, RequestAuthorized, ValidBlogFields } from "../Validation/RequestCheck";
 import { _BlogRepo } from "../../Repos/BlogRepo";
@@ -9,7 +9,7 @@ import { _BlogRepo } from "../../Repos/BlogRepo";
 export const blogRouter = Router();
 
 blogRouter.get("", async (request: Request, response: Response) => {
-    let requestedData = await _BlogRepo.take();
+    let requestedData = await _BlogRepo.takeAll();
     response.status(200).send(requestedData)
 })
 
@@ -28,7 +28,7 @@ blogRouter.post("",
     RequestAuthorized,
     ValidBlogFields,
     CheckFormatErrors,
-    async (request: RequestWithBody<Blog>, response: Response) => {
+    async (request: RequestWithBody<RequestBlogData>, response: Response) => {
         let savedBlog = await _BlogRepo.add(request.body);
         response.status(201).send(savedBlog);
     })
@@ -38,7 +38,7 @@ blogRouter.put("/:id",
     RequestAuthorized,
     ValidBlogFields,
     CheckFormatErrors,
-    async (request: RequestWithParamsAndBody<{ id: string }, Blog>, response: Response) => {
+    async (request: RequestWithParamsAndBody<{ id: string }, RequestBlogData>, response: Response) => {
         let requestedId = request.params.id;
         let updateResultIsPositive = await _BlogRepo.update(requestedId, request.body);
 

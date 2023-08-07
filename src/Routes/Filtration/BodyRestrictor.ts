@@ -1,6 +1,6 @@
 import { Request, NextFunction, response } from "express";
-import { Blog } from "../../Repos/Entities/Blog";
-import { Post } from "../../Repos/Entities/Post";
+import { RequestBlogData } from "../../Repos/Entities/Blog";
+import { RequestPostData } from "../../Repos/Entities/Post";
 
 type bodyData = {
     [key: string] : any;
@@ -8,7 +8,7 @@ type bodyData = {
 
 export const RestrictBodyToBlog =
     (request: Request<{}, {}, bodyData, {}>, reponse: Response, next: NextFunction) => {
-        let blogProperties = Object.getOwnPropertyNames(new Blog());
+        let blogProperties = Object.getOwnPropertyNames(new RequestBlogData());
         let buffObj : any;
 
         blogProperties.forEach(propName =>{
@@ -27,7 +27,7 @@ export const RestrictBodyToBlog =
 
     export const RestrictBodyToPost =
     (request: Request<{}, {}, bodyData, {}>, reponse: Response, next: NextFunction) => {
-        let blogProperties = Object.getOwnPropertyNames(new Post());
+        let blogProperties = Object.getOwnPropertyNames(new RequestPostData());
         let buffObj : any;
 
         blogProperties.forEach(propName =>{

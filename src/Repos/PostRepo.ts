@@ -1,7 +1,8 @@
 import { ObjectId } from "mongodb";
 import { _postCollection } from "./DB/MongoDB/MongoDbHandler";
-import { RequestPostData, ResponsePostData } from "./Entities/Post";
+
 import { IRepo } from "./Interfaces/IRepo";
+import { RequestPostData, RequestSavePostData, ResponsePostData } from "./Entities/Post";
 
 class PostRepo implements IRepo<RequestPostData>{
     async take(id: string | undefined): Promise<ResponsePostData | null> {
@@ -31,13 +32,11 @@ class PostRepo implements IRepo<RequestPostData>{
     }
     async add(element: RequestPostData): Promise<ResponsePostData | null> {
         try {
-            let addResult = await _postCollection.insertOne({
-                ...new RequestPostData(),
-                ...element
-            });
+            let extendedPostData = new RequestSavePostData(element);
+            let addResult = await _postCollection.insertOne(extendedPostData);
             
             if (addResult.acknowledged) {
-                return new ResponsePostData(addResult.insertedId, element);
+                return new ResponsePostData(addResult.insertedId, extendedPostData);
             }
         }
         catch {

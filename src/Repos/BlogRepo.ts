@@ -1,6 +1,6 @@
 import { ObjectId } from "mongodb";
 import { _blogCollection } from "./DB/MongoDB/MongoDbHandler";
-import { RequestBlogData, ResponseBlogData } from "./Entities/Blog";
+import { RequestBlogData, RequestSaveBlogData, ResponseBlogData } from "./Entities/Blog";
 import { IRepo } from "./Interfaces/IRepo";
 
 
@@ -35,11 +35,11 @@ class BlogRepo implements IRepo<RequestBlogData>{
 
     async add(element: RequestBlogData): Promise<ResponseBlogData | null> {
         try {
-            let addResult = await _blogCollection.insertOne({
-                ...new RequestBlogData(),
-                ...element});
+            let extendedBlogData = new RequestSaveBlogData(element);
+            
+            let addResult = await _blogCollection.insertOne(extendedBlogData);
             if (addResult.acknowledged) {
-                return new ResponseBlogData(addResult.insertedId, element);
+                return new ResponseBlogData(addResult.insertedId, extendedBlogData);
             }
         }
         catch {

@@ -1,7 +1,7 @@
 import { MongoClient } from "mongodb";
 import dotenv from "dotenv"
-import { RequestPostData } from "../../Entities/Post";
-import { RequestBlogData } from "../../Entities/Blog";
+import { RequestSavePostData } from "../../Entities/Post";
+import { RequestSaveBlogData } from "../../Entities/Blog";
 dotenv.config();
 
 const dbUrl = process.env.MONGO_URL || "";
@@ -26,5 +26,5 @@ export const RunDB = async () => {
 }
 
 const DB = client.db("s1w3");
-export const _postCollection = DB.collection<RequestPostData>("posts");
-export const _blogCollection = DB.collection<RequestBlogData>("blogs");
+export const _postCollection = DB.collection<RequestSavePostData>("posts");
+export const _blogCollection = DB.collection<RequestSaveBlogData>("blogs");

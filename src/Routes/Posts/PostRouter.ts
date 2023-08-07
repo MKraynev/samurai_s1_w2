@@ -1,5 +1,5 @@
 import { Request, Response, Router } from "express";
-import { Post } from "../../Repos/Entities/Post";
+import { RequestPostData } from "../../Repos/Entities/Post";
 import { RequestWithBody, RequestWithParams, RequestWithParamsAndBody } from "../Types/Requests";
 import { CheckFormatErrors, RequestAuthorized, ValidPostFields } from "../Validation/RequestCheck";
 import { _PostRepo } from "../../Repos/PostRepo";
@@ -8,7 +8,7 @@ import { _PostRepo } from "../../Repos/PostRepo";
 export const postRouter = Router();
 
 postRouter.get("", async (request: Request, response: Response) => {
-    let result = await _PostRepo.take();
+    let result = await _PostRepo.takeAll();
     response.status(200).send(result);
 })
 
@@ -27,7 +27,7 @@ postRouter.post("",
     RequestAuthorized,
     ValidPostFields,
     CheckFormatErrors,
-    async (request: RequestWithBody<Post>, response: Response) => {
+    async (request: RequestWithBody<RequestPostData>, response: Response) => {
         let savedBlog = await _PostRepo.add(request.body);
         response.status(201).send(savedBlog);
     })
@@ -37,7 +37,7 @@ postRouter.put("/:id",
     RequestAuthorized,
     ValidPostFields,
     CheckFormatErrors,
-    async (request: RequestWithParamsAndBody<{ id: string }, Post>, response: Response) => {
+    async (request: RequestWithParamsAndBody<{ id: string }, RequestPostData>, response: Response) => {
         let requestedId = request.params.id;
         let updateResultIsPositive = await _PostRepo.update(requestedId, request.body);
 
