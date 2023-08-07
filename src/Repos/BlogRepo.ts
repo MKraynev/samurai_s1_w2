@@ -10,10 +10,10 @@ class BlogRepo implements IRepo<Blog>{
         let foundedValue;
 
         if(id){
-            foundedValue = await _blogCollection.findOne({id : id}),  { projection: { _id: false } };
+            foundedValue = await _blogCollection.findOne({id : id});
         }
         else{
-            foundedValue = await _blogCollection.find({},  { projection: { _id: false } }).toArray();
+            foundedValue = await _blogCollection.find({}).toArray();
         }
 
         if(foundedValue){

@@ -7,12 +7,12 @@ class PostRepo implements IRepo<Post>{
 
     async take(id?: string): Promise<Post | Post[] | null> {
         let foundedValue;
-
+        //, { projection: { _id: false } }
         if(id){
-            foundedValue = await _postCollection.findOne({id : id}, { projection: { _id: false } })
+            foundedValue = await _postCollection.findOne({id : id})
         }
         else{
-            foundedValue = await _postCollection.find({},  { projection: { _id: false } }).toArray();
+            foundedValue = await _postCollection.find({}).toArray();
         }
 
         if(foundedValue){
