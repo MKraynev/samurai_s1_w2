@@ -44,6 +44,7 @@ class BlogRepo implements IRepo<Blog>{
     }
     async __clear__(): Promise<boolean> {
         let delResult = await _blogCollection.deleteMany({})
+        this._idCounter = 1;
         return delResult.acknowledged;
     }
     

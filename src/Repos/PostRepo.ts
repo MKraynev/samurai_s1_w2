@@ -47,6 +47,7 @@ class PostRepo implements IRepo<Post>{
 
     async __clear__(): Promise<boolean> {
         let delResult = await _postCollection.deleteMany({})
+        this._idCounter = 0;
         return delResult.acknowledged;
     }
     

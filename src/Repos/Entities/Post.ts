@@ -4,6 +4,7 @@ export class Post {
         public shortDescription: string = "",
         public content: string = "",
         public blogId: string = "",
+        public blogName: string = "",
         public createdAt: string = "",
         public isMembership: boolean = false
     ) { }
