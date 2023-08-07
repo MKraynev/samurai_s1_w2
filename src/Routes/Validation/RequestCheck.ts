@@ -37,9 +37,9 @@ export const ValidBlogFields = [
 ];
 export const ValidPostFields = [
     FieldNotEmpty("title"), FieldMinLength("title", 5), FieldMaxLength("title", 30),
-    FieldNotEmpty("shortDescription"), FieldMinLength("shortDescription", 5), FieldMaxLength("shortDescription", 40),
-    FieldNotEmpty("content"), FieldMinLength("content", 5), FieldMaxLength("content", 500),
-    FieldNotEmpty("blogId"), FieldMinLength("blogId", 1), FieldMaxLength("blogId", 10)
+    FieldNotEmpty("shortDescription"), FieldMinLength("shortDescription", 5), FieldMaxLength("shortDescription", 100),
+    FieldNotEmpty("content"), FieldMinLength("content", 5), FieldMaxLength("content", 1000),
+    FieldNotEmpty("blogId"), FieldMinLength("blogId", 1)
 ];
 
 

@@ -45,7 +45,7 @@ class PostRepo implements IRepo<RequestPostData>{
     }
     async update(id: string, elementData: RequestPostData): Promise<boolean> {
         try {
-            let updateResult = await _postCollection.updateOne({ _id: new ObjectId(id) }, { elementData })
+            let updateResult = await _postCollection.updateOne({ _id: new ObjectId(id) }, { $set: {elementData} })
             return updateResult.matchedCount === 1;
         }
         catch {
