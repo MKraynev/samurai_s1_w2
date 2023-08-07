@@ -12,7 +12,7 @@ export class RequestPostData {
 }
 export class RequestSavePostData extends RequestPostData{
     constructor(reqData: RequestPostData,
-        public createdAt: string = (new Date()).toISOString(),
+        public createdAt: string = "",
         public isMembership: boolean = false ){
             super(reqData.title, reqData.shortDescription, reqData.content, reqData.blogId, reqData.blogName)
         }

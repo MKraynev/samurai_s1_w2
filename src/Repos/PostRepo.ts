@@ -33,10 +33,14 @@ class PostRepo implements IRepo<RequestPostData>{
     async add(element: RequestPostData): Promise<ResponsePostData | null> {
         try {
             let extendedPostData = new RequestSavePostData(element);
-            let addResult = await _postCollection.insertOne(extendedPostData);
+            let addResult = await _postCollection.insertOne({
+                ...extendedPostData,
+                createdAt: (new Date()).toISOString()
+            });
             
             if (addResult.acknowledged) {
-                return new ResponsePostData(addResult.insertedId, extendedPostData);
+                //return new ResponsePostData(addResult.insertedId, extendedPostData);
+                return await this.take((addResult.insertedId).toString())
             }
         }
         catch {
