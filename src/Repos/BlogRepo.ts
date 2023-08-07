@@ -1,21 +1,49 @@
+import { _blogCollection } from "./DB/MongoDB/MongoDbHandler";
 import { Blog } from "./Entities/Blog";
 import { IRepo } from "./Interfaces/IRepo";
 
+
 class BlogRepo implements IRepo<Blog>{
+    private _idCounter = 1;
+
     async take(id?: string): Promise<Blog | Blog[] | null> {
-        throw new Error("Method not implemented.");
+        let foundedValue;
+
+        if(id){
+            foundedValue = await _blogCollection.findOne({id : id});
+        }
+        else{
+            foundedValue = await _blogCollection.find({}).toArray();
+        }
+
+        if(foundedValue){
+            return foundedValue;
+        }
+        return null;
+        
     }
     async add(element: Blog): Promise<Blog | null> {
-        throw new Error("Method not implemented.");
+        let newBlog = {
+            id: (this._idCounter++).toString(),
+            ...element
+        }
+        let addResult = _blogCollection.insertOne(newBlog);
+        if((await addResult).acknowledged){
+            return newBlog
+        }
+        return null;
     }
     async update(id: string, elementData: Blog): Promise<boolean> {
-        throw new Error("Method not implemented.");
+        let updateResult = await _blogCollection.updateOne({id : id}, {$set : {elementData}})
+        return updateResult.matchedCount === 1;
     }
     async delete(id: string): Promise<boolean> {
-        throw new Error("Method not implemented.");
+        let delResult = await _blogCollection.deleteOne({id: id})
+        return delResult.acknowledged;
     }
     async __clear__(): Promise<boolean> {
-        throw new Error("Method not implemented.");
+        let delResult = await _blogCollection.deleteMany({})
+        return delResult.acknowledged;
     }
     
 }
