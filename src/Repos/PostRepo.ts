@@ -26,7 +26,8 @@ class PostRepo implements IRepo<Post>{
         {
             ...new Post(), 
             id: (this._idCounter++).toString(),
-            ...element
+            ...element,
+            createdAt: (new Date()).toISOString()
         }
 
         let addResult = await _postCollection.insertOne(newPost);

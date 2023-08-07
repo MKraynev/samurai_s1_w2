@@ -10,7 +10,9 @@ const postCompleteStructure = {
     content: expect.any(String),
     blogId: expect.any(String),
     blogName: expect.any(String),
-    id: expect.any(String)
+    id: expect.any(String),
+    createdAt: expect.any(String),
+    isMembership: false
 };
 const PostRequestData = {
     title: "Default Title",
