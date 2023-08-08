@@ -52,7 +52,11 @@ class BlogRepo implements IRepo<RequestBlogData>{
 
     async update(id: string, elementData: RequestBlogData): Promise<boolean> {
         try {
-            let updateResult = await _blogCollection.updateOne({ _id: new ObjectId(id) }, { $set: {elementData} })
+            let {name, description, websiteUrl} = elementData;
+            let updateResult = await _blogCollection.updateOne({ _id: new ObjectId(id) }, { $set: {
+                "name": name,
+                "description": description,
+                "websiteUrl": websiteUrl } })
             return updateResult.matchedCount === 1;
         }
         catch {
