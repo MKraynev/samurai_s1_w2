@@ -43,7 +43,7 @@ export const ValidPostFields = [
     FieldNotEmpty("title"), FieldMinLength("title", 5), FieldMaxLength("title", 30),
     FieldNotEmpty("shortDescription"), FieldMinLength("shortDescription", 5), FieldMaxLength("shortDescription", 100),
     FieldNotEmpty("content"), FieldMinLength("content", 5), FieldMaxLength("content", 1000),
-    FieldNotEmpty("blogId"), FieldMinLength("blogId", 1)
+    FieldNotEmpty("blogId"), FieldMinLength("blogId", 24), FieldMaxLength("blogId", 24)
 ];
 export const BlogIdExist = body("blogId").custom(async idVal => {
     let requestedData = await _BlogRepo.take(idVal);

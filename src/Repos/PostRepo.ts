@@ -8,7 +8,7 @@ class PostRepo implements IRepo<RequestPostData>{
     async take(id: string): Promise<ResponsePostData | null> {
         try {
             let foundedValue = await _postCollection.findOne({ "_id": new ObjectId(id) })
-            if (foundedValue)
+            if (foundedValue !== null)
                 return new ResponsePostData(foundedValue._id, foundedValue);
         }
         catch {
@@ -48,7 +48,7 @@ class PostRepo implements IRepo<RequestPostData>{
     async update(id: string, elementData: RequestPostData): Promise<boolean> {
         try {
             let {title, shortDescription, content, blogId} = elementData;
-            
+
             let updateResult = await _postCollection.updateOne({ _id: new ObjectId(id) }, { $set: {
                 "title": title,
                 "shortDescription" : shortDescription,
