@@ -17,8 +17,9 @@ postRouter.get("/:id",
         let requestedId = request.params.id;
         let requestedData = await _PostRepo.take(requestedId);
 
-        if (!requestedData) {
+        if (requestedData === null) {
             response.sendStatus(404);
+            return;
         }
         response.status(200).send(requestedData);
     })
@@ -60,6 +61,7 @@ postRouter.delete("/:id",
 
         if (blogIsDeleted) {
             response.sendStatus(204)
+            return;
         }
         else {
             response.sendStatus(404);

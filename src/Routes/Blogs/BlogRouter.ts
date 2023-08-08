@@ -18,8 +18,9 @@ blogRouter.get("/:id",
         let requestedId = request.params.id;
         let requestedData = await _BlogRepo.take(requestedId);
 
-        if (!requestedData) {
+        if (requestedData === null) {
             response.sendStatus(404);
+            return;
         }
         response.status(200).send(requestedData);
     })
@@ -57,7 +58,8 @@ blogRouter.delete("/:id",
         let blogIsDeleted = await _BlogRepo.delete(idVal);
 
         if (blogIsDeleted) {
-            response.sendStatus(204)
+            response.sendStatus(204);
+            return;
         }
         else {
             response.sendStatus(404);
