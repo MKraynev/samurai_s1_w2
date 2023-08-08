@@ -35,7 +35,8 @@ class PostRepo implements IRepo<RequestPostData>{
             let extendedPostData = new RequestSavePostData(element);
             let addResult = await _postCollection.insertOne({
                 ...extendedPostData,
-                createdAt: (new Date()).toISOString()
+                createdAt: (new Date()).toISOString(),
+                ...element
             });
             
             if (addResult.acknowledged) {
