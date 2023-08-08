@@ -7,11 +7,11 @@ import { IRepo } from "./Interfaces/IRepo";
 class BlogRepo implements IRepo<RequestBlogData>{
     async take(id: string): Promise<ResponseBlogData | null> {
         try {
-            let foundedValue = await _blogCollection.findOne({ "_id": new ObjectId(id) })
-            if (foundedValue !== null){
+            let foundedValue = await _blogCollection.findOne({ _id: new ObjectId(id) })
+            if (foundedValue !== null) {
                 return new ResponseBlogData(foundedValue._id, foundedValue);
             }
-                
+
         }
         catch {
             return null;
@@ -38,14 +38,14 @@ class BlogRepo implements IRepo<RequestBlogData>{
     async add(element: RequestSaveBlogData): Promise<ResponseBlogData | null> {
         try {
             let extendedBlogData = new RequestSaveBlogData(element);
-            
+
             let addResult = await _blogCollection.insertOne({
                 ...extendedBlogData,
-                });
-           
-                return new ResponseBlogData(addResult.insertedId, extendedBlogData);
-                //return await this.take((addResult.insertedId).toString())
-            
+            });
+
+            return new ResponseBlogData(addResult.insertedId, extendedBlogData);
+            //return await this.take((addResult.insertedId).toString())
+
         }
         catch {
         }
@@ -54,11 +54,14 @@ class BlogRepo implements IRepo<RequestBlogData>{
 
     async update(id: string, elementData: RequestBlogData): Promise<boolean> {
         try {
-            let {name, description, websiteUrl} = elementData;
-            let updateResult = await _blogCollection.updateOne({ _id: new ObjectId(id) }, { $set: {
-                "name": name,
-                "description": description,
-                "websiteUrl": websiteUrl } })
+            let { name, description, websiteUrl } = elementData;
+            let updateResult = await _blogCollection.updateOne({ _id: new ObjectId(id) }, {
+                $set: {
+                    "name": name,
+                    "description": description,
+                    "websiteUrl": websiteUrl
+                }
+            })
             return updateResult.matchedCount === 1;
         }
         catch {
@@ -71,7 +74,7 @@ class BlogRepo implements IRepo<RequestBlogData>{
             let delResult = await _blogCollection.deleteOne({ _id: new ObjectId(id) })
             return delResult.acknowledged;
         }
-        catch { 
+        catch {
         }
         return false;
     }

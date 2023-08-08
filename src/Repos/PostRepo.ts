@@ -7,11 +7,11 @@ import { RequestPostData, RequestSavePostData, ResponsePostData } from "./Entiti
 class PostRepo implements IRepo<RequestPostData>{
     async take(id: string): Promise<ResponsePostData | null> {
         try {
-            let foundedValue = await _postCollection.findOne({ "_id": new ObjectId(id) })
-            if (foundedValue !== null){
+            let foundedValue = await _postCollection.findOne({ _id: new ObjectId(id) })
+            if (foundedValue !== null) {
                 return new ResponsePostData(foundedValue._id, foundedValue);
             }
-                
+
         }
         catch {
             return null;
@@ -38,7 +38,7 @@ class PostRepo implements IRepo<RequestPostData>{
             let addResult = await _postCollection.insertOne({
                 ...extendedPostData,
             });
-            
+
             if (addResult.acknowledged) {
                 return new ResponsePostData(addResult.insertedId, extendedPostData);
             }
@@ -49,14 +49,16 @@ class PostRepo implements IRepo<RequestPostData>{
     }
     async update(id: string, elementData: RequestPostData): Promise<boolean> {
         try {
-            let {title, shortDescription, content, blogId} = elementData;
+            let { title, shortDescription, content, blogId } = elementData;
 
-            let updateResult = await _postCollection.updateOne({ _id: new ObjectId(id) }, { $set: {
-                "title": title,
-                "shortDescription" : shortDescription,
-                "content": content,
-                "blogId" : blogId
-            } })
+            let updateResult = await _postCollection.updateOne({ _id: new ObjectId(id) }, {
+                $set: {
+                    "title": title,
+                    "shortDescription": shortDescription,
+                    "content": content,
+                    "blogId": blogId
+                }
+            })
             return updateResult.matchedCount === 1;
         }
         catch {
@@ -69,7 +71,7 @@ class PostRepo implements IRepo<RequestPostData>{
             return delResult.acknowledged;
         }
         catch {
-            
+
         }
         return false;
     }
