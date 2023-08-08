@@ -5,7 +5,7 @@ import { IRepo } from "./Interfaces/IRepo";
 import { RequestPostData, RequestSavePostData, ResponsePostData } from "./Entities/Post";
 
 class PostRepo implements IRepo<RequestPostData>{
-    async take(id: string | undefined): Promise<ResponsePostData | null> {
+    async take(id: string): Promise<ResponsePostData | null> {
         try {
             let foundedValue = await _postCollection.findOne({ "_id": new ObjectId(id) })
             if (foundedValue)
@@ -35,8 +35,6 @@ class PostRepo implements IRepo<RequestPostData>{
             let extendedPostData = new RequestSavePostData(element);
             let addResult = await _postCollection.insertOne({
                 ...extendedPostData,
-                createdAt: (new Date()).toISOString(),
-                ...element
             });
             
             if (addResult.acknowledged) {
@@ -50,7 +48,13 @@ class PostRepo implements IRepo<RequestPostData>{
     }
     async update(id: string, elementData: RequestPostData): Promise<boolean> {
         try {
-            let updateResult = await _postCollection.updateOne({ _id: new ObjectId(id) }, { $set: {elementData} })
+            let {title, shortDescription, content, blogId} = elementData;
+            let updateResult = await _postCollection.updateOne({ _id: new ObjectId(id) }, { $set: {
+                "title": title,
+                "shortDescription" : shortDescription,
+                "content": content,
+                "blogId" : blogId
+            } })
             return updateResult.matchedCount === 1;
         }
         catch {
@@ -63,8 +67,9 @@ class PostRepo implements IRepo<RequestPostData>{
             return delResult.acknowledged;
         }
         catch {
-            return false;
+            
         }
+        return false;
     }
     async __clear__(): Promise<boolean> {
         try {
