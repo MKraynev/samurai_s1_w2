@@ -11,7 +11,7 @@ export class RequestBlogData {
 export class RequestSaveBlogData extends RequestBlogData{
     constructor(
         reqData: RequestBlogData,
-        public createdAt: string = (new Date()).toISOString(),
+        public createdAt: string = new Date().toISOString(),
         public isMembership: boolean = false
     ){
         super(reqData.name, reqData.description, reqData.websiteUrl)

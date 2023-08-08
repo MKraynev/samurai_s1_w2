@@ -36,18 +36,14 @@ class BlogRepo implements IRepo<RequestBlogData>{
     async add(element: RequestSaveBlogData): Promise<ResponseBlogData | null> {
         try {
             let extendedBlogData = new RequestSaveBlogData(element);
-            if(element.createdAt){
-                extendedBlogData.createdAt = element.createdAt;
-            }
             
             let addResult = await _blogCollection.insertOne({
                 ...extendedBlogData,
-                createdAt: new Date().toISOString()
-            });
-            if (addResult.acknowledged) {
-                //return new ResponseBlogData(addResult.insertedId, extendedBlogData);
-                return await this.take((addResult.insertedId).toString())
-            }
+                });
+           
+                return new ResponseBlogData(addResult.insertedId, extendedBlogData);
+                //return await this.take((addResult.insertedId).toString())
+            
         }
         catch {
         }
