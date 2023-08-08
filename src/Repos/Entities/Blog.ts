@@ -24,7 +24,7 @@ export class ResponseBlogData extends RequestSaveBlogData {
         _id: ObjectId,
         blogData: RequestSaveBlogData,
     ) {
-        super(blogData)
+        super(blogData, blogData.createdAt, blogData.isMembership)
         this.id = _id.toString();
     }
 }
