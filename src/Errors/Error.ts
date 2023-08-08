@@ -1,4 +1,4 @@
-class ErrorMessage {
+export class ErrorMessage {
     constructor(public message: string, public field: string) {
     }
 }

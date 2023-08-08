@@ -1,4 +1,6 @@
 import { ObjectId } from "mongodb";
+import { ErrorMessage } from "../../Errors/Error";
+import { error } from "console";
 
 export class RequestPostData {
     constructor(
@@ -9,6 +11,7 @@ export class RequestPostData {
         public blogName: string = "",
         
     ) { }
+
 }
 export class RequestSavePostData extends RequestPostData{
     constructor(reqData: RequestPostData,

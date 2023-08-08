@@ -33,6 +33,7 @@ const FieldIsUri = (fieldName: string) => body(fieldName).isURL().withMessage(`W
 const FieldMinLength = (fieldName: string, minLength: number) => body(fieldName).trim().isLength({ min: minLength }).withMessage(`Wrong length, too short ${minLength}: ${fieldName}`)
 const FieldMaxLength = (fieldName: string, maxLength: number) => body(fieldName).trim().isLength({ max: maxLength }).withMessage(`Wrong length, too long ${maxLength}: ${fieldName}`)
 
+
 export const ValidBlogFields = [
     FieldNotEmpty("name"), FieldMinLength("name", 5), FieldMaxLength("name", 15),
     FieldNotEmpty("description"), FieldMinLength("description", 3),
@@ -44,6 +45,13 @@ export const ValidPostFields = [
     FieldNotEmpty("content"), FieldMinLength("content", 5), FieldMaxLength("content", 1000),
     FieldNotEmpty("blogId"), FieldMinLength("blogId", 1)
 ];
+export const BlogIdExist = body("blogId").custom(async idVal => {
+    let requestedData = await _BlogRepo.take(idVal);
+
+        if (!requestedData) {
+            throw new Error(`Wrong blogId: blogId`)
+        }
+})
 
 
 export const CheckFormatErrors =
@@ -68,13 +76,4 @@ export const CheckFormatErrors =
         }
         next()
     }
-    export const BlogIdExist =
-    async (request: RequestWithBody<RequestPostData>, response: Response, next: NextFunction) => {
-        let requestedData = await _BlogRepo.take(request.body.blogId);
-
-        if (!requestedData) {
-            response.sendStatus(404);
-            return;
-        }
-        next()
-    }
+  

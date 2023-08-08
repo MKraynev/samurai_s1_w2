@@ -26,8 +26,9 @@ postRouter.get("/:id",
 postRouter.post("",
     RequestAuthorized,
     ValidPostFields,
-    CheckFormatErrors,
     BlogIdExist,
+    CheckFormatErrors,
+    
     async (request: RequestWithBody<RequestPostData>, response: Response) => {
         let savedBlog = await _PostRepo.add(request.body);
         response.status(201).send(savedBlog);
@@ -37,6 +38,7 @@ postRouter.post("",
 postRouter.put("/:id",
     RequestAuthorized,
     ValidPostFields,
+    BlogIdExist,
     CheckFormatErrors,
     async (request: RequestWithParamsAndBody<{ id: string }, RequestPostData>, response: Response) => {
         let requestedId = request.params.id;
