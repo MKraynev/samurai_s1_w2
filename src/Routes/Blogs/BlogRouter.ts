@@ -38,7 +38,6 @@ blogRouter.post("",
 blogRouter.put("/:id",
     RequestAuthorized,
     ValidBlogFields,
-    BlogIdExist,
     CheckFormatErrors,
     async (request: RequestWithParamsAndBody<{ id: string }, RequestBlogData>, response: Response) => {
         let requestedId = request.params.id;
