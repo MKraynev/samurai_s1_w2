@@ -1,7 +1,7 @@
 import { Request, Response, Router } from "express";
 import { RequestPostData } from "../../Repos/Entities/Post";
 import { RequestWithBody, RequestWithParams, RequestWithParamsAndBody } from "../Types/Requests";
-import { CheckFormatErrors, RequestAuthorized, ValidPostFields } from "../Validation/RequestCheck";
+import { BlogIdExist, CheckFormatErrors, RequestAuthorized, ValidPostFields } from "../Validation/RequestCheck";
 import { _PostRepo } from "../../Repos/PostRepo";
 
 
@@ -27,6 +27,7 @@ postRouter.post("",
     RequestAuthorized,
     ValidPostFields,
     CheckFormatErrors,
+    BlogIdExist,
     async (request: RequestWithBody<RequestPostData>, response: Response) => {
         let savedBlog = await _PostRepo.add(request.body);
         response.status(201).send(savedBlog);

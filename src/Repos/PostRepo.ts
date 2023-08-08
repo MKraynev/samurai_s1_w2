@@ -38,8 +38,7 @@ class PostRepo implements IRepo<RequestPostData>{
             });
             
             if (addResult.acknowledged) {
-                //return new ResponsePostData(addResult.insertedId, extendedPostData);
-                return await this.take((addResult.insertedId).toString())
+                return new ResponsePostData(addResult.insertedId, extendedPostData);
             }
         }
         catch {
@@ -49,6 +48,7 @@ class PostRepo implements IRepo<RequestPostData>{
     async update(id: string, elementData: RequestPostData): Promise<boolean> {
         try {
             let {title, shortDescription, content, blogId} = elementData;
+            
             let updateResult = await _postCollection.updateOne({ _id: new ObjectId(id) }, { $set: {
                 "title": title,
                 "shortDescription" : shortDescription,

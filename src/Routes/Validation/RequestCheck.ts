@@ -3,6 +3,9 @@ import { ValidBase64Key, } from "../../Authorization/BasicAuthorization/BasicAut
 import { AuthorizationStatus } from "../../Authorization/IAuthorizer";
 import { header, body, validationResult } from "express-validator"
 import { ErrorLog } from "../../Errors/Error";
+import { _BlogRepo } from "../../Repos/BlogRepo";
+import { RequestPostData } from "../../Repos/Entities/Post";
+import { RequestWithBody } from "../Types/Requests";
 
 
 
@@ -61,6 +64,16 @@ export const CheckFormatErrors =
 
             })
             response.status(400).send(errors);
+            return;
+        }
+        next()
+    }
+    export const BlogIdExist =
+    async (request: RequestWithBody<RequestPostData>, response: Response, next: NextFunction) => {
+        let requestedData = await _BlogRepo.take(request.body.blogId);
+
+        if (!requestedData) {
+            response.sendStatus(404);
             return;
         }
         next()
