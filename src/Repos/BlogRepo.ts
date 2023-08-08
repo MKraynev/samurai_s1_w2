@@ -42,7 +42,7 @@ class BlogRepo implements IRepo<RequestBlogData>{
             
             let addResult = await _blogCollection.insertOne({
                 ...extendedBlogData,
-                
+                createdAt: new Date().toISOString()
             });
             if (addResult.acknowledged) {
                 //return new ResponseBlogData(addResult.insertedId, extendedBlogData);
