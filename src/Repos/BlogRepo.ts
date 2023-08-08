@@ -8,11 +8,13 @@ class BlogRepo implements IRepo<RequestBlogData>{
     async take(id: string): Promise<ResponseBlogData | null> {
         try {
             let foundedValue = await _blogCollection.findOne({ "_id": new ObjectId(id) })
-            if (foundedValue)
+            if (foundedValue !== null){
                 return new ResponseBlogData(foundedValue._id, foundedValue);
+            }
+                
         }
         catch {
-
+            return null;
         }
         return null;
     }

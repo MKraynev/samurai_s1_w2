@@ -8,11 +8,13 @@ class PostRepo implements IRepo<RequestPostData>{
     async take(id: string): Promise<ResponsePostData | null> {
         try {
             let foundedValue = await _postCollection.findOne({ "_id": new ObjectId(id) })
-            if (foundedValue !== null)
+            if (foundedValue !== null){
                 return new ResponsePostData(foundedValue._id, foundedValue);
+            }
+                
         }
         catch {
-
+            return null;
         }
         return null;
     }
