@@ -7,7 +7,8 @@ import { RequestPostData, RequestSavePostData, ResponsePostData } from "./Entiti
 class PostRepo implements IRepo<RequestPostData>{
     async take(id: string): Promise<ResponsePostData | null> {
         try {
-            let foundedValue = await _postCollection.findOne({ _id: new ObjectId(id) })
+            let objIdValue = new ObjectId(id);
+            let foundedValue = await _postCollection.findOne({ _id: objIdValue })
             if (foundedValue !== null) {
                 return new ResponsePostData(foundedValue._id, foundedValue);
             }
@@ -67,7 +68,8 @@ class PostRepo implements IRepo<RequestPostData>{
     }
     async delete(id: string): Promise<boolean> {
         try {
-            let delResult = await _postCollection.deleteOne({ _id: new ObjectId(id) })
+            let objIdValue = new ObjectId(id);
+            let delResult = await _postCollection.deleteOne({ _id: objIdValue })
             return delResult.acknowledged;
         }
         catch {

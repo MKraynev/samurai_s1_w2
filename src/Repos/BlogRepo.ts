@@ -7,7 +7,8 @@ import { IRepo } from "./Interfaces/IRepo";
 class BlogRepo implements IRepo<RequestBlogData>{
     async take(id: string): Promise<ResponseBlogData | null> {
         try {
-            let foundedValue = await _blogCollection.findOne({ _id: new ObjectId(id) })
+            let objIdValue = new ObjectId(id);
+            let foundedValue = await _blogCollection.findOne({ _id:  objIdValue})
             if (foundedValue !== null) {
                 return new ResponseBlogData(foundedValue._id, foundedValue);
             }
@@ -71,7 +72,8 @@ class BlogRepo implements IRepo<RequestBlogData>{
 
     async delete(id: string): Promise<boolean> {
         try {
-            let delResult = await _blogCollection.deleteOne({ _id: new ObjectId(id) })
+            let objIdValue = new ObjectId(id);
+            let delResult = await _blogCollection.deleteOne({ _id: objIdValue })
             return delResult.acknowledged;
         }
         catch {
