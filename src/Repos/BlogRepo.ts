@@ -74,7 +74,7 @@ class BlogRepo implements IRepo<RequestBlogData>{
         try {
             let objIdValue = new ObjectId(id);
             let delResult = await _blogCollection.deleteOne({ _id: objIdValue })
-            return delResult.acknowledged;
+            return delResult.deletedCount === 1;
         }
         catch {
         }

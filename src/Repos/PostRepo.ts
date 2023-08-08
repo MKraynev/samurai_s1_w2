@@ -70,7 +70,7 @@ class PostRepo implements IRepo<RequestPostData>{
         try {
             let objIdValue = new ObjectId(id);
             let delResult = await _postCollection.deleteOne({ _id: objIdValue })
-            return delResult.acknowledged;
+            return delResult.deletedCount === 1;
         }
         catch {
 

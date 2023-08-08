@@ -55,6 +55,7 @@ export const BlogIdExist = body("blogId").custom(async idVal => {
 })
 
 
+
 export const CheckFormatErrors =
     (request: Request<{}, {}, {}, {}>, response: Response, next: NextFunction) => {
         let errorResult = validationResult(request);
