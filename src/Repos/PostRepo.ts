@@ -80,6 +80,7 @@ class PostRepo implements IRepo<RequestPostData>{
     async __clear__(): Promise<boolean> {
         try {
             let delResult = await _postCollection.deleteMany({})
+
             return delResult.acknowledged;
         }
         catch {
