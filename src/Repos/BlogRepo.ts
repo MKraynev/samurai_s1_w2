@@ -8,11 +8,10 @@ class BlogRepo implements IRepo<RequestBlogData>{
     async take(id: string): Promise<ResponseBlogData | null> {
         try {
             let objIdValue = new ObjectId(id);
-            let foundedValue = await _blogCollection.findOne({ _id:  objIdValue})
+            let foundedValue = await _blogCollection.findOne({ _id: objIdValue })
             if (foundedValue !== null) {
                 return new ResponseBlogData(foundedValue._id, foundedValue);
             }
-
         }
         catch {
             return null;
@@ -31,6 +30,7 @@ class BlogRepo implements IRepo<RequestBlogData>{
             }
         }
         catch {
+            return blogs;
         }
         return blogs;
 
@@ -39,18 +39,13 @@ class BlogRepo implements IRepo<RequestBlogData>{
     async add(element: RequestSaveBlogData): Promise<ResponseBlogData | null> {
         try {
             let extendedBlogData = new RequestSaveBlogData(element);
-
-            let addResult = await _blogCollection.insertOne({
-                ...extendedBlogData,
-            });
+            let addResult = await _blogCollection.insertOne({...extendedBlogData});
 
             return new ResponseBlogData(addResult.insertedId, extendedBlogData);
-            //return await this.take((addResult.insertedId).toString())
-
         }
         catch {
+            return null;
         }
-        return null;
     }
 
     async update(id: string, elementData: RequestBlogData): Promise<boolean> {
@@ -66,8 +61,8 @@ class BlogRepo implements IRepo<RequestBlogData>{
             return updateResult.matchedCount === 1;
         }
         catch {
+            return false;
         }
-        return false;
     }
 
     async delete(id: string): Promise<boolean> {
@@ -77,8 +72,8 @@ class BlogRepo implements IRepo<RequestBlogData>{
             return delResult.deletedCount === 1;
         }
         catch {
+            return false;
         }
-        return false;
     }
 
     async __clear__(): Promise<boolean> {

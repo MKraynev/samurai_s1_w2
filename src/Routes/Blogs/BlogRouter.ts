@@ -1,7 +1,7 @@
 import { Request, Response, Router } from "express";
 import { RequestBlogData, RequestSaveBlogData } from "../../Repos/Entities/Blog";
 import { RequestWithBody, RequestWithParams, RequestWithParamsAndBody } from "../Types/Requests";
-import { BlogIdExist, CheckFormatErrors, RequestAuthorized, ValidBlogFields } from "../Validation/RequestCheck";
+import { CheckFormatErrors, RequestAuthorized, ValidBlogFields } from "../Validation/RequestCheck";
 import { _BlogRepo } from "../../Repos/BlogRepo";
 
 
@@ -60,7 +60,7 @@ blogRouter.delete("/:id",
 
         if (blogIsDeleted) {
             response.sendStatus(204);
-            return;
+            
         }
         else {
             response.sendStatus(404);

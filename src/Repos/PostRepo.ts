@@ -13,11 +13,11 @@ class PostRepo implements IRepo<RequestPostData>{
                 return new ResponsePostData(foundedValue._id, foundedValue);
             }
 
+            return null;
         }
         catch {
             return null;
         }
-        return null;
     }
     async takeAll(): Promise<RequestPostData[]> {
         let posts: ResponsePostData[] = [];
