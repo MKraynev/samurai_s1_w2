@@ -1,8 +1,8 @@
 import express from "express";
-import { blogRouter } from "./Routes/Blogs/BlogRouter";
-import { postRouter } from "./Routes/Posts/PostRouter";
-import { _TestClearAllRouter } from "./Routes/ClearAllRepo/clearAll";
-import { RunDB } from "./Repos/DB/MongoDB/MongoDbHandler";
+import { blogRouter } from "./_legacy/Routes/Blogs/BlogRouter";
+import { postRouter } from "./_legacy/Routes/Posts/PostRouter";
+import { _TestClearAllRouter } from "./_legacy/Routes/ClearAllRepo/clearAll";
+import { RunDB } from "./_legacy/Repos/DB/MongoDB/MongoDbHandler";
 
 
 export const BlogsPath = "/blogs";
