@@ -1,7 +1,7 @@
-import { IDataAccess } from "../../_Interfaces/IDataAccess";
-import { DataBase } from "../DataBase/DataBase";
-import { PageHandler } from "../DataManagment/PageHandler";
-import { Sorter } from "../DataManagment/Sorter";
+import { IDataAccess } from "../../../_Interfaces/IDataAccess";
+import { DataBase } from "../../DataBase/DataBase";
+import { PageHandler } from "../PageHandler";
+import { Sorter } from "../Sorter";
 
 export abstract class Repo<RequestDataPresentation, ResponseDataPresentation extends RequestDataPresentation>
     implements IDataAccess<RequestDataPresentation, ResponseDataPresentation>{
@@ -18,8 +18,8 @@ export abstract class Repo<RequestDataPresentation, ResponseDataPresentation ext
         return null;
     }
 
-    async TakeAll(sorter?: Sorter | undefined, pageHandler?: PageHandler | undefined): Promise<ResponseDataPresentation[] | null> {
-        let foundDbValues = await this.db.GetAll(this.tableName);
+    async TakeAll(sorter: Sorter<ResponseDataPresentation>, pageHandler: PageHandler): Promise<ResponseDataPresentation[] | null> {
+        let foundDbValues = await this.db.GetAll(this.tableName, sorter, pageHandler);
         if (foundDbValues) {
             let returnValues = foundDbValues.map(dbVal => this.ConvertTo(dbVal))
             return returnValues;
@@ -27,7 +27,7 @@ export abstract class Repo<RequestDataPresentation, ResponseDataPresentation ext
         return null;
     }
 
-    async TakeByKey(k: keyof ResponseDataPresentation, val: string, sorter?: Sorter | undefined, pageHandler?: PageHandler | undefined): Promise<ResponseDataPresentation[] | null> {
+    async TakeByKey(k: keyof ResponseDataPresentation, val: string, sorter?: Sorter<ResponseDataPresentation> | undefined, pageHandler?: PageHandler | undefined): Promise<ResponseDataPresentation[] | null> {
         let strKey = k.toString();
         let suitableDbValues = await this.db.GetContaining(this.tableName, strKey, val);
         if (suitableDbValues) {

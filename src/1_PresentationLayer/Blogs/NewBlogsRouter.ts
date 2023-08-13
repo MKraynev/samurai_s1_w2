@@ -1,9 +1,8 @@
 import { Router, Request, Response } from "express";
-import { _BlogRepo } from "../../_legacy/Repos/BlogRepo";
-import { Sorter } from "../../3_DataAccessLayer/_Classes/DataManagment/Sorter";
-import { PageHandler } from "../../3_DataAccessLayer/_Classes/DataManagment/PageHandler";
 import { RequestParser } from "../_Classes/RequestManagment/RequestParser";
 import { dataManager } from "../../2_BusinessLogicLayer/_Classes/DataManager";
+import { RequestWithBody, RequestWithParams } from "../_Types/RequestTypes";
+import { CheckFormatErrors, RequestAuthorized, ValidBlogFields } from "../../_legacy/Routes/Validation/RequestCheck";
 
 
 
@@ -11,8 +10,8 @@ export const blogRouter = Router();
 
 blogRouter.get("", async (request: Request, response: Response) => {
     
-    let searchParams = RequestParser.ReadQuery(Sorter, request);
-    let pageHandler = RequestParser.ReadQuery(PageHandler, request);
+    let searchParams = RequestParser.ReadQueryBlogSorter(request);
+    let pageHandler = RequestParser.ReadQueryPageHandle(request);
 
     let foundValues = await dataManager.blogRepo.TakeAll(searchParams, pageHandler);
     let returnValues = foundValues || [];
@@ -20,25 +19,26 @@ blogRouter.get("", async (request: Request, response: Response) => {
     response.status(200).send(returnValues)
 })
 
-// blogRouter.get("/:id",
-//     async (request: RequestWithParams<{ id: string }>, response: Response) => {
-//         // 
-//         // let requestedData = await _BlogRepo.take(requestedId);
+blogRouter.get("/:id",
+    async (request: RequestWithParams<{ id: string }>, response: Response) => {
+        
+        let foundValue = await dataManager.blogRepo.TakeCertain(request.params.id);
+        if(foundValue){
+            response.status(200).send(foundValue);
+        }
+        else{
+            response.sendStatus(404);
+        }
 
-//         // if (requestedData === null) {
-//         //     response.sendStatus(404);
-//         //     return;
-//         // }
-//         // response.status(200).send(requestedData);
-//     })
+    })
 
 // blogRouter.post("",
 //     RequestAuthorized,
 //     ValidBlogFields,
 //     CheckFormatErrors,
-//     async (request: RequestWithBody<RequestSaveBlogData>, response: Response) => {
-//         // let savedBlog = await _BlogRepo.add(request.body);
-//         // response.status(201).send(savedBlog);
+//     async (request: Request, response: Response) => {
+//         let savedBlog = await dataManager.blogRepo.
+//         response.status(201).send(savedBlog);
 //     })
 
 

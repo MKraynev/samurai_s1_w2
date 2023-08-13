@@ -14,12 +14,12 @@ class DataManager {
     async Run(): Promise<boolean> {
         let repoRunStatuses: boolean[] = [];
         repoRunStatuses.push(await this.blogRepo.RunDb());
-        let positiveConnectionStatus = repoRunStatuses.includes(false);
+        let ConnectionFailed = repoRunStatuses.includes(false);
 
-        // if(!positiveConnectionStatus){
-        //     console.log("Data manager: db connection failed");
-        // }
-        return positiveConnectionStatus;
+        if(ConnectionFailed){
+            console.log("Data manager: db connection failed");
+        }
+        return ConnectionFailed;
     }
 
 }

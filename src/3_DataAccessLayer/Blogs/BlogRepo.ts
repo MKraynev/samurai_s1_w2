@@ -1,7 +1,7 @@
 import { WithId } from "mongodb";
 import { BlogRequest } from "../../1_PresentationLayer/_Classes/Data/BlogForRequest";
 import { BlogResponse } from "../../2_BusinessLogicLayer/_Classes/Data/BlogForResponse";
-import { Repo } from "../_Classes/Repo/Repo"
+import { Repo } from "../_Classes/DataManagment/Repo/Repo"
 
 export class BlogRepo extends Repo<BlogRequest, BlogResponse>{
     ConvertTo(dbValue: any): BlogResponse {
