@@ -1,6 +1,6 @@
 import { Request, Response, NextFunction, response } from "express";
-import { ValidBase64Key, } from "../../../Authorization/BasicAuthorization/BasicAuthorization";
-import { AuthorizationStatus } from "../../../Authorization/IAuthorizer";
+import { ValidBase64Key, } from "../../Authorization/BasicAuthorization/BasicAuthorization";
+import { AuthorizationStatus } from "../../Authorization/IAuthorizer";
 import { header, body, validationResult } from "express-validator"
 import { ErrorLog } from "../../Errors/Error";
 import { _BlogRepo } from "../../Repos/BlogRepo";

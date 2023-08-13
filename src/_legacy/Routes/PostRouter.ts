@@ -1,8 +1,8 @@
 import { Request, Response, Router } from "express";
-import { RequestPostData } from "../../Repos/Entities/Post";
-import { RequestWithBody, RequestWithParams, RequestWithParamsAndBody } from "../Types/Requests";
-import { BlogIdExist, CheckFormatErrors, RequestAuthorized, ValidPostFields } from "../Validation/RequestCheck";
-import { _PostRepo } from "../../Repos/PostRepo";
+import { RequestPostData } from "../Repos/Entities/Post";
+import { RequestWithBody, RequestWithParams, RequestWithParamsAndBody } from "./Types/Requests";
+import { BlogIdExist, CheckFormatErrors, RequestAuthorized, ValidPostFields } from "./Validation/RequestCheck";
+import { _PostRepo } from "../Repos/PostRepo";
 
 
 export const postRouter = Router();
