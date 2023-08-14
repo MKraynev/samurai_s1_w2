@@ -1,3 +1,4 @@
+import { isDeleteExpression } from "typescript";
 import { ResponseBlogData } from "../../../../_legacy/Repos/Entities/Blog";
 import { IDataAccess } from "../../../_Interfaces/IDataAccess";
 import { Paged } from "../../../_Types/Paged";
@@ -45,6 +46,12 @@ export abstract class Repo<RequestDataPresentation, ResponseDataPresentation ext
         let returnResult = this.ConvertFrom(updatedResult);
 
         return returnResult;
+    }
+
+    async DeleteCertain(id: string): Promise<boolean> {
+        let delResult = await this.db.Delete(this.tableName, id);
+        return delResult;
+
     }
 
 

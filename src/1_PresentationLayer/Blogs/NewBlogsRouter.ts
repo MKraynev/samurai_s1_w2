@@ -66,20 +66,19 @@ blogRouter.put("/:id",
         response.sendStatus(404);
     })
 
-// blogRouter.delete("/:id",
-//     RequestAuthorized,
-//     CheckFormatErrors,
-//     async (request: RequestWithParams<{ id: string }>, response: Response) => {
-//         // let idVal = request.params.id;
+blogRouter.delete("/:id",
+    RequestAuthorized,
+    CheckFormatErrors,
+    async (request: RequestWithParams<{ id: string }>, response: Response) => {
+        let idVal = request.params.id;
 
-//         // let blogIsDeleted = await _BlogRepo.delete(idVal);
+        let blogIsDeleted = await dataManager.blogRepo.DeleteCertain(idVal);
 
-//         // if (blogIsDeleted) {
-//         //     response.sendStatus(204);
-
-//         // }
-//         // else {
-//         //     response.sendStatus(404);
-//         // }
-//     })
+        if (blogIsDeleted) {
+            response.sendStatus(204);
+        }
+        else {
+            response.sendStatus(404);
+        }
+    })
 

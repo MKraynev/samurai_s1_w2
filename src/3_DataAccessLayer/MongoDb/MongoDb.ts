@@ -14,6 +14,7 @@ type MongoSearch = {
 
 
 class MongoDb extends DataBase {
+
     private _dbIsRunning = false;
     private _client: MongoClient;
     private _db: Db;
@@ -36,12 +37,6 @@ class MongoDb extends DataBase {
         }
 
     }
-
-    // async GetContaining(tableName: string, key: string, containingValue: string): Promise<Paged<any[]> | null> {
-    //     let values = await this._db.collection(tableName).find({ key: { $regex: containingValue } }).toArray());
-    // }
-
-
 
     async GetAll(tableName: string, sorter: BlogSorter, pageHandler: PageHandler): Promise<[PageHandler, any]> {
         let collectionSize = await this.GetSize(tableName);
@@ -93,6 +88,17 @@ class MongoDb extends DataBase {
         }
     }
 
+
+    async Delete(tableName: string, id: string): Promise<boolean> {
+        try {
+            let dbId = new ObjectId(id);
+            let deleteResult = await this._db.collection(tableName).deleteOne({ _id: dbId })
+            return deleteResult.deletedCount === 1;
+        }
+        catch {
+            return false;
+        }
+    }
 
     async RunDb(): Promise<boolean> {
         if (this._dbIsRunning) {
