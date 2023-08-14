@@ -6,6 +6,7 @@ export const _NewTestClearAllRouter = Router();
 
 _NewTestClearAllRouter.delete("", async (request: Request, response: Response) => {
     let deleteResult = await dataManager.blogRepo.DeleteMany();
+    deleteResult = await dataManager.postRepo.DeleteMany() && deleteResult;
     if (deleteResult) {
         response.sendStatus(204)
     }

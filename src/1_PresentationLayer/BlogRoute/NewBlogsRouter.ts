@@ -45,7 +45,7 @@ blogRouter.post("",
             response.status(201).send(savedBlog);
         }
         else {
-            response.sendStatus(505);
+            response.sendStatus(400);
         }
     })
 
@@ -72,9 +72,9 @@ blogRouter.delete("/:id",
     async (request: RequestWithParams<{ id: string }>, response: Response) => {
         let idVal = request.params.id;
 
-        let blogIsDeleted = await dataManager.blogRepo.DeleteCertain(idVal);
+        let blogDeleted = await dataManager.blogRepo.DeleteCertain(idVal);
 
-        if (blogIsDeleted) {
+        if (blogDeleted) {
             response.sendStatus(204);
         }
         else {
