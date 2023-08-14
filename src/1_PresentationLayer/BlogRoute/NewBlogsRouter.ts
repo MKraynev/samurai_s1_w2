@@ -77,17 +77,18 @@ blogRouter.post("/:id/posts",
     CheckFormatErrors,
     async (request: CompleteRequest<{ id: string }, PostRequest, {}>, response: Response) => {
         let blogId = request.params.id;
-        let reqPost = new PostRequest(request.body.title, request.body.shortDescription, request.body.content, blogId)
+        
 
         let existedBlog = await dataManager.blogRepo.TakeCertain(blogId);
         if (existedBlog) {
+            let reqPost = new PostRequest(request.body.title, request.body.shortDescription, request.body.content, blogId, existedBlog.name)
             let savedPost = await dataManager.postRepo.Save(reqPost);
             if (savedPost) {
                 response.status(201).send(savedPost);
                 return;
             }
         }
-        response.sendStatus(400);
+        response.sendStatus(404);
     })
 
 

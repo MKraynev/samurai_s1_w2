@@ -36,12 +36,13 @@ postRouter.post("",
     ValidPostFields,
     CheckFormatErrors,
     async (request: RequestWithBody<PostRequest>, response: Response) => {
-        let reqObj = new PostRequest(
-            request.body.title, request.body.shortDescription, request.body.content, request.body.blogId);
+
 
 
         let existedBlog = await dataManager.blogRepo.TakeCertain(request.body.blogId);
         if (existedBlog) {
+            let reqObj = new PostRequest(
+                request.body.title, request.body.shortDescription, request.body.content, request.body.blogId, existedBlog.name);
             //Blog exist
             let savedPost = await dataManager.postRepo.Save(reqObj);
             if (savedPost) {
@@ -57,15 +58,18 @@ postRouter.put("/:id",
     ValidPostFields,
     CheckFormatErrors,
     async (request: CompleteRequest<{ id: string }, PostRequest, {}>, response: Response) => {
-        let reqData: PostRequest = new PostRequest(
-            request.body.title, request.body.shortDescription, request.body.content, request.body.blogId)
-
         let requestedId = request.params.id;
-        let updateResultIsPositive = await dataManager.postRepo.Update(requestedId, reqData);
+        let existedBlog = await dataManager.blogRepo.TakeCertain(requestedId);
+        if (existedBlog) {
+            let reqData: PostRequest = new PostRequest(
+                request.body.title, request.body.shortDescription, request.body.content, request.body.blogId, existedBlog.name)
 
-        if (updateResultIsPositive) {
-            response.sendStatus(204);
-            return;
+            let updateResultIsPositive = await dataManager.postRepo.Update(requestedId, reqData);
+
+            if (updateResultIsPositive) {
+                response.sendStatus(204);
+                return;
+            }
         }
         response.sendStatus(404);
     })
