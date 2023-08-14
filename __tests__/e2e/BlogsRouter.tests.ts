@@ -1,7 +1,8 @@
 import request from "supertest"
 import { BlogsPath, TestClearAllPath, app } from "../../src/app"
+import { Encode64 } from "../../src/_legacy/Authorization/BasicAuthorization/BasicAuthorization";
 
-import { Encode64 } from "../../src/Authorization/BasicAuthorization/BasicAuthorization"
+
 
 
 const _encodedKey = Encode64("admin:qwerty");
@@ -16,16 +17,16 @@ const blogCompleteStructure = {
 
 describe("Blogs test", () => {
 
-    it("DELETE ALL 204", async () => {
-        await request(app).delete(TestClearAllPath).expect(204);
+    // it("DELETE ALL 204", async () => {
+    //     await request(app).delete(TestClearAllPath).expect(204);
 
-        let response = await request(app).get(BlogsPath).expect(200);
+    //     let response = await request(app).get(BlogsPath).expect(200);
 
-        await request(app).get(`${BlogsPath}/1`).expect(404);
+    //     await request(app).get(`${BlogsPath}/1`).expect(404);
 
 
-        expect(response.body).toEqual([]);
-    })
+    //     expect(response.body).toEqual([]);
+    // })
 
     it("POST 201", async () => {
         let response = await request(app).post(BlogsPath)

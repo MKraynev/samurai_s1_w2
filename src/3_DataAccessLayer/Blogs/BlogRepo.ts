@@ -2,11 +2,13 @@ import { WithId } from "mongodb";
 import { BlogRequest } from "../../1_PresentationLayer/_Classes/Data/BlogForRequest";
 import { BlogResponse } from "../../2_BusinessLogicLayer/_Classes/Data/BlogForResponse";
 import { Repo } from "../_Classes/DataManagment/Repo/Repo"
+import { BlogDataBase } from "../_Classes/Data/BlogForBd";
 
-export class BlogRepo extends Repo<BlogRequest, BlogResponse>{
-    ConvertTo(dbValue: any): BlogResponse {
-        let id = dbValue._id.toString();
-        let {name, description, websiteUrl, createdAt, isMembership} = dbValue;
-        return new BlogResponse(id, name, description, websiteUrl, createdAt, isMembership);
+export class BlogRepo extends Repo<BlogRequest, BlogResponse | BlogDataBase>{
+    ConvertFrom(dbValue: WithId<BlogDataBase>): BlogResponse {
+        return new BlogResponse(dbValue._id, dbValue)
+    }
+    ConvertTo(dbValue: BlogRequest): BlogDataBase {
+        return new BlogDataBase(dbValue);
     }
 }

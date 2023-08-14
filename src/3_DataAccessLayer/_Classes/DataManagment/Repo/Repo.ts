@@ -1,3 +1,4 @@
+import { ResponseBlogData } from "../../../../_legacy/Repos/Entities/Blog";
 import { IDataAccess } from "../../../_Interfaces/IDataAccess";
 import { DataBase } from "../../DataBase/DataBase";
 import { PageHandler } from "../PageHandler";
@@ -8,6 +9,7 @@ export abstract class Repo<RequestDataPresentation, ResponseDataPresentation ext
 
 
     constructor(private db: DataBase, private tableName: string) { }
+    
 
     async TakeCertain(id: string): Promise<ResponseDataPresentation | null> {
         let dbValue = await this.db.GetById(this.tableName, id);
@@ -35,10 +37,20 @@ export abstract class Repo<RequestDataPresentation, ResponseDataPresentation ext
         }
         return null;
     }
+    
+    async Post(reqObj: RequestDataPresentation): Promise<ResponseDataPresentation | null> {
+        let dataForDb = this.ConvertTo(reqObj);
+        let saveResult = await this.db.Post(this.tableName, dataForDb);
+        let returnResult = this.ConvertFrom(saveResult);
+        return returnResult;
+    }
 
+    
     async RunDb(): Promise<boolean>{
         return await this.db.RunDb();
     }
     
-    abstract ConvertTo(dbValue: any): ResponseDataPresentation;
+    abstract ConvertFrom(dbValue: any): ResponseDataPresentation;
+    abstract ConvertTo(reqValue: RequestDataPresentation): ResponseDataPresentation;
+    
 }

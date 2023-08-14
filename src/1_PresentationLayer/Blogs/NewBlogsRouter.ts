@@ -3,6 +3,7 @@ import { RequestParser } from "../_Classes/RequestManagment/RequestParser";
 import { dataManager } from "../../2_BusinessLogicLayer/_Classes/DataManager";
 import { RequestWithBody, RequestWithParams } from "../_Types/RequestTypes";
 import { CheckFormatErrors, RequestAuthorized, ValidBlogFields } from "../../_legacy/Routes/Validation/RequestCheck";
+import { BlogRequest } from "../_Classes/Data/BlogForRequest";
 
 
 
@@ -32,14 +33,21 @@ blogRouter.get("/:id",
 
     })
 
-// blogRouter.post("",
-//     RequestAuthorized,
-//     ValidBlogFields,
-//     CheckFormatErrors,
-//     async (request: Request, response: Response) => {
-//         let savedBlog = await dataManager.blogRepo.
-//         response.status(201).send(savedBlog);
-//     })
+blogRouter.post("",
+    RequestAuthorized,
+    ValidBlogFields,
+    CheckFormatErrors,
+    async (request: RequestWithBody<BlogRequest>, response: Response) => {
+        let reqObj = new BlogRequest(request.body.name, request.body.description, request.body.websiteUrl);
+
+        let savedBlog = await dataManager.blogRepo.Post(reqObj);
+        if(savedBlog){
+            response.status(201).send(savedBlog);
+        }
+        else{
+            response.sendStatus(505);
+        }
+    })
 
 
 // blogRouter.put("/:id",

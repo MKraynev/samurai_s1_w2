@@ -4,6 +4,7 @@ import dotenv from "dotenv"
 import { Sorter } from "../_Classes/DataManagment/Sorter";
 import { PageHandler } from "../_Classes/DataManagment/PageHandler";
 import { BlogSorter } from "../Blogs/BlogSorter";
+import { ResponseBlogData } from "../../_legacy/Repos/Entities/Blog";
 dotenv.config();
 
 type MongoSearch = {
@@ -12,6 +13,7 @@ type MongoSearch = {
 
 
 class MongoDb extends DataBase {
+    
     private _dbIsRunning = false;
     private _client: MongoClient;
     private _db: Db;
@@ -53,6 +55,19 @@ class MongoDb extends DataBase {
             .skip(skipVal)
             .limit(pageHandler.pageSize)
             .toArray());
+    }
+
+    async Post(tableName: string, obj: any): Promise<any | null> {
+        try{
+            let postResult = await this._db.collection(tableName).insertOne(obj);
+            return {
+                id: postResult.insertedId.toString(),
+                ...obj
+            }
+        }
+        catch{
+            return null;
+        }
     }
 
     async RunDb(): Promise<boolean> {

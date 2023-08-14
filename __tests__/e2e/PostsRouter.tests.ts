@@ -1,6 +1,7 @@
 import request from "supertest"
 import { PostsPath, TestClearAllPath, app } from "../../src/app"
-import { Encode64 } from "../../src/Authorization/BasicAuthorization/BasicAuthorization"
+import { Encode64 } from "../../src/_legacy/Authorization/BasicAuthorization/BasicAuthorization";
+
 
 
 const _encodedKey = Encode64("admin:qwerty");

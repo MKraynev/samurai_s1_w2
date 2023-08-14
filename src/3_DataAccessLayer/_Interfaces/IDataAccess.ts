@@ -7,5 +7,6 @@ export interface IDataAccess<RequestDataPresentation, ResponseDataPresentation e
     //Принимает ключ, подстроку значения ключа, сортировщик и управление страницами
     TakeByKey<Key extends keyof ResponseDataPresentation>(k: Key , val: string, sorter?: Sorter<ResponseDataPresentation>, pageHandler?: PageHandler): Promise<ResponseDataPresentation[]| null>;
 
+    Post(reqObj: RequestDataPresentation) : Promise<ResponseDataPresentation | null>;
     
 }
