@@ -5,7 +5,7 @@ import { BlogDataBase } from "../../../3_DataAccessLayer/_Classes/Data/BlogForBd
 export class BlogResponse extends BlogDataBase {
     public id: string;
     constructor(id: ObjectId, blog: BlogDataBase) {
-        super(blog);
+        super(blog, blog.createdAt, blog.isMembership);
         this.id = id.toString();
     }
 }
