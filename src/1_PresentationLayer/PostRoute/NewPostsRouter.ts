@@ -58,13 +58,15 @@ postRouter.put("/:id",
     ValidPostFields,
     CheckFormatErrors,
     async (request: CompleteRequest<{ id: string }, PostRequest, {}>, response: Response) => {
-        let requestedId = request.params.id;
-        let existedBlog = await dataManager.blogRepo.TakeCertain(requestedId);
+        let requestedBlogId = request.body.blogId;
+        let requestedPostId = request.params.id;
+
+        let existedBlog = await dataManager.blogRepo.TakeCertain(requestedBlogId);
         if (existedBlog) {
             let reqData: PostRequest = new PostRequest(
                 request.body.title, request.body.shortDescription, request.body.content, request.body.blogId, existedBlog.name)
 
-            let updateResultIsPositive = await dataManager.postRepo.Update(requestedId, reqData);
+            let updateResultIsPositive = await dataManager.postRepo.Update(requestedPostId, reqData);
 
             if (updateResultIsPositive) {
                 response.sendStatus(204);
