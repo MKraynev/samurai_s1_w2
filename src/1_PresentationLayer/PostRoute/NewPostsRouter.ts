@@ -39,13 +39,18 @@ postRouter.post("",
         let reqObj = new PostRequest(
             request.body.title, request.body.shortDescription, request.body.content, request.body.blogId);
 
-        let savedPost = await dataManager.postRepo.Save(reqObj);
-        if (savedPost) {
-            response.status(201).send(savedPost);
+
+        let existedBlog = await dataManager.blogRepo.TakeCertain(request.body.blogId);
+        if (existedBlog) {
+            //Blog exist
+            let savedPost = await dataManager.postRepo.Save(reqObj);
+            if (savedPost) {
+                response.status(201).send(savedPost);
+                return;
+            }
         }
-        else {
-            response.sendStatus(400);
-        }
+        response.sendStatus(404);
+
     })
 postRouter.put("/:id",
     RequestAuthorized,

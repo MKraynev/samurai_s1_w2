@@ -2,7 +2,7 @@ import { Router, Request, Response } from "express";
 import { RequestParser } from "../_Classes/RequestManagment/RequestParser";
 import { dataManager } from "../../2_BusinessLogicLayer/_Classes/DataManager";
 import { CompleteRequest, RequestWithBody, RequestWithParams } from "../_Types/RequestTypes";
-import { CheckFormatErrors, RequestAuthorized, ValidBlogFields, ValidPostFields } from "../../_legacy/Routes/Validation/RequestCheck";
+import { CheckFormatErrors, RequestAuthorized, ValidBlogFields, ValidPostFields, ValidPostFieldsLight } from "../../_legacy/Routes/Validation/RequestCheck";
 import { BlogRequest } from "../_Classes/Data/BlogForRequest";
 import { PostSorter } from "../../3_DataAccessLayer/Posts/PostSorter";
 import { SorterType } from "../../3_DataAccessLayer/_Classes/DataManagment/Sorter";
@@ -73,7 +73,7 @@ blogRouter.post("",
 
     blogRouter.post("/:id/posts",
     RequestAuthorized,
-    ValidPostFields,
+    ValidPostFieldsLight,
     CheckFormatErrors,
     async (request: CompleteRequest<{ id: string }, PostRequest, {}>, response: Response) => {
        let blogId = request.params.id;
