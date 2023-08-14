@@ -10,6 +10,7 @@ export abstract class DataBase {
     abstract Post(tableName: string, obj: any): Promise<any | null>;
     abstract Put(tableName: string, id: string, obj: any): Promise<any | null>;
     abstract Delete(tableName: string, id: string): Promise<any | null>;
+    abstract DeleteAll(tableName: string): Promise<boolean>;
 
     abstract RunDb(): Promise<boolean>;
 }

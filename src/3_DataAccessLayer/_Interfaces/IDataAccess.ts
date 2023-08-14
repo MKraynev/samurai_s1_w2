@@ -9,4 +9,5 @@ export interface IDataAccess<RequestDataPresentation, ResponseDataPresentation e
     Save(reqObj: RequestDataPresentation): Promise<ResponseDataPresentation | null>;
     Update(id: string, reqObj: RequestDataPresentation): Promise<ResponseDataPresentation | null>;
     DeleteCertain(id: string): Promise<boolean>;
+    DeleteMany(): Promise<boolean>;
 }

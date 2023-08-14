@@ -54,6 +54,11 @@ export abstract class Repo<RequestDataPresentation, ResponseDataPresentation ext
 
     }
 
+    async DeleteMany(): Promise<boolean> {
+        let delRes = await this.db.DeleteAll(this.tableName);
+
+        return delRes;
+    }
 
     async RunDb(): Promise<boolean> {
         return await this.db.RunDb();
