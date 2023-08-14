@@ -1,11 +1,12 @@
 import { Db, MongoClient, ObjectId, Sort, SortDirection } from "mongodb";
 import { DataBase } from "../_Classes/DataBase/DataBase";
 import dotenv from "dotenv"
-import { Sorter } from "../_Classes/DataManagment/Sorter";
+import { Sorter, SorterType } from "../_Classes/DataManagment/Sorter";
 import { PageHandler } from "../_Classes/DataManagment/PageHandler";
 import { BlogSorter } from "../Blogs/BlogSorter";
 import { ResponseBlogData } from "../../_legacy/Repos/Entities/Blog";
 import { Paged } from "../_Types/Paged";
+import { PostSorter } from "../Posts/PostSorter";
 dotenv.config();
 
 type MongoSearch = {
@@ -38,7 +39,7 @@ class MongoDb extends DataBase {
 
     }
 
-    async GetAll(tableName: string, sorter: BlogSorter, pageHandler: PageHandler): Promise<[PageHandler, any]> {
+    async GetAll(tableName: string, sorter: BlogSorter | PostSorter, pageHandler: PageHandler): Promise<[PageHandler, any]> {
         let collectionSize = await this.GetSize(tableName);
         let searchPattert = this.BuildMobgoSearcher(sorter);
         let mongoSorter = this.BuildMongoSorter(sorter);
@@ -130,23 +131,50 @@ class MongoDb extends DataBase {
         }
     }
 
-    private BuildMongoSorter(sorter: BlogSorter): Sort {
-        let sortName = sorter.sortBy;
+    private BuildMongoSorter(sorter: BlogSorter | PostSorter): Sort {
         let sortDir: SortDirection = sorter.sortDirection;
-
         let mongoSorter: Sort = {};
-        mongoSorter[sortName] = sortDir;
+
+        switch (sorter.sorterType) {
+            case SorterType.BlogSorter:
+                sorter = sorter as BlogSorter;
+                mongoSorter[sorter.sortBy] = sortDir;
+                break;
+
+            case SorterType.PostSorter:
+                sorter = sorter as PostSorter;
+                mongoSorter[sorter.sortBy] = sortDir;
+                break;
+        }
+
         return mongoSorter;
     }
 
-    private BuildMobgoSearcher(sorter: BlogSorter): MongoSearch {
-        if (sorter.searchNameTerm) {
-            let searcher: MongoSearch = {
-                "name": { $regex: sorter.searchNameTerm }
-            }
-            return searcher;
+    private BuildMobgoSearcher(sorter: BlogSorter | PostSorter): MongoSearch {
+        switch (sorter.sorterType) {
+            case SorterType.BlogSorter:
+                sorter = sorter as BlogSorter;
+                if (sorter.searchNameTerm) {
+                    let searcher: MongoSearch = {
+                        "name": { $regex: sorter.searchNameTerm }
+                    }
+                    return searcher;
+                }
+                return {};
+                break;
+
+            case SorterType.PostSorter:
+                sorter = sorter as PostSorter;
+                if (sorter.searchBlogId) {
+                    let searcher: MongoSearch = {
+                        "blogId": { $regex: sorter.searchBlogId }
+                    }
+                    return searcher;
+                }
+                return {}
+                break;
         }
-        return {};
+
     }
     private async GetSize(tableName: string): Promise<number> {
         return await this._db.collection(tableName).count();

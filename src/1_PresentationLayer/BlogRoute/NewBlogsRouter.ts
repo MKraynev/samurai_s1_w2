@@ -4,6 +4,8 @@ import { dataManager } from "../../2_BusinessLogicLayer/_Classes/DataManager";
 import { CompleteRequest, RequestWithBody, RequestWithParams } from "../_Types/RequestTypes";
 import { CheckFormatErrors, RequestAuthorized, ValidBlogFields } from "../../_legacy/Routes/Validation/RequestCheck";
 import { BlogRequest } from "../_Classes/Data/BlogForRequest";
+import { PostSorter } from "../../3_DataAccessLayer/Posts/PostSorter";
+import { SorterType } from "../../3_DataAccessLayer/_Classes/DataManagment/Sorter";
 
 
 
@@ -33,6 +35,25 @@ blogRouter.get("/:id",
 
     })
 
+blogRouter.get("/:id/posts",
+    async (request: RequestWithParams<{ id: string }>, response: Response) => {
+        let reqId = request.params.id;
+
+        //Для запроса создаем объект PostSorter
+        let postSorter = new PostSorter(SorterType.PostSorter, reqId, "blogId")
+        let pageHandler = RequestParser.ReadQueryPageHandle(request);
+
+        let foundValue = dataManager.postRepo.TakeAll(postSorter, pageHandler)
+
+        if (foundValue) {
+            response.status(200).send(foundValue);
+        }
+        else {
+            response.sendStatus(404);
+        }
+
+    })
+
 blogRouter.post("",
     RequestAuthorized,
     ValidBlogFields,
@@ -48,6 +69,7 @@ blogRouter.post("",
             response.sendStatus(400);
         }
     })
+
 
 
 blogRouter.put("/:id",
