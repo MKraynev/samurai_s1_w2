@@ -40,19 +40,18 @@ blogRouter.get("/:id/posts",
     async (request: RequestWithParams<{ id: string }>, response: Response) => {
         let reqId = request.params.id;
 
-        //Для запроса создаем объект PostSorter
-        let postSorter = new PostSorter(SorterType.PostSorter, reqId, "blogId")
-        let pageHandler = RequestParser.ReadQueryPageHandle(request);
+        let existedBlog = await dataManager.blogRepo.TakeCertain(reqId);
+        if (existedBlog) {
+            //Для запроса создаем объект PostSorter
+            let postSorter = new PostSorter(SorterType.PostSorter, reqId, "blogId")
+            let pageHandler = RequestParser.ReadQueryPageHandle(request);
+            let foundValue = await dataManager.postRepo.TakeAll(postSorter, pageHandler)
 
-        let foundValue = dataManager.postRepo.TakeAll(postSorter, pageHandler)
-
-        if (foundValue) {
             response.status(200).send(foundValue);
-        }
-        else {
-            response.sendStatus(404);
-        }
+            return;
 
+        }
+        response.sendStatus(404);
     })
 
 blogRouter.post("",
@@ -77,7 +76,7 @@ blogRouter.post("/:id/posts",
     CheckFormatErrors,
     async (request: CompleteRequest<{ id: string }, PostRequest, {}>, response: Response) => {
         let blogId = request.params.id;
-        
+
 
         let existedBlog = await dataManager.blogRepo.TakeCertain(blogId);
         if (existedBlog) {
