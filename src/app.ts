@@ -8,6 +8,7 @@ import express from "express";
 import { blogRouter } from "./1_PresentationLayer/BlogRoute/NewBlogsRouter";
 import { dataManager } from "./2_BusinessLogicLayer/_Classes/DataManager";
 import { _NewTestClearAllRouter } from "./1_PresentationLayer/TestRoute/NewTestRouter";
+import { postRouter } from "./1_PresentationLayer/PostRoute/NewPostsRouter";
 
 
 
@@ -28,6 +29,7 @@ app.use(express.json());
 
 //version s1w4
 app.use(BlogsPath, blogRouter);
+app.use(PostsPath, postRouter);
 app.use(TestClearAllPath, _NewTestClearAllRouter)
 
 const PORT: number = 5001;

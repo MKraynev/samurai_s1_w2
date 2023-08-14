@@ -15,7 +15,7 @@ export abstract class Repo<RequestDataPresentation, ResponseDataPresentation ext
     async TakeCertain(id: string): Promise<ResponseDataPresentation | null> {
         let dbValue = await this.db.GetById(this.tableName, id);
         if (dbValue) {
-            let rerurnValue = this.ConvertTo(dbValue);
+            let rerurnValue = this.ConvertFrom(dbValue);
             return rerurnValue;
         }
         return null;

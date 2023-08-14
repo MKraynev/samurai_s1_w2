@@ -3,6 +3,8 @@ import { Sorter } from "../../../3_DataAccessLayer/_Classes/DataManagment/Sorter
 import { BlogSorter } from "../../../3_DataAccessLayer/Blogs/BlogSorter";
 import { BlogResponse } from "../../../2_BusinessLogicLayer/_Classes/Data/BlogForResponse";
 import { PageHandler } from "../../../3_DataAccessLayer/_Classes/DataManagment/PageHandler";
+import { PostResponse } from "../../../2_BusinessLogicLayer/_Classes/Data/PostForResponse";
+import { Sort } from "mongodb";
 
 export class RequestParser {
     static ReadQueryBlogSorter(request: Request): BlogSorter {
@@ -11,23 +13,33 @@ export class RequestParser {
         let sortDirection: string | undefined = request.query.sortDirection as string | undefined;
 
         return new BlogSorter(
-            searchNameTerm? searchNameTerm : null,
-            sortBy? sortBy: "createdAt",
-            sortDirection == "asc" || sortDirection == "desc"? sortDirection : undefined
+            searchNameTerm ? searchNameTerm : null,
+            sortBy ? sortBy : "createdAt",
+            sortDirection == "asc" || sortDirection == "desc" ? sortDirection : undefined
+        )
+    }
+    static ReadQueryPostSorter(request: Request): Sorter<any> {
+        let sortBy: keyof PostResponse & string | undefined = request.query.sortBy as keyof PostResponse & string | undefined;
+        let sortDirection: string | undefined = request.query.sortDirection as string | undefined;
+
+        return new Sorter(
+            sortBy ? sortBy : "createdAt",
+            sortDirection == "asc" || sortDirection == "desc" ? sortDirection : undefined
         )
     }
 
-    static ReadQueryPageHandle(request: Request): PageHandler{
+
+    static ReadQueryPageHandle(request: Request): PageHandler {
         let strPageNumber = request.query.pageNumber as string | undefined;
         let strPageSize = request.query.pageSize as string;
-        let pageNumber = Number.parseInt(strPageNumber?strPageNumber : "");
-        let pageSize = Number.parseInt(strPageSize?strPageSize : "");
+        let pageNumber = Number.parseInt(strPageNumber ? strPageNumber : "");
+        let pageSize = Number.parseInt(strPageSize ? strPageSize : "");
 
         return new PageHandler(
-            isNaN(pageNumber)? undefined: pageNumber,
-            isNaN(pageSize)? undefined: pageSize
+            isNaN(pageNumber) ? undefined : pageNumber,
+            isNaN(pageSize) ? undefined : pageSize
         )
     }
-    
+
 
 }
