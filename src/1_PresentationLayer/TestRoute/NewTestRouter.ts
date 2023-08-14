@@ -4,6 +4,12 @@ import { dataManager } from "../../2_BusinessLogicLayer/_Classes/DataManager";
 
 export const _NewTestClearAllRouter = Router();
 
-_NewTestClearAllRouter.delete("", (request: Request, response: Response) => {
-    dataManager.blogRepo.DeleteMany();
+_NewTestClearAllRouter.delete("", async (request: Request, response: Response) => {
+    let deleteResult = await dataManager.blogRepo.DeleteMany();
+    if (deleteResult) {
+        response.sendStatus(204)
+    }
+    else {
+        response.sendStatus(404)
+    }
 })
