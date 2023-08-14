@@ -4,7 +4,7 @@ import { PostRequest } from "../../../1_PresentationLayer/_Classes/Data/PostForR
 export class PostDataBase extends PostRequest {
     constructor(
         post: PostRequest,
-        public createAt: string = (new Date()).toISOString(),
+        public createdAt: string = (new Date()).toISOString(),
         public blogName: string = ""
     ) {
         super(post.title, post.shortDescription, post.content, post.blogId)

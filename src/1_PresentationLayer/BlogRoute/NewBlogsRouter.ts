@@ -71,21 +71,23 @@ blogRouter.post("",
         }
     })
 
-    blogRouter.post("/:id/posts",
+blogRouter.post("/:id/posts",
     RequestAuthorized,
     ValidPostFieldsLight,
     CheckFormatErrors,
     async (request: CompleteRequest<{ id: string }, PostRequest, {}>, response: Response) => {
-       let blogId = request.params.id;
-       let reqPost = new PostRequest(request.body.title, request.body.shortDescription, request.body.content, blogId)
+        let blogId = request.params.id;
+        let reqPost = new PostRequest(request.body.title, request.body.shortDescription, request.body.content, blogId)
 
-        let savedPost = await dataManager.postRepo.Save(reqPost);
-        if (savedPost) {
-            response.status(201).send(savedPost);
+        let existedBlog = await dataManager.blogRepo.TakeCertain(blogId);
+        if (existedBlog) {
+            let savedPost = await dataManager.postRepo.Save(reqPost);
+            if (savedPost) {
+                response.status(201).send(savedPost);
+                return;
+            }
         }
-        else {
-            response.sendStatus(400);
-        }
+        response.sendStatus(400);
     })
 
 
