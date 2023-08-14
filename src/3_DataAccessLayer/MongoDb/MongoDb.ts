@@ -5,6 +5,7 @@ import { Sorter } from "../_Classes/DataManagment/Sorter";
 import { PageHandler } from "../_Classes/DataManagment/PageHandler";
 import { BlogSorter } from "../Blogs/BlogSorter";
 import { ResponseBlogData } from "../../_legacy/Repos/Entities/Blog";
+import { Paged } from "../_Types/Paged";
 dotenv.config();
 
 type MongoSearch = {
@@ -13,7 +14,7 @@ type MongoSearch = {
 
 
 class MongoDb extends DataBase {
-    
+
     private _dbIsRunning = false;
     private _client: MongoClient;
     private _db: Db;
@@ -37,35 +38,40 @@ class MongoDb extends DataBase {
 
     }
 
-    async GetContaining(tableName: string, key: string, containingValue: string): Promise<any[] | null> {
-        return (await this._db.collection(tableName).find({ key: { $regex: containingValue } }).toArray());
-    }
+    // async GetContaining(tableName: string, key: string, containingValue: string): Promise<Paged<any[]> | null> {
+    //     let values = await this._db.collection(tableName).find({ key: { $regex: containingValue } }).toArray());
+    // }
 
 
 
-    async GetAll(tableName: string, sorter: BlogSorter, pageHandler: PageHandler): Promise<any[] | null> {
+    async GetAll(tableName: string, sorter: BlogSorter, pageHandler: PageHandler): Promise<[PageHandler, any]> {
         let collectionSize = await this.GetSize(tableName);
         let searchPattert = this.BuildMobgoSearcher(sorter);
         let mongoSorter = this.BuildMongoSorter(sorter);
-        let skipVal = this.FindSkip(collectionSize, pageHandler.pageSize, pageHandler.pageNumber);
+        let [skipVal, maxPages, skipedPages] = this.FindSkip(collectionSize, pageHandler.pageSize, pageHandler.pageNumber);
+        pageHandler.pagesCount = maxPages;
+        pageHandler.page = skipedPages + 1;
+        pageHandler.totalCount = collectionSize;
 
-        return (await this._db.collection(tableName)
+
+        let dbVal = await this._db.collection(tableName)
             .find(searchPattert)
             .sort(mongoSorter)
             .skip(skipVal)
             .limit(pageHandler.pageSize)
-            .toArray());
+            .toArray();
+        return [pageHandler, dbVal];
     }
 
     async Post(tableName: string, obj: any): Promise<any | null> {
-        try{
+        try {
             let postResult = await this._db.collection(tableName).insertOne(obj);
             return {
                 id: postResult.insertedId.toString(),
                 ...obj
             }
         }
-        catch{
+        catch {
             return null;
         }
     }
@@ -110,14 +116,16 @@ class MongoDb extends DataBase {
     private async GetSize(tableName: string): Promise<number> {
         return await this._db.collection(tableName).count();
     }
-    private FindSkip(totalCount: number, pageSize: number, pageNum: number): number {
+    private FindSkip(totalCount: number, pageSize: number, pageNum: number): number[] {
         if (totalCount > pageSize) {
             let maxPages = Math.ceil(totalCount / pageSize);
             let availableSkipPages = Math.min(maxPages, pageNum) - 1;
-            return availableSkipPages * pageSize;
+
+            return [availableSkipPages * pageSize, maxPages, availableSkipPages];
+
 
         }
-        return 0;
+        return [0, 1];
 
     }
 }
