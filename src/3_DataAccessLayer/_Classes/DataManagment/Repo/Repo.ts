@@ -8,10 +8,9 @@ import { Sorter } from "../Sorter";
 export abstract class Repo<RequestDataPresentation, ResponseDataPresentation extends RequestDataPresentation>
     implements IDataAccess<RequestDataPresentation, ResponseDataPresentation>{
 
-
     constructor(private db: DataBase, private tableName: string) { }
 
-
+    //Methods
     async TakeCertain(id: string): Promise<ResponseDataPresentation | null> {
         let dbValue = await this.db.GetById(this.tableName, id);
         if (dbValue) {
@@ -27,19 +26,24 @@ export abstract class Repo<RequestDataPresentation, ResponseDataPresentation ext
 
 
         if (dbData) {
-            let returnValues = dbData.map(dbVal => this.ConvertTo(dbVal))
+            let returnValues = dbData.map(dbVal => this.ConvertFrom(dbVal))
             let pagedData = dbHandler.GetPaged(returnValues);
             return pagedData;
         }
         return null;
     }
 
-
-
-    async Post(reqObj: RequestDataPresentation): Promise<ResponseDataPresentation | null> {
+    async Save(reqObj: RequestDataPresentation): Promise<ResponseDataPresentation | null> {
         let dataForDb = this.ConvertTo(reqObj);
         let saveResult = await this.db.Post(this.tableName, dataForDb);
         let returnResult = this.ConvertFrom(saveResult);
+        return returnResult;
+    }
+
+    async Update(id: string, reqObj: RequestDataPresentation): Promise<ResponseDataPresentation | null> {
+        let updatedResult = await this.db.Put(this.tableName, id, reqObj);
+        let returnResult = this.ConvertFrom(updatedResult);
+
         return returnResult;
     }
 

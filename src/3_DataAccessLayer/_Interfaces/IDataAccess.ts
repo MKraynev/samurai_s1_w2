@@ -6,6 +6,6 @@ export interface IDataAccess<RequestDataPresentation, ResponseDataPresentation e
     TakeCertain(id: string): Promise<ResponseDataPresentation | null>;
     TakeAll(sorter?: Sorter<ResponseDataPresentation>, pageHandler?: PageHandler): Promise<Paged<ResponseDataPresentation[]> | null>;
 
-    Post(reqObj: RequestDataPresentation): Promise<ResponseDataPresentation | null>;
-
+    Save(reqObj: RequestDataPresentation): Promise<ResponseDataPresentation | null>;
+    Update(id: string, reqObj: RequestDataPresentation): Promise<ResponseDataPresentation | null>;
 }

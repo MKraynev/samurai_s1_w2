@@ -8,5 +8,6 @@ export abstract class DataBase {
     abstract GetAll(tableName: string, sorter: Sorter<any>, pageHandler: PageHandler): Promise<[PageHandler, any[]]>;
 
     abstract Post(tableName: string, obj: any): Promise<any | null>;
+    abstract Put(tableName: string, id: string, obj: any): Promise<any | null>;
     abstract RunDb(): Promise<boolean>;
 }

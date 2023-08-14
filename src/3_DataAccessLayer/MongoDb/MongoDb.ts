@@ -14,7 +14,6 @@ type MongoSearch = {
 
 
 class MongoDb extends DataBase {
-
     private _dbIsRunning = false;
     private _client: MongoClient;
     private _db: Db;
@@ -75,6 +74,25 @@ class MongoDb extends DataBase {
             return null;
         }
     }
+
+    async Put(tableName: string, id: string, obj: any): Promise<any | null> {
+        try {
+            let updateResult = await this._db
+                .collection(tableName)
+                .updateOne({ _id: new ObjectId(id) }, { $set: obj })
+
+
+            if (updateResult.matchedCount === 1) {
+                let updatedValue = await this.GetById(tableName, id);
+                return updatedValue;
+            }
+            return null;
+        }
+        catch {
+            return null;
+        }
+    }
+
 
     async RunDb(): Promise<boolean> {
         if (this._dbIsRunning) {
