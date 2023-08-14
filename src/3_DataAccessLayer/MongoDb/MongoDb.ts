@@ -103,7 +103,9 @@ class MongoDb extends DataBase {
 
     async DeleteAll(tableName: string): Promise<boolean> {
         try {
-            return await this._db.dropCollection(tableName);
+            let delRes = await this._db.collection(tableName).deleteMany({});
+            return delRes.acknowledged;
+            //return await this._db.dropCollection(tableName);
             
         }
         catch {
