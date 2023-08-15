@@ -42,7 +42,7 @@ class MongoDb extends DataBase {
     async GetAll(tableName: string, sorter: BlogSorter | PostSorter, pageHandler: PageHandler): Promise<[PageHandler, any]> {
         // let collectionSize = await this.GetSize(tableName);
         let searchPattert = this.BuildMobgoSearcher(sorter);
-        let collectionSize = await this._db.collection(tableName).find(searchPattert).count();
+        let collectionSize = (await this._db.collection(tableName).find(searchPattert).toArray()).length;
         let mongoSorter = this.BuildMongoSorter(sorter);
         let [skipVal, maxPages, skipedPages] = this.FindSkip(collectionSize, pageHandler.pageSize, pageHandler.pageNumber);
         pageHandler.pagesCount = maxPages;
@@ -191,7 +191,7 @@ class MongoDb extends DataBase {
 
 
         }
-        return [0, 1];
+        return [0, 1, 0];
 
     }
 }
