@@ -43,9 +43,10 @@ blogRouter.get("/:id/posts",
         let existedBlog = await dataManager.blogRepo.TakeCertain(reqId);
         if (existedBlog) {
             //Для запроса создаем объект PostSorter
-            let postSorter = new PostSorter(SorterType.PostSorter, reqId, "createdAt")
+            let searchParams = RequestParser.ReadQueryPostSorter(request);
+            //let postSorter = new PostSorter(SorterType.PostSorter, reqId, "createdAt")
             let pageHandler = RequestParser.ReadQueryPageHandle(request);
-            let foundValue = await dataManager.postRepo.TakeAll(postSorter, pageHandler)
+            let foundValue = await dataManager.postRepo.TakeAll(searchParams, pageHandler)
 
             response.status(200).send(foundValue);
             return;
