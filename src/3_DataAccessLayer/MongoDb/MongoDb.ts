@@ -10,7 +10,7 @@ import { PostSorter } from "../Posts/PostSorter";
 dotenv.config();
 
 type MongoSearch = {
-    [key: string]: { $regex: string }
+    [key: string]: { $regex: string, $options: string }
 }
 
 
@@ -107,7 +107,7 @@ class MongoDb extends DataBase {
             let delRes = await this._db.collection(tableName).deleteMany({});
             return delRes.acknowledged;
             //return await this._db.dropCollection(tableName);
-            
+
         }
         catch {
             return false;
@@ -159,8 +159,9 @@ class MongoDb extends DataBase {
                 sorter = sorter as BlogSorter;
                 if (sorter.searchNameTerm) {
                     let searcher: MongoSearch = {
-                        "name": { $regex: sorter.searchNameTerm }
+                        "name": { $regex: sorter.searchNameTerm, $options: 'i' }
                     }
+
                     return searcher;
                 }
                 return {};
@@ -170,7 +171,7 @@ class MongoDb extends DataBase {
                 sorter = sorter as PostSorter;
                 if (sorter.searchBlogId) {
                     let searcher: MongoSearch = {
-                        "blogId": { $regex: sorter.searchBlogId }
+                        "blogId": { $regex: sorter.searchBlogId, $options: 'i' }
                     }
                     return searcher;
                 }
