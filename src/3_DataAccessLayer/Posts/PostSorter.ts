@@ -5,7 +5,7 @@ export class PostSorter extends Sorter<PostResponse>{
     constructor(
         public sorterType: SorterType,
         public searchBlogId: string | null = null,
-        public sortBy: keyof PostResponse & string = "blogId",
+        public sortBy: keyof PostResponse & string = "createdAt",
         public sortDirection: "desc" | "asc" = "desc"
     ) {
         super(sortBy, sortDirection, sorterType)
