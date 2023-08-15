@@ -6,6 +6,7 @@ import { ErrorLog } from "../../Errors/Error";
 import { _BlogRepo } from "../../Repos/BlogRepo";
 import { RequestPostData } from "../../Repos/Entities/Post";
 import { RequestWithBody } from "../Types/Requests";
+import { dataManager } from "../../../2_BusinessLogicLayer/_Classes/DataManager";
 
 
 
@@ -53,8 +54,7 @@ export const ValidPostFieldsLight = [
 
 
 export const BlogIdExist = body("blogId").custom(async idVal => {
-    let requestedData = await _BlogRepo.take(idVal);
-
+    let requestedData = await dataManager.blogRepo.TakeCertain(idVal);
         if (!requestedData) {
             throw new Error(`Wrong blogId: blogId`)
         }

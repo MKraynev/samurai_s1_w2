@@ -2,7 +2,7 @@ import { Router, Request, Response } from "express";
 import { RequestParser } from "../_Classes/RequestManagment/RequestParser";
 import { dataManager } from "../../2_BusinessLogicLayer/_Classes/DataManager";
 import { CompleteRequest, RequestWithBody, RequestWithParams } from "../_Types/RequestTypes";
-import { CheckFormatErrors, RequestAuthorized, ValidBlogFields, ValidPostFields } from "../../_legacy/Routes/Validation/RequestCheck";
+import { BlogIdExist, CheckFormatErrors, RequestAuthorized, ValidBlogFields, ValidPostFields } from "../../_legacy/Routes/Validation/RequestCheck";
 import { PostRequest } from "../_Classes/Data/PostForRequest";
 
 export const postRouter = Router();
@@ -34,11 +34,9 @@ postRouter.get("/:id",
 postRouter.post("",
     RequestAuthorized,
     ValidPostFields,
+    BlogIdExist,
     CheckFormatErrors,
     async (request: RequestWithBody<PostRequest>, response: Response) => {
-
-
-
         let existedBlog = await dataManager.blogRepo.TakeCertain(request.body.blogId);
         if (existedBlog) {
             let reqObj = new PostRequest(
