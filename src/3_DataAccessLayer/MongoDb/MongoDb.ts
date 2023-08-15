@@ -146,7 +146,7 @@ class MongoDb extends DataBase {
 
             case SorterType.PostSorter:
                 sorter = sorter as PostSorter;
-                mongoSorter[sorter.sortBy] = sortDir;
+                mongoSorter[sorter.sortBy] = sortDir == "asc"? "desc" : "asc";
                 break;
         }
 
