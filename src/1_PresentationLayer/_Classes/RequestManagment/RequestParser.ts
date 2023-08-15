@@ -44,6 +44,4 @@ export class RequestParser {
             isNaN(pageSize) ? undefined : pageSize
         )
     }
-
-
 }
