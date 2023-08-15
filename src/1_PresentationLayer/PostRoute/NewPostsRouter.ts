@@ -61,7 +61,8 @@ postRouter.put("/:id",
         let requestedPostId = request.params.id;
 
         let existedBlog = await dataManager.blogRepo.TakeCertain(requestedBlogId);
-        if (existedBlog) {
+        let requestedPost = await dataManager.postRepo.TakeCertain(requestedPostId);
+        if (existedBlog && requestedPost) {
             let reqData: PostRequest = new PostRequest(
                 request.body.title, request.body.shortDescription, request.body.content, request.body.blogId, existedBlog.name)
 
