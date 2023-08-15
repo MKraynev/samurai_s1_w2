@@ -34,14 +34,16 @@ export class RequestParser {
 
 
     static ReadQueryPageHandle(request: Request): PageHandler {
-        let strPageNumber = request.query.pageNumber as string | undefined;
+        let strPageNumber = request.query.pageNumber as string;
         let strPageSize = request.query.pageSize as string;
-        let pageNumber = Number.parseInt(strPageNumber ? strPageNumber : "");
-        let pageSize = Number.parseInt(strPageSize ? strPageSize : "");
 
+        let pageNumber = Number.parseInt(strPageNumber);
+        let pageSize = Number.parseInt(strPageSize);
+        
+        
         return new PageHandler(
-            isNaN(pageNumber) ? undefined : pageNumber,
-            isNaN(pageSize) ? undefined : pageSize
+            pageNumber,
+            pageSize
         )
     }
 }

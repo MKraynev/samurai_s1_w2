@@ -8,10 +8,10 @@ export class PageHandler {
         public page: number = 0,
         public totalCount: number = 0
     ) {
-        if (pageNumber <= 0) {
+        if (!pageNumber || pageNumber <= 0) {
             pageNumber = 1;
         }
-        if (pageSize <= 0) {
+        if (!pageSize || pageSize <= 0) {
             pageSize = 10;
         }
     }
