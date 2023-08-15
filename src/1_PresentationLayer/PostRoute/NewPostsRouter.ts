@@ -54,6 +54,7 @@ postRouter.post("",
 postRouter.put("/:id",
     RequestAuthorized,
     ValidPostFields,
+    BlogIdExist,
     CheckFormatErrors,
     async (request: CompleteRequest<{ id: string }, PostRequest, {}>, response: Response) => {
         let requestedBlogId = request.body.blogId;
