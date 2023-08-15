@@ -98,12 +98,17 @@ blogRouter.put("/:id",
     async (request: CompleteRequest<{ id: string }, BlogRequest, {}>, response: Response) => {
         let reqData: BlogRequest = new BlogRequest(request.body.name, request.body.description, request.body.websiteUrl)
         let requestedId = request.params.id;
-        let updateResultIsPositive = await dataManager.blogRepo.Update(requestedId, reqData);
+        let existedBlog = await dataManager.blogRepo.TakeCertain(requestedId);
 
-        if (updateResultIsPositive) {
-            response.sendStatus(204);
-            return;
+        if (existedBlog) {
+            let updateResultIsPositive = await dataManager.blogRepo.Update(requestedId, reqData);
+
+            if (updateResultIsPositive) {
+                response.sendStatus(204);
+                return;
+            }
         }
+        
         response.sendStatus(404);
     })
 
