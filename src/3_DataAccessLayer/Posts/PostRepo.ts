@@ -1,7 +1,7 @@
 import { WithId } from "mongodb";
 import { Repo } from "../_Classes/DataManagment/Repo/Repo"
 import { PostRequest } from "../../1_PresentationLayer/_Classes/Data/PostForRequest";
-import { PostDataBase } from "../_Classes/Data/PostForBd";
+import { PostDataBase } from "../_Classes/Data/PostDB";
 import { PostResponse } from "../../2_BusinessLogicLayer/_Classes/Data/PostForResponse";
 
 

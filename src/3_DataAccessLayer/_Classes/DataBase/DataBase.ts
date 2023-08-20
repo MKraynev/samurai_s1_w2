@@ -4,7 +4,6 @@ import { Sorter } from "../DataManagment/Sorter";
 
 export abstract class DataBase {
     abstract GetById(tableName: string, id: string): Promise<any | null>;
-    //abstract GetContaining(tableName: string, key: string, containingValue: string): Promise<Paged<any[]> | null>;
     abstract GetAll(tableName: string, sorter: Sorter<any>, pageHandler: PageHandler): Promise<[PageHandler, any[]]>;
 
     abstract Post(tableName: string, obj: any): Promise<any | null>;
@@ -12,5 +11,6 @@ export abstract class DataBase {
     abstract Delete(tableName: string, id: string): Promise<any | null>;
     abstract DeleteAll(tableName: string): Promise<boolean>;
 
+    abstract Count(tableName: string, sorter: Sorter<any>): Promise<number>;
     abstract RunDb(): Promise<boolean>;
 }

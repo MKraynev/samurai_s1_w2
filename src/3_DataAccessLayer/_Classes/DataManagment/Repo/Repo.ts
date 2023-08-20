@@ -9,7 +9,7 @@ import { Sorter } from "../Sorter";
 export abstract class Repo<RequestDataPresentation, ResponseDataPresentation extends RequestDataPresentation>
     implements IDataAccess<RequestDataPresentation, ResponseDataPresentation>{
 
-    constructor(private db: DataBase, private tableName: string) { }
+    constructor(protected db: DataBase, protected tableName: string) { }
 
     //Methods
     async TakeCertain(id: string): Promise<ResponseDataPresentation | null> {

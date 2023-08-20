@@ -10,5 +10,6 @@ export class Sorter<T>{
 
 export enum SorterType {
     BlogSorter,
-    PostSorter
+    PostSorter,
+    UserSorter
 }

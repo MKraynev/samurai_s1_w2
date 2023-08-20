@@ -51,6 +51,17 @@ export const ValidPostFieldsLight = [
     FieldNotEmpty("shortDescription"), FieldMinLength("shortDescription", 5), FieldMaxLength("shortDescription", 100),
     FieldNotEmpty("content"), FieldMinLength("content", 5), FieldMaxLength("content", 1000)
 ];
+export const ValidUserFields = [
+    FieldNotEmpty("title"), FieldMinLength("title", 5), FieldMaxLength("title", 30),
+    FieldNotEmpty("shortDescription"), FieldMinLength("shortDescription", 5), FieldMaxLength("shortDescription", 100),
+    FieldNotEmpty("content"), FieldMinLength("content", 5), FieldMaxLength("content", 1000)
+];
+export const ValidUserId = [
+    FieldNotEmpty("title"), FieldMinLength("title", 5), FieldMaxLength("title", 30),
+    FieldNotEmpty("shortDescription"), FieldMinLength("shortDescription", 5), FieldMaxLength("shortDescription", 100),
+    FieldNotEmpty("content"), FieldMinLength("content", 5), FieldMaxLength("content", 1000)
+];
+
 
 
 export const BlogIdExist = body("blogId").custom(async idVal => {

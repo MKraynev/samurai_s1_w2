@@ -6,6 +6,8 @@ import { PageHandler } from "../../../3_DataAccessLayer/_Classes/DataManagment/P
 import { PostResponse } from "../../../2_BusinessLogicLayer/_Classes/Data/PostForResponse";
 import { Sort } from "mongodb";
 import { PostSorter } from "../../../3_DataAccessLayer/Posts/PostSorter";
+import { UserResponse } from "../../../2_BusinessLogicLayer/_Classes/Data/UserForResponse";
+import { UserSorter } from "../../../3_DataAccessLayer/Users/UserSorter";
 
 export class RequestParser {
     static ReadQueryBlogSorter(request: Request): BlogSorter {
@@ -30,6 +32,21 @@ export class RequestParser {
             sortBy ? sortBy : "createdAt",
             sortDirection == "asc" || sortDirection == "desc" ? sortDirection : undefined
         )
+    }
+    static ReadQueryUserSorter(request: Request){
+        let sortBy: keyof UserResponse & string | undefined = request.query.sortBy as keyof UserResponse & string | undefined;
+        let sortDirection: string | undefined = request.query.sortDirection as string | undefined;
+        let searchLoginTerm: string | undefined = request.query.searchEmailTerm as string | undefined;
+        let searchEmailTerm: string | undefined = request.query.searchEmailTerm as string | undefined;
+
+        return new UserSorter(
+            SorterType.PostSorter,
+            searchLoginTerm? searchLoginTerm : null,
+            searchEmailTerm? searchEmailTerm : null,
+            sortBy ? sortBy : "createdAt",
+            sortDirection == "asc" || sortDirection == "desc" ? sortDirection : undefined
+        )
+        
     }
 
 

@@ -5,10 +5,11 @@ import express from "express";
 // import { RunDB } from "./_legacy/Repos/DB/MongoDB/MongoDbHandler";
 
 //s1w4
-import { blogRouter } from "./1_PresentationLayer/BlogRoute/NewBlogsRouter";
+import { blogRouter } from "./1_PresentationLayer/BlogRouter/NewBlogsRouter";
 import { dataManager } from "./2_BusinessLogicLayer/_Classes/DataManager";
-import { _NewTestClearAllRouter } from "./1_PresentationLayer/TestRoute/NewTestRouter";
-import { postRouter } from "./1_PresentationLayer/PostRoute/NewPostsRouter";
+import { _NewTestClearAllRouter } from "./1_PresentationLayer/TestRouter/NewTestRouter";
+import { postRouter } from "./1_PresentationLayer/PostRouter/NewPostsRouter";
+import { userRouter } from "./1_PresentationLayer/UserRouter/UserRouter";
 
 
 
@@ -17,32 +18,30 @@ import { postRouter } from "./1_PresentationLayer/PostRoute/NewPostsRouter";
 
 export const BlogsPath = "/blogs";
 export const PostsPath = "/posts";
+export const UsersPath = "/users";
 export const TestClearAllPath = "/testing/all-data";
+
 
 export const app = express();
 
 app.use(express.json());
-//version s1w3
-// app.use(BlogsPath, blogRouter);
-// app.use(PostsPath, postRouter);
-// app.use(TestClearAllPath, _TestClearAllRouter);
 
-//version s1w4
+
 app.use(BlogsPath, blogRouter);
 app.use(PostsPath, postRouter);
+app.use(UsersPath, userRouter);
 app.use(TestClearAllPath, _NewTestClearAllRouter)
 
 const PORT: number = 5001;
 const StartApp = async () => {
-    //Version s1w3
-    // await RunDB();
 
-    //Version s1w4
-    await dataManager.Run();
+    if(await dataManager.Run()){
+        console.log("db is running")
+    }
 
 
     app.listen(PORT, () => {
-        console.log("app start");
+        console.log("app is running");
     })
 }
 

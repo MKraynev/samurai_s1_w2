@@ -4,9 +4,8 @@ import dotenv from "dotenv"
 import { Sorter, SorterType } from "../_Classes/DataManagment/Sorter";
 import { PageHandler } from "../_Classes/DataManagment/PageHandler";
 import { BlogSorter } from "../Blogs/BlogSorter";
-import { ResponseBlogData } from "../../_legacy/Repos/Entities/Blog";
-import { Paged } from "../_Types/Paged";
 import { PostSorter } from "../Posts/PostSorter";
+import { UserSorter } from "../Users/UserSorter";
 dotenv.config();
 
 type MongoSearch = {
@@ -15,6 +14,7 @@ type MongoSearch = {
 
 
 class MongoDb extends DataBase {
+    
 
     private _dbIsRunning = false;
     private _client: MongoClient;
@@ -39,16 +39,25 @@ class MongoDb extends DataBase {
 
     }
 
+    async Count(tableName: string, sorter: BlogSorter | PostSorter | UserSorter): Promise<number> {
+        let searchPattert = this.BuildMongoSearcher(sorter);
+        let collectionSize = await this._db.collection(tableName).countDocuments(searchPattert);
+        return collectionSize;
+    }
+
     async GetAll(tableName: string, sorter: BlogSorter | PostSorter, pageHandler: PageHandler): Promise<[PageHandler, any]> {
-        // let collectionSize = await this.GetSize(tableName);
-        let searchPattert = this.BuildMobgoSearcher(sorter);
-        let collectionSize = (await this._db.collection(tableName).find(searchPattert).toArray()).length;
+        
+        let collectionSize = await this.Count(tableName, sorter);
+        
+        let searchPattert = this.BuildMongoSearcher(sorter);
+        
         let mongoSorter = this.BuildMongoSorter(sorter);
+
         let [skipVal, maxPages, skipedPages] = this.FindSkip(collectionSize, pageHandler.pageSize, pageHandler.pageNumber);
+
         pageHandler.pagesCount = maxPages;
         pageHandler.page = skipedPages + 1;
         pageHandler.totalCount = collectionSize;
-
 
         let dbVal = await this._db.collection(tableName)
             .find(searchPattert)
@@ -154,7 +163,7 @@ class MongoDb extends DataBase {
         return mongoSorter;
     }
 
-    private BuildMobgoSearcher(sorter: BlogSorter | PostSorter): MongoSearch {
+    private BuildMongoSearcher(sorter: BlogSorter | PostSorter | UserSorter): MongoSearch {
         switch (sorter.sorterType) {
             case SorterType.BlogSorter:
                 sorter = sorter as BlogSorter;
@@ -173,6 +182,23 @@ class MongoDb extends DataBase {
                 if (sorter.searchBlogId) {
                     let searcher: MongoSearch = {
                         "blogId": { $regex: sorter.searchBlogId, $options: 'i' }
+                    }
+                    return searcher;
+                }
+                return {}
+                break;
+
+            case SorterType.UserSorter:
+                sorter = sorter as UserSorter;
+                if (sorter.searchEmailTerm) {
+                    let searcher: MongoSearch = {
+                        "email": { $regex: sorter.searchEmailTerm, $options: 'i' }
+                    }
+                    return searcher;
+                }
+                else if(sorter.searchLoginTerm){
+                    let searcher: MongoSearch = {
+                        "login": { $regex: sorter.searchLoginTerm, $options: 'i' }
                     }
                     return searcher;
                 }

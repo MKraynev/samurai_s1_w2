@@ -98,13 +98,16 @@ blogRouter.put("/:id",
     ValidBlogFields,
     CheckFormatErrors,
     async (request: CompleteRequest<{ id: string }, BlogRequest, {}>, response: Response) => {
+
         let reqData: BlogRequest = new BlogRequest(request.body.name, request.body.description, request.body.websiteUrl)
+
         let requestedId = request.params.id;
+
         let existedBlog = await dataManager.blogRepo.TakeCertain(requestedId);
 
         if (existedBlog) {
             let updateResultIsPositive = await dataManager.blogRepo.Update(requestedId, reqData);
-
+            
             if (updateResultIsPositive) {
                 response.sendStatus(204);
                 return;
