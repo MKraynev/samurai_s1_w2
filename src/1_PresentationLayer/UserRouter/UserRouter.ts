@@ -1,7 +1,7 @@
 import {Router, Request, Response} from "express"
 import { RequestParser } from "../_Classes/RequestManagment/RequestParser";
 import { dataManager } from "../../2_BusinessLogicLayer/_Classes/DataManager";
-import { CheckFormatErrors, RequestAuthorized } from "../../_legacy/Routes/Validation/RequestCheck";
+import { CheckFormatErrors, RequestAuthorized, ValidUserFields } from "../../_legacy/Routes/Validation/RequestCheck";
 import { CompleteRequest, RequestWithBody, RequestWithParams } from "../_Types/RequestTypes";
 import { UserRequest } from "../_Classes/Data/UserForRequest";
 
@@ -21,6 +21,7 @@ userRouter.get("", async (request: Request, response: Response) => {
 
 userRouter.post("",
     RequestAuthorized,
+    ValidUserFields,
     CheckFormatErrors,
     async (request: RequestWithBody<UserRequest>, response: Response) => {
        
