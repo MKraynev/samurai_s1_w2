@@ -65,8 +65,6 @@ export const ValidAuthFields = [
             FieldNotEmpty("loginOrEmail"),body("loginOrEmail").isEmail().withMessage("Wrong email: email")
         ]),
     FieldNotEmpty("password"), FieldMinLength("password", 6), FieldMaxLength("password", 20),
-    FieldNotEmpty("email"), body("email").isEmail().withMessage("Wrong email: email")
-    
 ];
 //.matches(/^[\w-\.]+@([\w-]+\.)+[\w-]{2,4})
 
