@@ -55,9 +55,10 @@ export const ValidPostFieldsLight = [
 export const ValidUserFields = [
     FieldNotEmpty("login"), FieldMinLength("login", 3), FieldMaxLength("login", 10),
     FieldNotEmpty("password"), FieldMinLength("password", 6), FieldMaxLength("password", 20),
-    FieldNotEmpty("email"), body("password").isEmail().withMessage("Wrong email: email")
+    FieldNotEmpty("email"), body("email").isEmail().withMessage("Wrong email: email")
+    
 ];
-
+//.matches(/^[\w-\.]+@([\w-]+\.)+[\w-]{2,4})
 
 
 export const BlogIdExist = body("blogId").custom(async idVal => {
