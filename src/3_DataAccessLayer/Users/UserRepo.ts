@@ -3,18 +3,19 @@ import { Repo } from "../_Classes/DataManagment/Repo/Repo"
 import { UserRequest } from "../../1_PresentationLayer/_Classes/Data/UserForRequest";
 import { UserResponse } from "../../2_BusinessLogicLayer/_Classes/Data/UserForResponse";
 import { UserDataBase } from "../_Classes/Data/UserDB";
-import { Sorter } from "../_Classes/DataManagment/Sorter";
+import { Sorter, SorterType } from "../_Classes/DataManagment/Sorter";
 import { PageHandler } from "../_Classes/DataManagment/PageHandler";
 import { Paged } from "../_Types/Paged";
+import { UserSorter } from "./UserSorter";
 
 
 export class UserRepo extends Repo<UserRequest, UserResponse | UserDataBase>{
     ConvertFrom(dbValue: WithId<UserDataBase>): any {
         let result = new UserResponse(dbValue._id, dbValue)
-        let {password, ...rest} = result;
-        
+        let { password, ...rest } = result;
+
         return rest;
-        
+
     }
     ConvertTo(dbValue: UserRequest): UserDataBase {
         return new UserDataBase(dbValue);
@@ -29,7 +30,7 @@ export class UserRepo extends Repo<UserRequest, UserResponse | UserDataBase>{
                 let { password, ...rest } = dbVal;
 
                 return this.ConvertFrom(rest)
-                
+
             })
             let pagedData = dbHandler.GetPaged(returnValues);
             return pagedData;
@@ -50,14 +51,20 @@ export class UserRepo extends Repo<UserRequest, UserResponse | UserDataBase>{
         let updatedResult = await this.db.Put(this.tableName, id, reqObj);
         let { password, ...rest } = this.ConvertFrom(updatedResult);
 
-        return {...rest};
+        return { ...rest };
     }
 
     override async Save(reqObj: UserRequest): Promise<any | null> {
         let dataForDb = this.ConvertTo(reqObj);
         let saveResult = await this.db.Post(this.tableName, dataForDb);
-        let {password, ...rest} = this.ConvertFrom(saveResult);
-        
-        return {...rest};
+        let { password, ...rest } = this.ConvertFrom(saveResult);
+
+        return { ...rest };
+    }
+    async UserExist(loginOrEmail: string, password: string): Promise<boolean> {
+        let foundUserByLogin: UserDataBase = await this.db.GetByPropName(this.tableName, "login", loginOrEmail);
+        let foundUserByEmail: UserDataBase = await this.db.GetByPropName(this.tableName, "email", loginOrEmail);
+
+        return (foundUserByLogin && foundUserByLogin.password == password) || (foundUserByEmail && foundUserByEmail.password == password)
     }
 }

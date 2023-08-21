@@ -44,6 +44,14 @@ class MongoDb extends DataBase {
         let collectionSize = await this._db.collection(tableName).countDocuments(searchPattert);
         return collectionSize;
     }
+    async GetByPropName(tableName: string, propName: string, propVal: string): Promise<any|null>{
+        try{
+            return await this._db.collection(tableName).findOne({ propName: propVal });
+        }
+        catch{
+
+        }
+    }
 
     async GetAll(tableName: string, sorter: BlogSorter | PostSorter, pageHandler: PageHandler): Promise<[PageHandler, any]> {
         

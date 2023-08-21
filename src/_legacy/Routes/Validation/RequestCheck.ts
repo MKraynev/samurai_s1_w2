@@ -1,7 +1,7 @@
 import { Request, Response, NextFunction, response } from "express";
 import { ValidBase64Key, } from "../../Authorization/BasicAuthorization/BasicAuthorization";
 import { AuthorizationStatus } from "../../Authorization/IAuthorizer";
-import { header, body, validationResult } from "express-validator"
+import { header, body, validationResult, oneOf } from "express-validator"
 import { ErrorLog } from "../../Errors/Error";
 import { _BlogRepo } from "../../Repos/BlogRepo";
 import { RequestPostData } from "../../Repos/Entities/Post";
@@ -54,6 +54,16 @@ export const ValidPostFieldsLight = [
 
 export const ValidUserFields = [
     FieldNotEmpty("login"), FieldMinLength("login", 3), FieldMaxLength("login", 10),
+    FieldNotEmpty("password"), FieldMinLength("password", 6), FieldMaxLength("password", 20),
+    FieldNotEmpty("email"), body("email").isEmail().withMessage("Wrong email: email")
+    
+];
+export const ValidAuthFields = [
+    oneOf(
+        [
+            FieldNotEmpty("loginOrEmail"), FieldMinLength("loginOrEmail", 3), FieldMaxLength("loginOrEmail", 10), 
+            FieldNotEmpty("loginOrEmail"),body("loginOrEmail").isEmail().withMessage("Wrong email: email")
+        ]),
     FieldNotEmpty("password"), FieldMinLength("password", 6), FieldMaxLength("password", 20),
     FieldNotEmpty("email"), body("email").isEmail().withMessage("Wrong email: email")
     
