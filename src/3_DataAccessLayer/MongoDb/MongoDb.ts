@@ -14,7 +14,7 @@ type MongoSearch = {
 
 
 class MongoDb extends DataBase {
-    
+
 
     private _dbIsRunning = false;
     private _client: MongoClient;
@@ -44,21 +44,23 @@ class MongoDb extends DataBase {
         let collectionSize = await this._db.collection(tableName).countDocuments(searchPattert);
         return collectionSize;
     }
-    async GetByPropName(tableName: string, propName: string, propVal: string): Promise<any|null>{
-        try{
-            return await this._db.collection(tableName).findOne({ propName: propVal });
+    async GetByPropName(tableName: string, propName: string, propVal: string): Promise<any | null> {
+        try {
+            let query:any = {}
+            query[propName] = propVal;
+            return await this._db.collection(tableName).findOne(query);
         }
-        catch{
-
+        catch {
+            return null;
         }
     }
 
     async GetAll(tableName: string, sorter: BlogSorter | PostSorter, pageHandler: PageHandler): Promise<[PageHandler, any]> {
-        
+
         let collectionSize = await this.Count(tableName, sorter);
-        
+
         let searchPattert = this.BuildMongoSearcher(sorter);
-        
+
         let mongoSorter = this.BuildMongoSorter(sorter);
 
         let [skipVal, maxPages, skipedPages] = this.FindSkip(collectionSize, pageHandler.pageSize, pageHandler.pageNumber);
@@ -164,7 +166,7 @@ class MongoDb extends DataBase {
             case SorterType.PostSorter:
                 sorter = sorter as PostSorter;
                 mongoSorter[sorter.sortBy] = sortDir;
-                
+
                 break;
         }
 
@@ -204,7 +206,7 @@ class MongoDb extends DataBase {
                     }
                     return searcher;
                 }
-                else if(sorter.searchLoginTerm){
+                else if (sorter.searchLoginTerm) {
                     let searcher: MongoSearch = {
                         "login": { $regex: sorter.searchLoginTerm, $options: 'i' }
                     }
