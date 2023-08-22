@@ -3,10 +3,9 @@ import { Repo } from "../_Classes/DataManagment/Repo/Repo"
 import { UserRequest } from "../../1_PresentationLayer/_Classes/Data/UserForRequest";
 import { UserResponse } from "../../2_BusinessLogicLayer/_Classes/Data/UserForResponse";
 import { UserDataBase } from "../_Classes/Data/UserDB";
-import { Sorter, SorterType } from "../_Classes/DataManagment/Sorter";
+import { Sorter } from "../_Classes/DataManagment/Sorter";
 import { PageHandler } from "../_Classes/DataManagment/PageHandler";
 import { Paged } from "../_Types/Paged";
-import { UserSorter } from "./UserSorter";
 
 
 export class UserRepo extends Repo<UserRequest, UserResponse | UserDataBase>{
@@ -42,7 +41,7 @@ export class UserRepo extends Repo<UserRequest, UserResponse | UserDataBase>{
         let dbValue = await this.db.GetById(this.tableName, id);
         if (dbValue) {
             let { password, ...rest } = dbValue;
-            let rerurnValue = this.ConvertFrom({ ...rest });
+            let rerurnValue = this.ConvertFrom(rest);
             return rerurnValue;
         }
         return null;
@@ -51,7 +50,7 @@ export class UserRepo extends Repo<UserRequest, UserResponse | UserDataBase>{
         let updatedResult = await this.db.Put(this.tableName, id, reqObj);
         let { password, ...rest } = this.ConvertFrom(updatedResult);
 
-        return { ...rest };
+        return rest;
     }
 
     override async Save(reqObj: UserRequest): Promise<any | null> {
@@ -59,7 +58,7 @@ export class UserRepo extends Repo<UserRequest, UserResponse | UserDataBase>{
         let saveResult = await this.db.Post(this.tableName, dataForDb);
         let { password, ...rest } = this.ConvertFrom(saveResult);
 
-        return { ...rest };
+        return rest;
     }
     async UserExist(loginOrEmail: string, password: string): Promise<boolean> {
         let foundUserByLogin: UserDataBase = await this.db.GetByPropName(this.tableName, "login", loginOrEmail);
