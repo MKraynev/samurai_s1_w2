@@ -168,6 +168,9 @@ class MongoDb extends DataBase {
                 mongoSorter[sorter.sortBy] = sortDir;
 
                 break;
+            case SorterType.UserSorter:
+                sorter = sorter as UserSorter;
+                mongoSorter[sorter.sortBy] = sortDir;
         }
 
         return mongoSorter;

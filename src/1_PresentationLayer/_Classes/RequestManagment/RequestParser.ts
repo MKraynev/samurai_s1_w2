@@ -36,11 +36,11 @@ export class RequestParser {
     static ReadQueryUserSorter(request: Request){
         let sortBy: keyof UserResponse & string | undefined = request.query.sortBy as keyof UserResponse & string | undefined;
         let sortDirection: string | undefined = request.query.sortDirection as string | undefined;
-        let searchLoginTerm: string | undefined = request.query.searchEmailTerm as string | undefined;
+        let searchLoginTerm: string | undefined = request.query.searchLoginTerm as string | undefined;
         let searchEmailTerm: string | undefined = request.query.searchEmailTerm as string | undefined;
 
         return new UserSorter(
-            SorterType.PostSorter,
+            SorterType.UserSorter,
             searchLoginTerm? searchLoginTerm : null,
             searchEmailTerm? searchEmailTerm : null,
             sortBy ? sortBy : "createdAt",
