@@ -55,7 +55,7 @@ class MongoDb extends DataBase {
         }
     }
 
-    async GetAll(tableName: string, sorter: BlogSorter | PostSorter, pageHandler: PageHandler): Promise<[PageHandler, any]> {
+    async GetAll(tableName: string, sorter: BlogSorter | PostSorter| UserSorter, pageHandler: PageHandler): Promise<[PageHandler, any]> {
 
         let collectionSize = await this.Count(tableName, sorter);
 
@@ -153,7 +153,7 @@ class MongoDb extends DataBase {
         }
     }
 
-    private BuildMongoSorter(sorter: BlogSorter | PostSorter): Sort {
+    private BuildMongoSorter(sorter: BlogSorter | PostSorter| UserSorter): Sort {
         let sortDir: SortDirection = sorter.sortDirection;
         let mongoSorter: Sort = {};
 
@@ -200,7 +200,16 @@ class MongoDb extends DataBase {
 
             case SorterType.UserSorter:
                 sorter = sorter as UserSorter;
-                if (sorter.searchEmailTerm) {
+                if(sorter.searchEmailTerm && sorter.searchLoginTerm){
+                    let searcher: any = {
+                        "$or": [
+                            {"email": { $regex: sorter.searchEmailTerm, $options: 'i' }},
+                            {"login": { $regex: sorter.searchLoginTerm, $options: 'i' }}
+                        ]}
+                    return searcher;
+                    //{ $or: [ { quantity: { $lt: 20 } }, { price: 10 } ] }
+                }
+                else if (sorter.searchEmailTerm) {
                     let searcher: MongoSearch = {
                         "email": { $regex: sorter.searchEmailTerm, $options: 'i' }
                     }

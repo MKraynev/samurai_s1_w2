@@ -6,6 +6,7 @@ import { UserDataBase } from "../_Classes/Data/UserDB";
 import { Sorter } from "../_Classes/DataManagment/Sorter";
 import { PageHandler } from "../_Classes/DataManagment/PageHandler";
 import { Paged } from "../_Types/Paged";
+import { UserSorter } from "./UserSorter";
 
 
 export class UserRepo extends Repo<UserRequest, UserResponse | UserDataBase>{
@@ -19,7 +20,7 @@ export class UserRepo extends Repo<UserRequest, UserResponse | UserDataBase>{
     ConvertTo(dbValue: UserRequest): UserDataBase {
         return new UserDataBase(dbValue);
     }
-    override async TakeAll(sorter: Sorter<UserResponse>, pageHandler: PageHandler): Promise<Paged<any[]> | null> {
+    override async TakeAll(sorter: UserSorter, pageHandler: PageHandler): Promise<Paged<any[]> | null> {
 
         let [dbHandler, dbData] = await this.db.GetAll(this.tableName, sorter, pageHandler);
 
