@@ -33,7 +33,7 @@ userRouter.post("",
                 response.status(201).send(savedPost);
                 return;
             }
-        response.sendStatus(404);
+        response.sendStatus(400);
 
     })
 

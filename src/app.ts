@@ -50,7 +50,3 @@ const StartApp = async () => {
 }
 
 StartApp();
-
-
-
-

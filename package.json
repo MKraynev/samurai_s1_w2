@@ -16,7 +16,7 @@
   },
   "scripts": {
     "dev": "yarn nodemon --inspect src/app.ts",
-    "test": "jest -i --forceExit",
+    "test": "jest -i --verbose --forceExit",
     "watch": "tsc -w"
   },
   "devDependencies": {
