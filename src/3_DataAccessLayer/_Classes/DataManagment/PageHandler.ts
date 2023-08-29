@@ -11,7 +11,7 @@ export class PageHandler {
         if ((!pageNumber) || pageNumber <= 0 || isNaN(pageNumber)) {
             this.pageNumber = 1;
         }
-        if ((!pageSize)|| pageSize <= 0 || isNaN(pageNumber)) {
+        if ((!pageSize)|| pageSize <= 0 || isNaN(pageSize)) {
             this.pageSize = 10;
         }
     }
