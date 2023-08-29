@@ -15,4 +15,5 @@ _NewTestClearAllRouter.delete("", async (request: Request, response: Response) =
     else {
         response.sendStatus(404);
     }
+    return;
 })

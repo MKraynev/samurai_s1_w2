@@ -70,17 +70,14 @@ userRouter.delete("/:id",
 
             if (userIsDeleted) {
                 response.sendStatus(204);
-                return;
 
             }
             else {
                 response.sendStatus(404);
-                return;
             }
         }
         else{
             response.sendStatus(404);
-            return;
         }
-
+        return;
     })
