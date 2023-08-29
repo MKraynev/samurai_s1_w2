@@ -7,7 +7,6 @@ import { AuthRequest } from "../_Classes/Data/AuthRequest";
 export const authRouter = Router();
 
 authRouter.post("",
-    ValidAuthFields,
     CheckFormatErrors,
     async (request: RequestWithBody<AuthRequest>, response: Response) => {
         
