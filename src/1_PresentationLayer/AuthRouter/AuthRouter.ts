@@ -15,8 +15,10 @@ authRouter.post("",
         
         if(userExist){
             response.sendStatus(204);
+            return;
         }
         else{
             response.sendStatus(401)
+            return;
         }
     })
