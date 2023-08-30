@@ -12,7 +12,8 @@ userRouter.get("", async (request: Request, response: Response) => {
     let searchParams = RequestParser.ReadQueryUserSorter(request);
     let pageHandler = RequestParser.ReadQueryPageHandle(request);
 
-    let foundValues = await dataManager.userRepo.TakeAll(searchParams, pageHandler);
+    //let foundValues = await dataManager.userRepo.TakeAll(searchParams, pageHandler);
+    let foundValues = await dataManager.userService.GetUsers(searchParams, pageHandler);
     let returnValues = foundValues || [];
 
     response.status(200).send(returnValues)
@@ -28,7 +29,8 @@ userRouter.post("",
 
         let reqObj = new UserRequest(request.body.login, request.body.password, request.body.email);
         //Blog exist
-        let savedPost = await dataManager.userRepo.Save(reqObj);
+        // let savedPost = await dataManager.userRepo.Save(reqObj);
+        let savedPost = await dataManager.userService.SaveUser(reqObj);
         if (savedPost) {
             response.status(201).send(savedPost);
             return;
@@ -63,21 +65,14 @@ userRouter.delete("/:id",
     CheckFormatErrors,
     async (request: RequestWithParams<{ id: string }>, response: Response) => {
         let idVal = request.params.id;
-        let userExist = await dataManager.userRepo.TakeCertain(idVal);
-        
-        if (userExist) {
-            let userIsDeleted = await dataManager.userRepo.DeleteCertain(idVal);
 
-            if (userIsDeleted) {
-                response.sendStatus(204);
+        // let userIsDeleted = await dataManager.userRepo.DeleteCertain(idVal);
+        let userIsDeleted = await dataManager.userService.DeleteUser(idVal);
 
-            }
-            else {
-                response.sendStatus(404);
-            }
-        }
-        else{
-            response.sendStatus(404);
-        }
+        if (userIsDeleted) response.sendStatus(204);
+
+        else response.sendStatus(404);
         return;
-    })
+    }
+
+)
