@@ -10,7 +10,7 @@ authRouter.post("",
     CheckFormatErrors,
     async (request: RequestWithBody<AuthRequest>, response: Response) => {
         
-        let userExist = await dataManager.userService.UserExist(request.body.loginOrEmail, request.body.password)
+        let userExist = await dataManager.userService.CheckUserLogs(request.body.loginOrEmail, request.body.password)
         
         if(userExist){
             response.sendStatus(204);

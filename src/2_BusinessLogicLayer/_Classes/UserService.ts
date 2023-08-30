@@ -22,6 +22,9 @@ export class UserService{
     public async DeleteUser(id: string): Promise<boolean>{
         return this.repo.DeleteCertain(id);
     }
+    public async ClearUsers(): Promise<boolean>{
+        return this.repo.DeleteMany();
+    }
 
     public async GetUsers(sorter: UserSorter, pageHandler: PageHandler): Promise<Paged<any> | null>{
         let foundValues = await this.repo.TakeAll(sorter, pageHandler);
@@ -29,7 +32,9 @@ export class UserService{
         return foundValues;
     }
 
-    public async CheckUserLogs(loginOrEmail: string, password: string){
-        
+    public async CheckUserLogs(loginOrEmail: string, password: string): Promise<boolean>{
+        return this.repo.UserExist(loginOrEmail, password);
     }
+
+    
 }
