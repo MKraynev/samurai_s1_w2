@@ -28,4 +28,8 @@ export class UserService{
         //repo.(searchParams, pageHandler);
         return foundValues;
     }
+
+    public async CheckUserLogs(loginOrEmail: string, password: string){
+        
+    }
 }

@@ -5,6 +5,7 @@ import { Sorter } from "../DataManagment/Sorter";
 export abstract class DataBase {
     abstract GetById(tableName: string, id: string): Promise<any | null>;
     abstract GetByPropName(tableName: string, propName: string, propVal: string): Promise<any | null>;
+    abstract FindBetweenTwoProp(tableName: string, propName_1: string, propName_2: string, propVal: string): Promise<any | null>;
     abstract GetAll(tableName: string, sorter: Sorter<any>, pageHandler: PageHandler): Promise<[PageHandler, any[]]>;
 
     abstract Post(tableName: string, obj: any): Promise<any | null>;

@@ -62,9 +62,20 @@ export class UserRepo extends Repo<UserRequest, UserResponse | UserDataBase>{
         return rest;
     }
     async UserExist(loginOrEmail: string, password: string): Promise<boolean> {
-        let foundUserByLogin: UserDataBase = await this.db.GetByPropName(this.tableName, "login", loginOrEmail);
-        let foundUserByEmail: UserDataBase = await this.db.GetByPropName(this.tableName, "email", loginOrEmail);
+        // let foundUserByLogin: UserDataBase = await this.db.GetByPropName(this.tableName, "login", loginOrEmail);
+        // let foundUserByEmail: UserDataBase = await this.db.GetByPropName(this.tableName, "email", loginOrEmail);
 
-        return (foundUserByLogin && foundUserByLogin.password == password) || (foundUserByEmail && foundUserByEmail.password == password)
+        // return (foundUserByLogin && foundUserByLogin.password == password) || (foundUserByEmail && foundUserByEmail.password == password)
+
+        let foundUser = await this.db.FindBetweenTwoProp(this.tableName, "login", "email", loginOrEmail);
+
+        if(foundUser && foundUser.password == password){
+            return true;
+        }
+        return false;
     }
+
+
+
+    
 }

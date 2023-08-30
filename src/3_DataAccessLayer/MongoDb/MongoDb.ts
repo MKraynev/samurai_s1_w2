@@ -15,6 +15,21 @@ type MongoSearch = {
 
 class MongoDb extends DataBase {
 
+    async FindBetweenTwoProp(tableName: string, propName_1: string, propName_2: string, propVal: string): Promise<any> {
+        try {
+            let query_1: any = {}
+            query_1[propName_1] = propVal;
+            let query_2: any = {}
+            query_2[propName_2] = propVal;
+
+            return await this._db.collection(tableName).findOne({ $or: [query_1, query_2] });
+        }
+        catch {
+            return null;
+        }
+
+    }
+
 
     private _dbIsRunning = false;
     private _client: MongoClient;
@@ -46,7 +61,7 @@ class MongoDb extends DataBase {
     }
     async GetByPropName(tableName: string, propName: string, propVal: string): Promise<any | null> {
         try {
-            let query:any = {}
+            let query: any = {}
             query[propName] = propVal;
             return await this._db.collection(tableName).findOne(query);
         }
@@ -55,7 +70,7 @@ class MongoDb extends DataBase {
         }
     }
 
-    async GetAll(tableName: string, sorter: BlogSorter | PostSorter| UserSorter, pageHandler: PageHandler): Promise<[PageHandler, any]> {
+    async GetAll(tableName: string, sorter: BlogSorter | PostSorter | UserSorter, pageHandler: PageHandler): Promise<[PageHandler, any]> {
 
         let collectionSize = await this.Count(tableName, sorter);
 
@@ -153,7 +168,7 @@ class MongoDb extends DataBase {
         }
     }
 
-    private BuildMongoSorter(sorter: BlogSorter | PostSorter| UserSorter): Sort {
+    private BuildMongoSorter(sorter: BlogSorter | PostSorter | UserSorter): Sort {
         let sortDir: SortDirection = sorter.sortDirection;
         let mongoSorter: Sort = {};
 
@@ -203,12 +218,13 @@ class MongoDb extends DataBase {
 
             case SorterType.UserSorter:
                 sorter = sorter as UserSorter;
-                if(sorter.searchEmailTerm && sorter.searchLoginTerm){
+                if (sorter.searchEmailTerm && sorter.searchLoginTerm) {
                     let searcher: any = {
                         "$or": [
-                            {"email": { $regex: sorter.searchEmailTerm, $options: 'i' }},
-                            {"login": { $regex: sorter.searchLoginTerm, $options: 'i' }}
-                        ]}
+                            { "email": { $regex: sorter.searchEmailTerm, $options: 'i' } },
+                            { "login": { $regex: sorter.searchLoginTerm, $options: 'i' } }
+                        ]
+                    }
                     return searcher;
                     //{ $or: [ { quantity: { $lt: 20 } }, { price: 10 } ] }
                 }
