@@ -1,4 +1,4 @@
-import { WithId } from "mongodb";
+import { ObjectId, WithId } from "mongodb";
 import { Repo } from "../_Classes/DataManagment/Repo/Repo"
 import { UserRequest } from "../../1_PresentationLayer/_Classes/Data/UserForRequest";
 import { UserResponse } from "../../2_BusinessLogicLayer/_Classes/Data/UserForResponse";
@@ -10,11 +10,13 @@ import { UserSorter } from "./UserSorter";
 
 
 export class UserRepo extends Repo<UserRequest, UserResponse | UserDataBase>{
-    ConvertFrom(dbValue: WithId<UserDataBase>): any {
-        let result = new UserResponse(dbValue._id, dbValue)
-        let { password, ...rest } = result;
-
-        return rest;
+    ConvertFrom(dbValue: WithId<any>): any {
+        let { salt, hash, _id, ...rest } = dbValue;
+        let responseUser: any = {
+            id: _id.toString(),
+            ...rest
+        }
+        return responseUser;
 
     }
     ConvertTo(dbValue: UserRequest): UserDataBase {
@@ -27,10 +29,7 @@ export class UserRepo extends Repo<UserRequest, UserResponse | UserDataBase>{
 
         if (dbData) {
             let returnValues = dbData.map(dbVal => {
-                let { password, ...rest } = dbVal;
-
-                return this.ConvertFrom(rest)
-
+                return this.ConvertFrom(dbVal)
             })
             let pagedData = dbHandler.GetPaged(returnValues);
             return pagedData;
@@ -54,25 +53,13 @@ export class UserRepo extends Repo<UserRequest, UserResponse | UserDataBase>{
         return rest;
     }
 
-    override async Save(reqObj: UserRequest): Promise<any | null> {
-        let dataForDb = this.ConvertTo(reqObj);
-        let saveResult = await this.db.Post(this.tableName, dataForDb);
-        let { password, ...rest } = this.ConvertFrom(saveResult);
-
-        return rest;
+    override async Save(reqObj: any): Promise<any | null> {
+        let saveResult = await this.db.Post(this.tableName, reqObj);
+        return this.ConvertFrom(saveResult);
     }
-    async UserExist(loginOrEmail: string, password: string): Promise<boolean> {
-        // let foundUserByLogin: UserDataBase = await this.db.GetByPropName(this.tableName, "login", loginOrEmail);
-        // let foundUserByEmail: UserDataBase = await this.db.GetByPropName(this.tableName, "email", loginOrEmail);
-
-        // return (foundUserByLogin && foundUserByLogin.password == password) || (foundUserByEmail && foundUserByEmail.password == password)
-
+    async GetUserByLoginOrEmail(loginOrEmail: string): Promise<any> {
         let foundUser = await this.db.FindBetweenTwoProp(this.tableName, "login", "email", loginOrEmail);
-
-        if(foundUser && foundUser.password == password){
-            return true;
-        }
-        return false;
+        return foundUser;
     }
 
 
