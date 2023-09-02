@@ -1,7 +1,7 @@
 import { Request, Response, Router } from "express";
 import { RequestPostData } from "../Repos/Entities/Post";
 import { RequestWithBody, RequestWithParams, RequestWithParamsAndBody } from "./Types/Requests";
-import { BlogIdExist, CheckFormatErrors, RequestAuthorized, ValidPostFields } from "./Validation/RequestCheck";
+import { BlogIdExist, CheckFormatErrors, RequestBaseAuthorized, ValidPostFields } from "./Validation/RequestCheck";
 import { _PostRepo } from "../Repos/PostRepo";
 
 
@@ -25,7 +25,7 @@ postRouter.get("/:id",
     })
 
 postRouter.post("",
-    RequestAuthorized,
+    RequestBaseAuthorized,
     ValidPostFields,
     BlogIdExist,
     CheckFormatErrors,
@@ -37,7 +37,7 @@ postRouter.post("",
 
 
 postRouter.put("/:id",
-    RequestAuthorized,
+    RequestBaseAuthorized,
     ValidPostFields,
     BlogIdExist,
     CheckFormatErrors,
@@ -53,7 +53,7 @@ postRouter.put("/:id",
     })
 
 postRouter.delete("/:id",
-    RequestAuthorized,
+    RequestBaseAuthorized,
     async (request: RequestWithParams<{ id: string }>, response: Response) => {
         let idVal = request.params.id;
 

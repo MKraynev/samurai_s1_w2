@@ -10,7 +10,7 @@ import { dataManager } from "../../../2_BusinessLogicLayer/_Classes/DataManager"
 
 
 
-export const RequestAuthorized =
+export const RequestBaseAuthorized =
     (request: Request<{}, {}, {}, {}>, reponse: Response, next: NextFunction) => {
         let headerValue = request.header("authorization");
         let error = new ErrorLog();
@@ -33,7 +33,6 @@ const FieldNotEmpty = (fieldName: string) => body(fieldName).trim().notEmpty().w
 const FieldIsUri = (fieldName: string) => body(fieldName).isURL().withMessage(`Wrong URL value: ${fieldName}`);
 const FieldMinLength = (fieldName: string, minLength: number) => body(fieldName).trim().isLength({ min: minLength }).withMessage(`Wrong length, too short ${minLength}: ${fieldName}`)
 const FieldMaxLength = (fieldName: string, maxLength: number) => body(fieldName).trim().isLength({ max: maxLength }).withMessage(`Wrong length, too long ${maxLength}: ${fieldName}`)
-
 
 export const ValidBlogFields = [
     FieldNotEmpty("name"), FieldMinLength("name", 2), FieldMaxLength("name", 15),
@@ -66,8 +65,6 @@ export const ValidAuthFields = [
         ]),
     FieldNotEmpty("password"), FieldMinLength("password", 6), FieldMaxLength("password", 20),
 ];
-//.matches(/^[\w-\.]+@([\w-]+\.)+[\w-]{2,4})
-
 
 export const BlogIdExist = body("blogId").custom(async idVal => {
     let requestedData = await dataManager.blogRepo.TakeCertain(idVal);
@@ -75,8 +72,6 @@ export const BlogIdExist = body("blogId").custom(async idVal => {
             throw new Error(`Wrong blogId: blogId`)
         }
 })
-
-
 
 export const CheckFormatErrors =
     (request: Request<{}, {}, {}, {}>, response: Response, next: NextFunction) => {

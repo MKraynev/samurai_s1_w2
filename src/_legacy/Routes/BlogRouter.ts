@@ -1,7 +1,7 @@
 import { Request, Response, Router } from "express";
 import { RequestBlogData, RequestSaveBlogData } from "../Repos/Entities/Blog";
 import { RequestWithBody, RequestWithParams, RequestWithParamsAndBody } from "./Types/Requests";
-import { CheckFormatErrors, RequestAuthorized, ValidBlogFields } from "./Validation/RequestCheck";
+import { CheckFormatErrors, RequestBaseAuthorized, ValidBlogFields } from "./Validation/RequestCheck";
 import { _BlogRepo } from "../Repos/BlogRepo";
 
 
@@ -26,7 +26,7 @@ blogRouter.get("/:id",
     })
 
 blogRouter.post("",
-    RequestAuthorized,
+    RequestBaseAuthorized,
     ValidBlogFields,
     CheckFormatErrors,
     async (request: RequestWithBody<RequestSaveBlogData>, response: Response) => {
@@ -36,7 +36,7 @@ blogRouter.post("",
 
 
 blogRouter.put("/:id",
-    RequestAuthorized,
+    RequestBaseAuthorized,
     ValidBlogFields,
     CheckFormatErrors,
     async (request: RequestWithParamsAndBody<{ id: string }, RequestBlogData>, response: Response) => {
@@ -51,7 +51,7 @@ blogRouter.put("/:id",
     })
 
 blogRouter.delete("/:id",
-    RequestAuthorized,
+    RequestBaseAuthorized,
     CheckFormatErrors,
     async (request: RequestWithParams<{ id: string }>, response: Response) => {
         let idVal = request.params.id;

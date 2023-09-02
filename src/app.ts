@@ -20,7 +20,7 @@ import { authRouter } from "./1_PresentationLayer/AuthRouter/AuthRouter";
 export const BlogsPath = "/blogs";
 export const PostsPath = "/posts";
 export const UsersPath = "/users";
-export const authPath = "/auth/login";
+export const authPath = "/auth";
 
 export const TestClearAllPath = "/testing/all-data";
 

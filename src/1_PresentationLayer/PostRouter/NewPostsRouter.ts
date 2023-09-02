@@ -2,7 +2,7 @@ import { Router, Request, Response } from "express";
 import { RequestParser } from "../_Classes/RequestManagment/RequestParser";
 import { dataManager } from "../../2_BusinessLogicLayer/_Classes/DataManager";
 import { CompleteRequest, RequestWithBody, RequestWithParams } from "../_Types/RequestTypes";
-import { BlogIdExist, CheckFormatErrors, RequestAuthorized, ValidPostFields } from "../../_legacy/Routes/Validation/RequestCheck";
+import { BlogIdExist, CheckFormatErrors, RequestBaseAuthorized, ValidPostFields } from "../../_legacy/Routes/Validation/RequestCheck";
 import { PostRequest } from "../_Classes/Data/PostForRequest";
 
 export const postRouter = Router();
@@ -32,7 +32,7 @@ postRouter.get("/:id",
     })
 
 postRouter.post("",
-    RequestAuthorized,
+    RequestBaseAuthorized,
     ValidPostFields,
     BlogIdExist,
     CheckFormatErrors,
@@ -52,7 +52,7 @@ postRouter.post("",
 
     })
 postRouter.put("/:id",
-    RequestAuthorized,
+    RequestBaseAuthorized,
     ValidPostFields,
     BlogIdExist,
     CheckFormatErrors,
@@ -76,7 +76,7 @@ postRouter.put("/:id",
         response.sendStatus(404);
     })
 postRouter.delete("/:id",
-    RequestAuthorized,
+    RequestBaseAuthorized,
     CheckFormatErrors,
     async (request: RequestWithParams<{ id: string }>, response: Response) => {
         let idVal = request.params.id;

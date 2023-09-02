@@ -4,10 +4,10 @@ import { BlogSorter } from "../../../3_DataAccessLayer/Blogs/BlogSorter";
 import { BlogResponse } from "../../../2_BusinessLogicLayer/_Classes/Data/BlogForResponse";
 import { PageHandler } from "../../../3_DataAccessLayer/_Classes/DataManagment/PageHandler";
 import { PostResponse } from "../../../2_BusinessLogicLayer/_Classes/Data/PostForResponse";
-import { Sort } from "mongodb";
 import { PostSorter } from "../../../3_DataAccessLayer/Posts/PostSorter";
 import { UserResponse } from "../../../2_BusinessLogicLayer/_Classes/Data/UserForResponse";
 import { UserSorter } from "../../../3_DataAccessLayer/Users/UserSorter";
+import { Token } from "../../../2_BusinessLogicLayer/_Classes/Data/Token";
 
 export class RequestParser {
     static ReadQueryBlogSorter(request: Request): BlogSorter {
@@ -48,8 +48,6 @@ export class RequestParser {
         )
         
     }
-
-
     static ReadQueryPageHandle(request: Request): PageHandler {
         let strPageNumber = request.query.pageNumber as string;
         let strPageSize = request.query.pageSize as string;
@@ -62,5 +60,18 @@ export class RequestParser {
             pageNumber,
             pageSize
         )
+    }
+    static ReadToken(request: Request): Token | null{
+        let headerString: string| undefined = request.header("authorization");
+        
+        if(headerString?.toLocaleLowerCase().startsWith("bearer ")){
+            let tokenString = headerString.split(" ")[1];
+            let token : Token = {
+                accessToken: tokenString
+            }
+            return token;
+        }
+        return null;
+        
     }
 }

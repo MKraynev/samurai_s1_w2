@@ -40,8 +40,7 @@ export class UserRepo extends Repo<UserRequest, UserResponse | UserDataBase>{
     override async TakeCertain(id: string): Promise<any | null> {
         let dbValue = await this.db.GetById(this.tableName, id);
         if (dbValue) {
-            let { password, ...rest } = dbValue;
-            let rerurnValue = this.ConvertFrom(rest);
+            let rerurnValue = this.ConvertFrom(dbValue);
             return rerurnValue;
         }
         return null;

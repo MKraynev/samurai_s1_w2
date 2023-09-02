@@ -2,7 +2,7 @@ import { Router, Request, Response } from "express";
 import { RequestParser } from "../_Classes/RequestManagment/RequestParser";
 import { dataManager } from "../../2_BusinessLogicLayer/_Classes/DataManager";
 import { CompleteRequest, RequestWithBody, RequestWithParams } from "../_Types/RequestTypes";
-import { CheckFormatErrors, RequestAuthorized, ValidBlogFields, ValidPostFields, ValidPostFieldsLight } from "../../_legacy/Routes/Validation/RequestCheck";
+import { CheckFormatErrors, RequestBaseAuthorized, ValidBlogFields, ValidPostFields, ValidPostFieldsLight } from "../../_legacy/Routes/Validation/RequestCheck";
 import { BlogRequest } from "../_Classes/Data/BlogForRequest";
 import { PostSorter } from "../../3_DataAccessLayer/Posts/PostSorter";
 import { SorterType } from "../../3_DataAccessLayer/_Classes/DataManagment/Sorter";
@@ -57,7 +57,7 @@ blogRouter.get("/:id/posts",
     })
 
 blogRouter.post("",
-    RequestAuthorized,
+    RequestBaseAuthorized,
     ValidBlogFields,
     CheckFormatErrors,
     async (request: RequestWithBody<BlogRequest>, response: Response) => {
@@ -73,7 +73,7 @@ blogRouter.post("",
     })
 
 blogRouter.post("/:id/posts",
-    RequestAuthorized,
+    RequestBaseAuthorized,
     ValidPostFieldsLight,
     CheckFormatErrors,
     async (request: CompleteRequest<{ id: string }, PostRequest, {}>, response: Response) => {
@@ -94,7 +94,7 @@ blogRouter.post("/:id/posts",
 
 
 blogRouter.put("/:id",
-    RequestAuthorized,
+    RequestBaseAuthorized,
     ValidBlogFields,
     CheckFormatErrors,
     async (request: CompleteRequest<{ id: string }, BlogRequest, {}>, response: Response) => {
@@ -118,7 +118,7 @@ blogRouter.put("/:id",
     })
 
 blogRouter.delete("/:id",
-    RequestAuthorized,
+    RequestBaseAuthorized,
     CheckFormatErrors,
     async (request: RequestWithParams<{ id: string }>, response: Response) => {
         let idVal = request.params.id;
