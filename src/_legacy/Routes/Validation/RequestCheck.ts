@@ -27,7 +27,7 @@ export const RequestBaseAuthorized =
         }
 
     }
-export const RequestJwtAuthorized = async (request: any, reponse: Response, next: NextFunction) => {
+export const RequestJwtAuthorized = async (request: any, response: Response, next: NextFunction) => {
     let token: Token | null = RequestParser.ReadToken(request);
     if (token) {
         let user = await dataManager.userService.GetUserByToken(token);
