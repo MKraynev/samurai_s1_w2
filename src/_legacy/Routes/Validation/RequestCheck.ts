@@ -42,6 +42,7 @@ export const RequestJwtAuthorized = async (request: any, reponse: Response, next
     let error = new ErrorLog();
     error.add("Request", "Missing authorization data")
     response.status(401).send(error);
+    return;
 }
 
 const FieldNotEmpty = (fieldName: string) => body(fieldName).trim().notEmpty().withMessage(`Empty field: ${fieldName}`);
@@ -93,6 +94,7 @@ export const PostIdExist = param("id").custom(async idVal => {
         let error = new ErrorLog();
         error.add("Request", "Wrong postId")
         response.status(404).send(error);
+        return;
     }
 })
 export const CheckFormatErrors =

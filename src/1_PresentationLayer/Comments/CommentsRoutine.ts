@@ -11,10 +11,11 @@ export const commentRouter = Router();
 commentRouter.get("/:id", async (request: RequestWithParams<{ id: string }>, response: Response) => {
     let comment = await dataManager.commentRepo.TakeCertain(request.params.id);
     if (comment) {
-        response.send(comment);
+        response.status(200).send(comment);
         return;
     }
     response.sendStatus(404);
+    return;
 })
 
 commentRouter.delete("/:id",
@@ -34,6 +35,7 @@ commentRouter.delete("/:id",
                 response.sendStatus(404);
                 break;
         }
+        return;
     })
     
 commentRouter.put("/:id",
@@ -58,4 +60,5 @@ commentRouter.put("/:id",
                 response.sendStatus(404);
                 break;
         }
+        return;
     })

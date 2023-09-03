@@ -90,6 +90,7 @@ postRouter.delete("/:id",
         else {
             response.sendStatus(404);
         }
+        return;
     })
 
 //COMMENTS
@@ -125,4 +126,5 @@ postRouter.post("/:id/comments",
             return;
         }
         response.sendStatus(400);
+        return;
     })
