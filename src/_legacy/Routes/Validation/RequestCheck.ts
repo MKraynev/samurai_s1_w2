@@ -36,10 +36,6 @@ export const RequestJwtAuthorized = async (request: any, reponse: Response, next
             next();
             return;
         }
-        let error = new ErrorLog();
-        error.add("Request", "Missing authorization data")
-        response.status(401).send(error);
-        return;
     }
 
 
@@ -98,8 +94,9 @@ export const PostIdExist = param("id").custom(async idVal => {
         let error = new ErrorLog();
         error.add("Request", "Wrong postId")
         response.status(404).send(error);
+        return;
     }
-    return;
+    
 })
 export const CheckFormatErrors =
     (request: Request<{}, {}, {}, {}>, response: Response, next: NextFunction) => {
