@@ -6,7 +6,6 @@ import { UserResponse } from "../../2_BusinessLogicLayer/_Classes/Data/UserForRe
 import { DeleteResult, UpdateResult } from "../../3_DataAccessLayer/Comments/CommentsRepo";
 import { CommentRequest } from "../_Classes/Data/CommentRequest";
 
-
 export const commentRouter = Router();
 
 commentRouter.get("/:id", async (request: RequestWithParams<{ id: string }>, response: Response) => {
