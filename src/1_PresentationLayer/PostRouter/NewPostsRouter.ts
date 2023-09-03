@@ -95,7 +95,7 @@ postRouter.delete("/:id",
 //COMMENTS
 postRouter.get("/:id/comments",
     PostIdExist,
-    async (request: RequestWithParams<{id: string}>, response: Response) => {
+    async (request: RequestWithParams<{ id: string }>, response: Response) => {
         let pageHandler = RequestParser.ReadQueryPageHandle(request);
         let searchParams = RequestParser.ReadQueryCommentSorter(request, request.params.id);
 
@@ -109,26 +109,18 @@ postRouter.get("/:id/comments",
 
 postRouter.post("/:id/comments",
     RequestJwtAuthorized,
+    PostIdExist,
     ValidContent,
     CheckFormatErrors,
     async (request: any, response: Response) => {
-        let postExist = await dataManager.postRepo.TakeCertain(request.params.id)
+        let comment = new CommentRequest(request.body.content);
+        let commentToDb = new CommentRequestForDB(comment, request.params.id, request.user);
 
-        if (postExist) {
-            let comment = new CommentRequest(request.body.content);
-            let commentToDb = new CommentRequestForDB(comment, request.params.id, request.user);
+        let savedComment = await dataManager.commentRepo.Save(commentToDb);
 
-            let savedComment = await dataManager.commentRepo.Save(commentToDb);
-
-            if (savedComment) {
-                response.status(201).send(savedComment);
-                return;
-            }
-        }
-        else {
-            response.sendStatus(404);
+        if (savedComment) {
+            response.status(201).send(savedComment);
             return;
         }
-
         response.sendStatus(400);
     })
