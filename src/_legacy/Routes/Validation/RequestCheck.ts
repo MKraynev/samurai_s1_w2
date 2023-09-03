@@ -36,6 +36,10 @@ export const RequestJwtAuthorized = async (request: any, reponse: Response, next
             next();
             return;
         }
+        let error = new ErrorLog();
+        error.add("Request", "Missing authorization data")
+        response.status(401).send(error);
+        return;
     }
 
 
