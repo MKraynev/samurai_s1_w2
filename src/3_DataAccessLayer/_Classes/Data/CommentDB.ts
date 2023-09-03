@@ -1,7 +1,7 @@
 import { CommentRequest } from "../../../1_PresentationLayer/_Classes/Data/CommentRequest";
 import { UserDataBase } from "./UserDB";
 
-type CommentatorInfo = {
+export type CommentatorInfo = {
     userId: string,
     userLogin: string
 }

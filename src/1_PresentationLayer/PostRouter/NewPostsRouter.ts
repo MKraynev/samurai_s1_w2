@@ -113,8 +113,10 @@ postRouter.post("/:id/comments",
     ValidContent,
     CheckFormatErrors,
     async (request: any, response: Response) => {
+        let user: UserResponse  = request.user;
+
         let comment = new CommentRequest(request.body.content);
-        let commentToDb = new CommentRequestForDB(comment, request.params.id, request.user);
+        let commentToDb = new CommentRequestForDB(comment, request.params.id, user.id, user.login);
 
         let savedComment = await dataManager.commentRepo.Save(commentToDb);
 

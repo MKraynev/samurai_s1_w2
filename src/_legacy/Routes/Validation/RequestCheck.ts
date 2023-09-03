@@ -34,6 +34,7 @@ export const RequestJwtAuthorized = async (request: any, reponse: Response, next
         if (user) {
             request.user = user;
             next();
+            return;
         }
     }
 
