@@ -8,8 +8,9 @@ _NewTestClearAllRouter.delete("", async (request: Request, response: Response) =
     let blogsDeleted = await dataManager.blogRepo.DeleteMany();
     let postsDeleted = await dataManager.postRepo.DeleteMany();
     let usersDeleted = await dataManager.userService.ClearUsers();
-
-    if (blogsDeleted && postsDeleted && usersDeleted) {
+    let commentDeleted = await dataManager.commentRepo.DeleteMany();
+    
+    if (blogsDeleted && postsDeleted && usersDeleted && commentDeleted) {
         response.sendStatus(204);
     }
     else {
