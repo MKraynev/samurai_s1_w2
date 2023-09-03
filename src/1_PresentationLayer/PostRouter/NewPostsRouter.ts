@@ -96,6 +96,7 @@ postRouter.delete("/:id",
 //COMMENTS
 postRouter.get("/:id/comments",
     PostIdExist,
+    CheckFormatErrors,
     async (request: RequestWithParams<{ id: string }>, response: Response) => {
         let pageHandler = RequestParser.ReadQueryPageHandle(request);
         let searchParams = RequestParser.ReadQueryCommentSorter(request, request.params.id);
@@ -106,6 +107,7 @@ postRouter.get("/:id/comments",
             return;
         }
         response.sendStatus(404);
+        return;
     })
 
 postRouter.post("/:id/comments",
