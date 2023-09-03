@@ -5,7 +5,6 @@ import { CompleteRequest, RequestWithBody, RequestWithParams } from "../_Types/R
 import { CheckFormatErrors, RequestBaseAuthorized, ValidBlogFields, ValidPostFields, ValidPostFieldsLight } from "../../_legacy/Routes/Validation/RequestCheck";
 import { BlogRequest } from "../_Classes/Data/BlogForRequest";
 import { PostSorter } from "../../3_DataAccessLayer/Posts/PostSorter";
-import { SorterType } from "../../3_DataAccessLayer/_Classes/DataManagment/Sorter";
 import { PostRequest } from "../_Classes/Data/PostForRequest";
 
 

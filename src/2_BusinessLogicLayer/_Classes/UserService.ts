@@ -82,7 +82,7 @@ export class UserService {
     }
     private async DecodeIdFromToken(token: Token): Promise<string| null> {
         try {
-            let decodeRes: any = await jwt.decode(token.accessToken);
+            let decodeRes: any = await jwt.verify(token.accessToken, JWT_SECRET);
             return decodeRes.id;
         }
         catch {

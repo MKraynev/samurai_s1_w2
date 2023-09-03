@@ -1,13 +1,12 @@
 import { Request, Response, NextFunction, response } from "express";
 import { ValidBase64Key, } from "../../Authorization/BasicAuthorization/BasicAuthorization";
 import { AuthorizationStatus } from "../../Authorization/IAuthorizer";
-import { header, body, validationResult, oneOf } from "express-validator"
+import { body, validationResult, oneOf, param } from "express-validator"
 import { ErrorLog } from "../../Errors/Error";
 import { _BlogRepo } from "../../Repos/BlogRepo";
-import { RequestPostData } from "../../Repos/Entities/Post";
-import { RequestWithBody } from "../Types/Requests";
 import { dataManager } from "../../../2_BusinessLogicLayer/_Classes/DataManager";
-
+import { Token } from "../../../2_BusinessLogicLayer/_Classes/Data/Token";
+import { RequestParser } from "../../../1_PresentationLayer/_Classes/RequestManagment/RequestParser";
 
 
 export const RequestBaseAuthorized =
@@ -28,6 +27,21 @@ export const RequestBaseAuthorized =
         }
 
     }
+export const RequestJwtAuthorized = async (request: any, reponse: Response, next: NextFunction) => {
+    let token: Token | null = RequestParser.ReadToken(request);
+    if (token) {
+        let user = await dataManager.userService.GetUserByToken(token);
+        if (user) {
+            request.user = user;
+            next();
+        }
+    }
+
+
+    let error = new ErrorLog();
+    error.add("Request", "Missing authorization data")
+    response.status(401).send(error);
+}
 
 const FieldNotEmpty = (fieldName: string) => body(fieldName).trim().notEmpty().withMessage(`Empty field: ${fieldName}`);
 const FieldIsUri = (fieldName: string) => body(fieldName).isURL().withMessage(`Wrong URL value: ${fieldName}`);
@@ -55,24 +69,31 @@ export const ValidUserFields = [
     FieldNotEmpty("login"), FieldMinLength("login", 3), FieldMaxLength("login", 10),
     FieldNotEmpty("password"), FieldMinLength("password", 6), FieldMaxLength("password", 20),
     FieldNotEmpty("email"), body("email").isEmail().withMessage("Wrong email: email")
-    
+
 ];
 export const ValidAuthFields = [
     oneOf(
         [
-            FieldNotEmpty("loginOrEmail"), FieldMinLength("loginOrEmail", 3), FieldMaxLength("loginOrEmail", 10), 
-            FieldNotEmpty("loginOrEmail"),body("loginOrEmail").isEmail().withMessage("Wrong email: email")
+            FieldNotEmpty("loginOrEmail"), FieldMinLength("loginOrEmail", 3), FieldMaxLength("loginOrEmail", 10),
+            FieldNotEmpty("loginOrEmail"), body("loginOrEmail").isEmail().withMessage("Wrong email: email")
         ]),
     FieldNotEmpty("password"), FieldMinLength("password", 6), FieldMaxLength("password", 20),
 ];
 
 export const BlogIdExist = body("blogId").custom(async idVal => {
     let requestedData = await dataManager.blogRepo.TakeCertain(idVal);
-        if (!requestedData) {
-            throw new Error(`Wrong blogId: blogId`)
-        }
+    if (!requestedData) {
+        throw new Error(`Wrong blogId: blogId`)
+    }
 })
-
+export const PostIdExist = param("id").custom(async idVal => {
+    let foundPost = await dataManager.postRepo.TakeCertain(idVal);
+    if (!foundPost) {
+        let error = new ErrorLog();
+        error.add("Request", "Wrong postId")
+        response.status(404).send(error);
+    }
+})
 export const CheckFormatErrors =
     (request: Request<{}, {}, {}, {}>, response: Response, next: NextFunction) => {
         let errorResult = validationResult(request);
@@ -95,4 +116,8 @@ export const CheckFormatErrors =
         }
         next()
     }
-  
+export const ValidContent = [
+    FieldNotEmpty("content"),
+    FieldMinLength("content", 20),
+    FieldMaxLength("content", 300)
+]

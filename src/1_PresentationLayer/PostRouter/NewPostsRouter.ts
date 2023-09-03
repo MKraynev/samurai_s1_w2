@@ -2,11 +2,14 @@ import { Router, Request, Response } from "express";
 import { RequestParser } from "../_Classes/RequestManagment/RequestParser";
 import { dataManager } from "../../2_BusinessLogicLayer/_Classes/DataManager";
 import { CompleteRequest, RequestWithBody, RequestWithParams } from "../_Types/RequestTypes";
-import { BlogIdExist, CheckFormatErrors, RequestBaseAuthorized, ValidPostFields } from "../../_legacy/Routes/Validation/RequestCheck";
+import { BlogIdExist, CheckFormatErrors, PostIdExist, RequestBaseAuthorized, RequestJwtAuthorized, ValidContent, ValidPostFields } from "../../_legacy/Routes/Validation/RequestCheck";
 import { PostRequest } from "../_Classes/Data/PostForRequest";
+import { UserResponse } from "../../2_BusinessLogicLayer/_Classes/Data/UserForResponse";
+import { CommentRequest, CommentRequestForDB } from "../_Classes/Data/CommentRequest";
 
 export const postRouter = Router();
 
+//POSTS
 postRouter.get("", async (request: Request, response: Response) => {
 
     let searchParams = RequestParser.ReadQueryPostSorter(request);
@@ -17,7 +20,6 @@ postRouter.get("", async (request: Request, response: Response) => {
 
     response.status(200).send(returnValues)
 })
-
 postRouter.get("/:id",
     async (request: RequestWithParams<{ id: string }>, response: Response) => {
         let reqId = request.params.id;
@@ -30,7 +32,6 @@ postRouter.get("/:id",
         }
 
     })
-
 postRouter.post("",
     RequestBaseAuthorized,
     ValidPostFields,
@@ -89,4 +90,45 @@ postRouter.delete("/:id",
         else {
             response.sendStatus(404);
         }
+    })
+
+//COMMENTS
+postRouter.get("/:id/comments",
+    PostIdExist,
+    async (request: RequestWithParams<{id: string}>, response: Response) => {
+        let pageHandler = RequestParser.ReadQueryPageHandle(request);
+        let searchParams = RequestParser.ReadQueryCommentSorter(request, request.params.id);
+
+        let foundValues = await dataManager.commentRepo.TakeAll(searchParams, pageHandler);
+        if (foundValues) {
+            response.status(200).send(foundValues);
+            return;
+        }
+        response.sendStatus(404);
+    })
+
+postRouter.post("/:id/comments",
+    RequestJwtAuthorized,
+    ValidContent,
+    CheckFormatErrors,
+    async (request: any, response: Response) => {
+        let postExist = await dataManager.postRepo.TakeCertain(request.params.id)
+
+        if (postExist) {
+            let comment = new CommentRequest(request.body.content);
+            let commentToDb = new CommentRequestForDB(comment, request.params.id, request.user);
+
+            let savedComment = await dataManager.commentRepo.Save(commentToDb);
+
+            if (savedComment) {
+                response.status(201).send(savedComment);
+                return;
+            }
+        }
+        else {
+            response.sendStatus(404);
+            return;
+        }
+
+        response.sendStatus(400);
     })

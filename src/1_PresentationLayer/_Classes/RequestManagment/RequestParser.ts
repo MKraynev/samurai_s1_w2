@@ -8,6 +8,9 @@ import { PostSorter } from "../../../3_DataAccessLayer/Posts/PostSorter";
 import { UserResponse } from "../../../2_BusinessLogicLayer/_Classes/Data/UserForResponse";
 import { UserSorter } from "../../../3_DataAccessLayer/Users/UserSorter";
 import { Token } from "../../../2_BusinessLogicLayer/_Classes/Data/Token";
+import { CommentResponse } from "../../../2_BusinessLogicLayer/_Classes/Data/CommentForResponse";
+import { CommentSorter } from "../../../3_DataAccessLayer/Comments/CommentSorter";
+import { CommentDataBase } from "../../../3_DataAccessLayer/_Classes/Data/CommentDB";
 
 export class RequestParser {
     static ReadQueryBlogSorter(request: Request): BlogSorter {
@@ -48,6 +51,20 @@ export class RequestParser {
         )
         
     }
+    static ReadQueryCommentSorter(request: Request, postId: string | null){
+        let sortBy: keyof CommentDataBase & string | undefined = request.query.sortBy as keyof CommentDataBase & string | undefined;
+        let sortDirection: string | undefined = request.query.sortDirection as string | undefined;
+        
+
+        return new CommentSorter(
+            SorterType.CommentSorter,
+            postId? postId : null,
+            sortBy ? sortBy : "createdAt",
+            sortDirection == "asc" || sortDirection == "desc" ? sortDirection : undefined
+        )
+        
+    }
+
     static ReadQueryPageHandle(request: Request): PageHandler {
         let strPageNumber = request.query.pageNumber as string;
         let strPageSize = request.query.pageSize as string;

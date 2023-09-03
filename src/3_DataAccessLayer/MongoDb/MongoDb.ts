@@ -1,12 +1,13 @@
 import { Db, MongoClient, ObjectId, Sort, SortDirection } from "mongodb";
 import { DataBase } from "../_Classes/DataBase/DataBase";
-import dotenv from "dotenv"
-import { Sorter, SorterType } from "../_Classes/DataManagment/Sorter";
+import { SorterType } from "../_Classes/DataManagment/Sorter";
 import { PageHandler } from "../_Classes/DataManagment/PageHandler";
 import { BlogSorter } from "../Blogs/BlogSorter";
 import { PostSorter } from "../Posts/PostSorter";
 import { UserSorter } from "../Users/UserSorter";
-dotenv.config();
+import { MONGO_URL } from "../../settings";
+import { CommentSorter } from "../Comments/CommentSorter";
+
 
 type MongoSearch = {
     [key: string]: { $regex: string, $options: string }
@@ -168,7 +169,7 @@ class MongoDb extends DataBase {
         }
     }
 
-    private BuildMongoSorter(sorter: BlogSorter | PostSorter | UserSorter): Sort {
+    private BuildMongoSorter(sorter: BlogSorter | PostSorter | UserSorter | CommentSorter): Sort {
         let sortDir: SortDirection = sorter.sortDirection;
         let mongoSorter: Sort = {};
 
@@ -186,12 +187,18 @@ class MongoDb extends DataBase {
             case SorterType.UserSorter:
                 sorter = sorter as UserSorter;
                 mongoSorter[sorter.sortBy] = sortDir;
+                break;
+            
+            case SorterType.CommentSorter:
+                sorter = sorter as CommentSorter;
+                mongoSorter[sorter.sortBy] = sortDir;
+                break; 
         }
 
         return mongoSorter;
     }
 
-    private BuildMongoSearcher(sorter: BlogSorter | PostSorter | UserSorter): MongoSearch {
+    private BuildMongoSearcher(sorter: BlogSorter | PostSorter | UserSorter | CommentSorter): MongoSearch {
         switch (sorter.sorterType) {
             case SorterType.BlogSorter:
                 sorter = sorter as BlogSorter;
@@ -226,7 +233,6 @@ class MongoDb extends DataBase {
                         ]
                     }
                     return searcher;
-                    //{ $or: [ { quantity: { $lt: 20 } }, { price: 10 } ] }
                 }
                 else if (sorter.searchEmailTerm) {
                     let searcher: MongoSearch = {
@@ -241,10 +247,18 @@ class MongoDb extends DataBase {
                     return searcher;
                 }
                 return {}
-                break;
+            case SorterType.CommentSorter:
+                sorter = sorter as CommentSorter;
+                if(sorter.postId){
+                    let searcher: MongoSearch = {
+                        "postId": {$regex: sorter.postId, $options: 'i'}
+                    }
+                    return searcher;
+                }
+                return {}
         }
-
     }
+
     private async GetSize(tableName: string): Promise<number> {
         return await this._db.collection(tableName).count();
     }
@@ -262,6 +276,6 @@ class MongoDb extends DataBase {
     }
 }
 
-const dbUrl = process.env.MONGO_URL || "";
+const dbUrl = MONGO_URL;
 
-export const mongoDb = new MongoDb(dbUrl, "s1w3");
+export const mongoDb = new MongoDb(dbUrl, "s2w2");
