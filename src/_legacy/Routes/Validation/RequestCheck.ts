@@ -88,16 +88,16 @@ export const BlogIdExist = body("blogId").custom(async idVal => {
         throw new Error(`Wrong blogId: blogId`)
     }
 })
-export const PostIdExist = param("id").custom(async idVal => {
-    let foundPost = await dataManager.postRepo.TakeCertain(idVal);
-    if (!foundPost) {
-        let error = new ErrorLog();
-        error.add("Request", "Wrong postId")
-        response.status(404).send(error);
+export const PostIdExist = async (request: Request<{id: string}, {}, {}, {}>, response: Response, next: NextFunction) =>{
+    let post = await dataManager.postRepo.TakeCertain(request.params.id);
+    if(!post){
+        response.sendStatus(404);
         return;
     }
-    
-})
+    next();
+}
+
+
 export const CheckFormatErrors =
     (request: Request<{}, {}, {}, {}>, response: Response, next: NextFunction) => {
         let errorResult = validationResult(request);
