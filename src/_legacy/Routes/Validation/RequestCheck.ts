@@ -105,10 +105,10 @@ export const PostIdExist = async (request: Request<{ id: string }, {}, {}, {}>, 
 }
 
 export const UserAvailableForConfirmation = async (request: any, response: Response, next: NextFunction) => {
-    let code = request.query.code? request.query.code : request.body.code;
+    let code = request.query.code ? request.query.code : request.body.code;
 
     let user: UserResponse | null = await dataManager.userService.GetUserByConfirmEmailCode(code);
-    
+
 
     if (!user || user.emailConfirmed) {
         let error = new ErrorLog();
@@ -119,7 +119,7 @@ export const UserAvailableForConfirmation = async (request: any, response: Respo
     request.user = user;
     next();
 }
-export const UserLoginAndEmailFree = async (request: any, response: Response, next: NextFunction) => {
+export const UserLoginAndEmailFreeByUserInBody = async (request: any, response: Response, next: NextFunction) => {
     let reqUser = new UserRequest(request.body.login, request.body.password, request.body.email);
     let existStatus = await dataManager.userService.CurrentLoginOrEmailExist(reqUser.login, reqUser.email);
     let error = new ErrorLog();
@@ -138,6 +138,20 @@ export const UserLoginAndEmailFree = async (request: any, response: Response, ne
             return;
             break;
     }
+    response.status(400).send(error);
+    return;
+}
+
+export const UserLoginAndEmailFreeByEmailInBody = async (request: any, response: Response, next: NextFunction) => {
+    let user = await dataManager.userService.GetUserByMail(request.body.email);
+    if (user && user.emailConfirmed == false) {
+        request.user = user;
+        next();
+        return;
+    }
+    let error = new ErrorLog();
+    error.add("email", "Wrong email value");
+
     response.status(400).send(error);
     return;
 }

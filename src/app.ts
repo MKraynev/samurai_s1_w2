@@ -8,6 +8,7 @@ import { userRouter } from "./1_PresentationLayer/UserRouter/UserRouter";
 import { authRouter } from "./1_PresentationLayer/AuthRouter/AuthRouter";
 import { commentRouter } from "./1_PresentationLayer/Comments/CommentsRoutine";
 import { emailSender } from "./1_PresentationLayer/_Classes/Email/EmailSender";
+import ngrok from "ngrok"
 
 export const BlogsPath = "/blogs";
 export const PostsPath = "/posts";
@@ -28,7 +29,12 @@ app.use(commentPath, commentRouter);
 
 app.use(TestClearAllPath, _NewTestClearAllRouter)
 
-const PORT: number = 5001;
+const PORT: number = 80;
+const ngrokConnect = async ()=> {
+    const url = await ngrok.connect();
+    console.log(url);
+  };
+
 const StartApp = async () => {
 
     if(await dataManager.Run()){
@@ -39,6 +45,8 @@ const StartApp = async () => {
     app.listen(PORT, () => {
         console.log("app is running");
     })
+
+    await ngrokConnect();
 
     //let sendRes = await emailSender.SendRegistrationMail("becaury@gmail.com", "Registration", "543321");
 }

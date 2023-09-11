@@ -37,6 +37,19 @@ export class UserService {
 
         return savedUser;
     }
+    public async UpdateUserEmailConfirmId(userId: string): Promise<string | null> {
+        try {
+            let emailConfirmId = UniqueValGenerator();
+            let updatedUser = await this.repo.UpdateProperty(userId, "emailConfirmId", emailConfirmId);
+            if (updatedUser) {
+                return emailConfirmId;
+            }
+            return null;
+        }
+        catch {
+            return null;
+        }
+    }
 
     public async DeleteUser(id: string): Promise<boolean> {
         return this.repo.DeleteCertain(id);
@@ -86,13 +99,13 @@ export class UserService {
         }
         return null;
     }
-    public async GetUserByMail(email: string): Promise<UserResponse| null>{
+    public async GetUserByMail(email: string): Promise<UserResponse | null> {
         let foundUser = await this.repo.GetUserByLoginOrEmail(email, false) as UserResponse | null;
         return foundUser;
     }
     public async GetUserByConfirmEmailCode(code: string): Promise<UserResponse | null> {
         let foundUser = await this.repo.GetByConfirmEmailCode(code);
-        
+
         return foundUser;
     }
 
@@ -117,7 +130,7 @@ export class UserService {
         return LoginEmailStatus.LoginAndEmailFree;
     }
 
-    public async ConfirmUser(user: UserResponse): Promise<UserResponse | null>{
+    public async ConfirmUser(user: UserResponse): Promise<UserResponse | null> {
         let updatedUser = await this.repo.UpdateProperty(user.id, "emailConfirmed", true);
         return updatedUser;
     }

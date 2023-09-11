@@ -1,6 +1,6 @@
 import { Router, Response, Request } from "express"
 import { dataManager } from "../../2_BusinessLogicLayer/_Classes/DataManager";
-import { CheckFormatErrors, UserAvailableForConfirmation, UserLoginAndEmailFree, ValidAuthFields, ValidEmail, ValidUserFields } from "../../_legacy/Routes/Validation/RequestCheck";
+import { CheckFormatErrors, UserAvailableForConfirmation, UserLoginAndEmailFreeByEmailInBody, UserLoginAndEmailFreeByUserInBody, ValidAuthFields, ValidEmail, ValidUserFields } from "../../_legacy/Routes/Validation/RequestCheck";
 import { RequestWithBody } from "../_Types/RequestTypes";
 import { AuthRequest } from "../_Classes/Data/AuthRequest";
 import { UserRequest } from "../_Classes/Data/UserForRequest";
@@ -51,7 +51,7 @@ authRouter.get("/me", async (request: Request, response: Response) => {
 
 authRouter.post("/registration",
     ValidUserFields,
-    UserLoginAndEmailFree,
+    UserLoginAndEmailFreeByUserInBody,
     CheckFormatErrors,
     async (request: any, response: Response) => {
 
@@ -67,17 +67,19 @@ authRouter.post("/registration",
         response.sendStatus(401);
     })
 
-///hometask_07/api/auth/registration-email-resending
 authRouter.post("/registration-email-resending",
     ValidEmail,
+    UserLoginAndEmailFreeByEmailInBody,
     CheckFormatErrors,
-    async (request: RequestWithBody<{ email: string }>, response: Response) => {
-        let user = await dataManager.userService.GetUserByMail(request.body.email);
-        if(user && user.emailConfirmed == false){
-            emailSender.SendRegistrationMail(user.email, confirmAdress, user.emailConfirmId);
+    async (request: any, response: Response) => {
+        let user = request.user as UserResponse;
+
+        let newLinkVal = await dataManager.userService.UpdateUserEmailConfirmId(user.id);
+        if (newLinkVal) {
+            emailSender.SendRegistrationMail(user.email, confirmAdress, newLinkVal);
             response.sendStatus(204);
-            return;
         }
+
         response.sendStatus(400);
     })
 
