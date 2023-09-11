@@ -15,6 +15,7 @@ type MongoSearch = {
 
 
 class MongoDb extends DataBase {
+    
 
     async FindBetweenTwoProp(tableName: string, propName_1: string, propName_2: string, propVal: string): Promise<any> {
         try {
@@ -125,6 +126,23 @@ class MongoDb extends DataBase {
         }
     }
 
+    async PutProp(tableName: string, id: string, property: string, value: string|boolean|number): Promise<any> {
+        try{
+            let updateField:any = {};
+            updateField[property] = value;
+
+            let updateResult = await this._db.collection(tableName).updateOne({_id: new ObjectId(id)}, {$set: updateField})
+
+            if(updateResult.matchedCount == 1){
+                let updatedValue = await this.GetById(tableName, id);
+                return updatedValue; 
+            }
+            return null;
+        }
+        catch{
+            return null;
+        }
+    }
 
     async Delete(tableName: string, id: string): Promise<boolean> {
         try {

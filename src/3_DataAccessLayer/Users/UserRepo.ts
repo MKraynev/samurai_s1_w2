@@ -10,17 +10,19 @@ import { UserSorter } from "./UserSorter";
 
 
 export class UserRepo extends Repo<UserRequest, UserResponse | UserDataBase>{
-    ConvertFrom(dbValue: WithId<any>): any {
+    ConvertFrom(dbValue: WithId<any>): UserResponse {
         let { salt, hash, _id, ...rest } = dbValue;
-        let responseUser: any = {
-            id: _id.toString(),
-            ...rest
-        }
-        return responseUser;
+        // let responseUser: any = {
+        //     id: _id.toString(),
+        //     ...rest
+        // }
+
+        let respUser = new UserResponse(dbValue._id, dbValue);
+        return respUser;
 
     }
-    ConvertTo(dbValue: UserRequest): UserDataBase {
-        return new UserDataBase(dbValue);
+    ConvertTo(reqValue: UserRequest): UserDataBase {
+        return new UserDataBase(reqValue, "", "", "", "");
     }
     override async TakeAll(sorter: UserSorter, pageHandler: PageHandler): Promise<Paged<any[]> | null> {
 
@@ -47,9 +49,18 @@ export class UserRepo extends Repo<UserRequest, UserResponse | UserDataBase>{
     }
     override async Update(id: string, reqObj: UserRequest): Promise<any | null> {
         let updatedResult = await this.db.Put(this.tableName, id, reqObj);
-        let { password, ...rest } = this.ConvertFrom(updatedResult);
+        //let { password, ...rest } = this.ConvertFrom(updatedResult);
+        let respUser = this.ConvertFrom(updatedResult);
 
-        return rest;
+        return respUser;
+    }
+    async UpdateProperty(id: string, propertyName: string, propertyVal: string | boolean | number): Promise<UserResponse | null>{
+        let updatedObj = await this.db.PutProp(this.tableName, id, propertyName, propertyVal);
+        if(updatedObj){
+            let respUser = this.ConvertFrom(updatedObj);
+            return respUser;
+        }
+        return null;
     }
 
     override async Save(reqObj: any): Promise<any | null> {
@@ -59,6 +70,14 @@ export class UserRepo extends Repo<UserRequest, UserResponse | UserDataBase>{
     async GetUserByLoginOrEmail(loginOrEmail: string): Promise<any> {
         let foundUser = await this.db.FindBetweenTwoProp(this.tableName, "login", "email", loginOrEmail);
         return foundUser;
+    }
+    async GetByConfirmEmailCode(code: string): Promise<UserResponse | null>{
+        let foundVal = await this.db.GetByPropName(this.tableName, "emailConfirmId", code);
+
+        if(foundVal){
+            return this.ConvertFrom(foundVal);
+        }
+        return null;
     }
 
 

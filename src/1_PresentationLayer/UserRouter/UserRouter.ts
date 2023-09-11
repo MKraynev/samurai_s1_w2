@@ -28,8 +28,7 @@ userRouter.post("",
 
 
         let reqObj = new UserRequest(request.body.login, request.body.password, request.body.email);
-        //Blog exist
-        // let savedPost = await dataManager.userRepo.Save(reqObj);
+        
         let savedPost = await dataManager.userService.SaveUser(reqObj);
         if (savedPost) {
             response.status(201).send(savedPost);

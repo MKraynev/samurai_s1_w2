@@ -7,6 +7,7 @@ import { postRouter } from "./1_PresentationLayer/PostRouter/NewPostsRouter";
 import { userRouter } from "./1_PresentationLayer/UserRouter/UserRouter";
 import { authRouter } from "./1_PresentationLayer/AuthRouter/AuthRouter";
 import { commentRouter } from "./1_PresentationLayer/Comments/CommentsRoutine";
+import { emailSender } from "./1_PresentationLayer/_Classes/Email/EmailSender";
 
 export const BlogsPath = "/blogs";
 export const PostsPath = "/posts";
@@ -38,6 +39,8 @@ const StartApp = async () => {
     app.listen(PORT, () => {
         console.log("app is running");
     })
+
+    //let sendRes = await emailSender.SendRegistrationMail("becaury@gmail.com", "Registration", "543321");
 }
 
 StartApp();

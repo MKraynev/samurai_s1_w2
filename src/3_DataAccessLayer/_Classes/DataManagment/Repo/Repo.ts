@@ -6,7 +6,7 @@ import { DataBase } from "../../DataBase/DataBase";
 import { PageHandler } from "../PageHandler";
 import { Sorter } from "../Sorter";
 
-export abstract class Repo<RequestDataPresentation, ResponseDataPresentation extends RequestDataPresentation>
+export abstract class Repo<RequestDataPresentation, ResponseDataPresentation>
     implements IDataAccess<RequestDataPresentation, ResponseDataPresentation>{
 
     constructor(protected db: DataBase, protected tableName: string) { }

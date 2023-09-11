@@ -7,6 +7,8 @@ import { _BlogRepo } from "../../Repos/BlogRepo";
 import { dataManager } from "../../../2_BusinessLogicLayer/_Classes/DataManager";
 import { Token } from "../../../2_BusinessLogicLayer/_Classes/Data/Token";
 import { RequestParser } from "../../../1_PresentationLayer/_Classes/RequestManagment/RequestParser";
+import { RequestWithParams } from "../Types/Requests";
+import { RequestWithQuery } from "../../../1_PresentationLayer/_Types/RequestTypes";
 
 
 export const RequestBaseAuthorized =
@@ -88,15 +90,27 @@ export const BlogIdExist = body("blogId").custom(async idVal => {
         throw new Error(`Wrong blogId: blogId`)
     }
 })
-export const PostIdExist = async (request: Request<{id: string}, {}, {}, {}>, response: Response, next: NextFunction) =>{
+export const PostIdExist = async (request: Request<{ id: string }, {}, {}, {}>, response: Response, next: NextFunction) => {
     let post = await dataManager.postRepo.TakeCertain(request.params.id);
-    if(!post){
+    if (!post) {
         response.sendStatus(404);
         return;
     }
     next();
 }
 
+export const UserAvailableForConfirmation = async (request: any, response: Response, next: NextFunction) => {
+    let user = await dataManager.userService.GetUserByConfirmEmailCode(request.query.code);
+
+    if (!user || user.emailConfirmed) {
+        let error = new ErrorLog();
+        error.add("code", "Wrong code value")
+        response.status(400).send(error);
+        return;
+    }
+    request.user = user;
+    next();
+}
 
 export const CheckFormatErrors =
     (request: Request<{}, {}, {}, {}>, response: Response, next: NextFunction) => {

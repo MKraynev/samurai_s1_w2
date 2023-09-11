@@ -1,4 +1,3 @@
-import { ObjectId } from "mongodb";
 import { UserRequest } from "../../1_PresentationLayer/_Classes/Data/UserForRequest";
 import { UserRepo } from "../../3_DataAccessLayer/Users/UserRepo";
 import { UserSorter } from "../../3_DataAccessLayer/Users/UserSorter";
@@ -9,6 +8,15 @@ import { Token } from "./Data/Token";
 import { UserResponse } from "./Data/UserForResponse";
 import bcrypt from "bcrypt";
 import jwt from "jsonwebtoken"
+import { UniqueValGenerator } from "./UniqueValGenerator";
+import { UserDataBase } from "../../3_DataAccessLayer/_Classes/Data/UserDB";
+
+export enum LoginEmailStatus {
+    LoginAndEmailFree,
+    LoginExist,
+    EmailEXist
+
+}
 
 export class UserService {
     private repo: UserRepo;
@@ -21,13 +29,9 @@ export class UserService {
         let salt = await bcrypt.genSalt(10);
         let hashedPass = await bcrypt.hash(user.password, salt);
 
-        let userObj = {
-            login: user.login,
-            email: user.email,
-            salt: salt,
-            hash: hashedPass,
-            createdAt: (new Date()).toISOString()
-        }
+        let emailConfirmId = UniqueValGenerator();
+
+        let userObj = new UserDataBase(user, salt, hashedPass, emailConfirmId);
         let savedUser = await this.repo.Save(userObj);
 
         return savedUser;
@@ -63,7 +67,7 @@ export class UserService {
     }
 
     public async GenerateToken(user: any): Promise<Token> {
-        let tokenVal = await jwt.sign({ id: user.id}, JWT_SECRET, { expiresIn: "1h" });
+        let tokenVal = await jwt.sign({ id: user.id }, JWT_SECRET, { expiresIn: "1h" });
         let token: Token = {
             accessToken: tokenVal
         }
@@ -73,14 +77,20 @@ export class UserService {
     public async GetUserByToken(token: Token): Promise<UserResponse | null> {
         let userId = await this.DecodeIdFromToken(token);
 
-        if(userId){
+        if (userId) {
             let user = await this.repo.TakeCertain(userId);
 
             return user;
         }
         return null;
     }
-    private async DecodeIdFromToken(token: Token): Promise<string| null> {
+    public async GetUserByConfirmEmailCode(code: string): Promise<UserResponse | null> {
+        let foundUser = await this.repo.GetByConfirmEmailCode(code);
+        
+        return foundUser;
+    }
+
+    private async DecodeIdFromToken(token: Token): Promise<string | null> {
         try {
             let decodeRes: any = await jwt.verify(token.accessToken, JWT_SECRET);
             return decodeRes.id;
@@ -88,5 +98,24 @@ export class UserService {
         catch {
             return null;
         }
+    }
+    private async GenerateCode() {
+
+    }
+
+    public async CurrentLoginOrEmailExist(login: string, email: string): Promise<LoginEmailStatus> {
+        let foundUserByLogin = await this.repo.GetUserByLoginOrEmail(login);
+        let foundUserByEmail = await this.repo.GetUserByLoginOrEmail(email);
+
+        if (foundUserByLogin) return LoginEmailStatus.LoginExist;
+
+        if (foundUserByEmail) return LoginEmailStatus.EmailEXist;
+
+        return LoginEmailStatus.LoginAndEmailFree;
+    }
+
+    public async ConfirmUser(user: UserResponse): Promise<UserResponse | null>{
+        let updatedUser = await this.repo.UpdateProperty(user.id, "emailConfirmed", true);
+        return updatedUser;
     }
 }
