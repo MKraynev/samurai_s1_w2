@@ -10,6 +10,7 @@ import bcrypt from "bcrypt";
 import jwt from "jsonwebtoken"
 import { UniqueValGenerator } from "./UniqueValGenerator";
 import { UserDataBase } from "../../3_DataAccessLayer/_Classes/Data/UserDB";
+import { WithId } from "mongodb";
 
 export enum LoginEmailStatus {
     LoginAndEmailFree,
@@ -51,10 +52,11 @@ export class UserService {
 
     public async CheckUserLogs(loginOrEmail: string, password: string): Promise<any> {
 
-        let user = await this.repo.GetUserByLoginOrEmail(loginOrEmail);
+        let user = await this.repo.GetUserByLoginOrEmail(loginOrEmail, true);
 
         if (user) {
-            let dbHash = user.hash;
+            user = user as WithId<UserDataBase>;
+            let dbHash = user.hashedPass;
             let currentHash = await bcrypt.hash(password, user.salt);
 
             if (dbHash === currentHash) {
@@ -84,6 +86,10 @@ export class UserService {
         }
         return null;
     }
+    public async GetUserByMail(email: string): Promise<UserResponse| null>{
+        let foundUser = await this.repo.GetUserByLoginOrEmail(email, false) as UserResponse | null;
+        return foundUser;
+    }
     public async GetUserByConfirmEmailCode(code: string): Promise<UserResponse | null> {
         let foundUser = await this.repo.GetByConfirmEmailCode(code);
         
@@ -98,9 +104,6 @@ export class UserService {
         catch {
             return null;
         }
-    }
-    private async GenerateCode() {
-
     }
 
     public async CurrentLoginOrEmailExist(login: string, email: string): Promise<LoginEmailStatus> {

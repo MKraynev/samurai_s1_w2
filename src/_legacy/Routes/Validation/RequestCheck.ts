@@ -7,8 +7,11 @@ import { _BlogRepo } from "../../Repos/BlogRepo";
 import { dataManager } from "../../../2_BusinessLogicLayer/_Classes/DataManager";
 import { Token } from "../../../2_BusinessLogicLayer/_Classes/Data/Token";
 import { RequestParser } from "../../../1_PresentationLayer/_Classes/RequestManagment/RequestParser";
-import { RequestWithParams } from "../Types/Requests";
+import { RequestWithBody, RequestWithParams } from "../Types/Requests";
 import { RequestWithQuery } from "../../../1_PresentationLayer/_Types/RequestTypes";
+import { UserRequest } from "../../../1_PresentationLayer/_Classes/Data/UserForRequest";
+import { LoginEmailStatus } from "../../../2_BusinessLogicLayer/_Classes/UserService";
+import { UserResponse } from "../../../2_BusinessLogicLayer/_Classes/Data/UserForResponse";
 
 
 export const RequestBaseAuthorized =
@@ -75,6 +78,8 @@ export const ValidUserFields = [
     FieldNotEmpty("email"), body("email").isEmail().withMessage("Wrong email: email")
 
 ];
+export const ValidEmail = [FieldNotEmpty("email"), body("email").isEmail().withMessage("Wrong email: email")];
+
 export const ValidAuthFields = [
     oneOf(
         [
@@ -100,7 +105,10 @@ export const PostIdExist = async (request: Request<{ id: string }, {}, {}, {}>, 
 }
 
 export const UserAvailableForConfirmation = async (request: any, response: Response, next: NextFunction) => {
-    let user = await dataManager.userService.GetUserByConfirmEmailCode(request.query.code);
+    let code = request.query.code? request.query.code : request.body.code;
+
+    let user: UserResponse | null = await dataManager.userService.GetUserByConfirmEmailCode(code);
+    
 
     if (!user || user.emailConfirmed) {
         let error = new ErrorLog();
@@ -110,6 +118,28 @@ export const UserAvailableForConfirmation = async (request: any, response: Respo
     }
     request.user = user;
     next();
+}
+export const UserLoginAndEmailFree = async (request: any, response: Response, next: NextFunction) => {
+    let reqUser = new UserRequest(request.body.login, request.body.password, request.body.email);
+    let existStatus = await dataManager.userService.CurrentLoginOrEmailExist(reqUser.login, reqUser.email);
+    let error = new ErrorLog();
+
+    switch (existStatus) {
+        case LoginEmailStatus.LoginExist:
+            error.add("login", "Such login already exist")
+            break;
+        case LoginEmailStatus.EmailEXist:
+            error.add("email", "Such email already exist")
+            break;
+
+        case LoginEmailStatus.LoginAndEmailFree:
+            request.user = reqUser;
+            next();
+            return;
+            break;
+    }
+    response.status(400).send(error);
+    return;
 }
 
 export const CheckFormatErrors =

@@ -67,10 +67,15 @@ export class UserRepo extends Repo<UserRequest, UserResponse | UserDataBase>{
         let saveResult = await this.db.Post(this.tableName, reqObj);
         return this.ConvertFrom(saveResult);
     }
-    async GetUserByLoginOrEmail(loginOrEmail: string): Promise<any> {
-        let foundUser = await this.db.FindBetweenTwoProp(this.tableName, "login", "email", loginOrEmail);
-        return foundUser;
+    async GetUserByLoginOrEmail(loginOrEmail: string, rawData: boolean = false): Promise<UserResponse |WithId<UserDataBase>| null> {
+        let foundUser: WithId<UserDataBase> = await this.db.FindBetweenTwoProp(this.tableName, "login", "email", loginOrEmail);
+        if(foundUser){
+            let returnVal = rawData? foundUser: this.ConvertFrom(foundUser)
+            return returnVal;
+        }
+        return null;
     }
+
     async GetByConfirmEmailCode(code: string): Promise<UserResponse | null>{
         let foundVal = await this.db.GetByPropName(this.tableName, "emailConfirmId", code);
 
