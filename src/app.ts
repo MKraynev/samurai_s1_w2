@@ -46,7 +46,7 @@ const StartApp = async () => {
         console.log("app is running");
     })
 
-    await ngrokConnect();
+    //await ngrokConnect();
 
     //let sendRes = await emailSender.SendRegistrationMail("becaury@gmail.com", "Registration", "543321");
 }
