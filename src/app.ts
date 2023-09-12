@@ -1,5 +1,4 @@
 import express from "express";
-
 import { blogRouter } from "./1_PresentationLayer/BlogRouter/NewBlogsRouter";
 import { dataManager } from "./2_BusinessLogicLayer/_Classes/DataManager";
 import { _NewTestClearAllRouter } from "./1_PresentationLayer/TestRouter/NewTestRouter";
@@ -42,14 +41,11 @@ const StartApp = async () => {
         console.log("db is running")
     }
 
-
     app.listen(PORT, () => {
         console.log("app is running");
     })
 
     await ngrokConnect();
-
-    //let sendRes = await emailSender.SendRegistrationMail("becaury@gmail.com", "Registration", "543321");
 }
 
 StartApp();

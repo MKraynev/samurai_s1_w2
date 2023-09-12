@@ -3,8 +3,6 @@ import { CommentRepo } from "../../3_DataAccessLayer/Comments/CommentsRepo";
 import { mongoDb } from "../../3_DataAccessLayer/MongoDb/MongoDb";
 import { PostRepo } from "../../3_DataAccessLayer/Posts/PostRepo";
 import { UserRepo } from "../../3_DataAccessLayer/Users/UserRepo";
-import { UserSorter } from "../../3_DataAccessLayer/Users/UserSorter";
-import { PageHandler } from "../../3_DataAccessLayer/_Classes/DataManagment/PageHandler";
 import { _BlogRepo } from "../../_legacy/Repos/BlogRepo";
 import { UserService } from "./UserService";
 

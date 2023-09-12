@@ -8,7 +8,6 @@ import { PostSorter } from "../../../3_DataAccessLayer/Posts/PostSorter";
 import { UserResponse } from "../../../2_BusinessLogicLayer/_Classes/Data/UserForResponse";
 import { UserSorter } from "../../../3_DataAccessLayer/Users/UserSorter";
 import { Token } from "../../../2_BusinessLogicLayer/_Classes/Data/Token";
-import { CommentResponse } from "../../../2_BusinessLogicLayer/_Classes/Data/CommentForResponse";
 import { CommentSorter } from "../../../3_DataAccessLayer/Comments/CommentSorter";
 import { CommentDataBase } from "../../../3_DataAccessLayer/_Classes/Data/CommentDB";
 import { TOKEN_COOKIE_NAME } from "../../../settings";

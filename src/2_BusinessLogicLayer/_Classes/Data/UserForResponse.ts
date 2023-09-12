@@ -1,7 +1,5 @@
 import { ObjectId } from "mongodb";
-
 import { UserDataBase } from "../../../3_DataAccessLayer/_Classes/Data/UserDB";
-import { UserRequest } from "../../../1_PresentationLayer/_Classes/Data/UserForRequest";
 
 export class UserResponse{
     public id: string;
