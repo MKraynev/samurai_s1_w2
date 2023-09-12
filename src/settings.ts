@@ -9,3 +9,4 @@ export const CONFIRM_ADRESS = process.env.USER_CONFIRM_ADRESS || "http://localho
 export const ACCESS_TOKEN_TIME = process.env.ACCESS_TOKEN_EXPIRE || "10s";
 export const REFRESH_TOKEN_TIME = process.env.REFRESH_TOKEN_EXPIRE || "20s";
 export const TOKEN_COOKIE_NAME = process.env.COOKIE_TOKEN_NAME || "samurai";
+export const PORT_NUM: number = +(process.env.PORT_NUMBER || "5001");
