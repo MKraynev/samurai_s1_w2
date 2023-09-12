@@ -7,6 +7,7 @@ import { PostSorter } from "../Posts/PostSorter";
 import { UserSorter } from "../Users/UserSorter";
 import { MONGO_URL } from "../../settings";
 import { CommentSorter } from "../Comments/CommentSorter";
+import { app } from "../../app";
 
 
 type MongoSearch = {
@@ -15,7 +16,7 @@ type MongoSearch = {
 
 
 class MongoDb extends DataBase {
-    
+
 
     async FindBetweenTwoProp(tableName: string, propName_1: string, propName_2: string, propVal: string): Promise<any> {
         try {
@@ -126,24 +127,35 @@ class MongoDb extends DataBase {
         }
     }
 
-    async PutProp(tableName: string, id: string, property: string, value: string|boolean|number): Promise<any> {
-        try{
-            let updateField:any = {};
+    async PutProp(tableName: string, id: string, property: string, value: string | boolean | number): Promise<any> {
+        try {
+            let updateField: any = {};
             updateField[property] = value;
 
-            let updateResult = await this._db.collection(tableName).updateOne({_id: new ObjectId(id)}, {$set: updateField})
+            let updateResult = await this._db.collection(tableName).updateOne({ _id: new ObjectId(id) }, { $set: updateField })
 
-            if(updateResult.matchedCount == 1){
+            if (updateResult.matchedCount == 1) {
                 let updatedValue = await this.GetById(tableName, id);
-                return updatedValue; 
+                return updatedValue;
             }
             return null;
         }
-        catch{
+        catch {
             return null;
         }
     }
+    async PushProp(tableName: string, id: string, property: string, value: string | boolean | number): Promise<boolean> {
+        try {
+            let updateField: any = {};
+            updateField[property] = value;
 
+            let appendRes = await this._db.collection(tableName).updateOne({ _id: new ObjectId(id) }, { $push: updateField })
+            return appendRes.matchedCount == 1;
+        }
+        catch {
+            return false;
+        }
+    }
     async Delete(tableName: string, id: string): Promise<boolean> {
         try {
             let dbId = new ObjectId(id);
@@ -206,11 +218,11 @@ class MongoDb extends DataBase {
                 sorter = sorter as UserSorter;
                 mongoSorter[sorter.sortBy] = sortDir;
                 break;
-            
+
             case SorterType.CommentSorter:
                 sorter = sorter as CommentSorter;
                 mongoSorter[sorter.sortBy] = sortDir;
-                break; 
+                break;
         }
 
         return mongoSorter;
@@ -267,9 +279,9 @@ class MongoDb extends DataBase {
                 return {}
             case SorterType.CommentSorter:
                 sorter = sorter as CommentSorter;
-                if(sorter.postId){
+                if (sorter.postId) {
                     let searcher: MongoSearch = {
-                        "postId": {$regex: sorter.postId, $options: 'i'}
+                        "postId": { $regex: sorter.postId, $options: 'i' }
                     }
                     return searcher;
                 }

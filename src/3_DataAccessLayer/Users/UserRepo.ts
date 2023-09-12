@@ -7,6 +7,7 @@ import { Sorter } from "../_Classes/DataManagment/Sorter";
 import { PageHandler } from "../_Classes/DataManagment/PageHandler";
 import { Paged } from "../_Types/Paged";
 import { UserSorter } from "./UserSorter";
+import { Token } from "../../2_BusinessLogicLayer/_Classes/Data/Token";
 
 
 export class UserRepo extends Repo<UserRequest, UserResponse | UserDataBase>{
@@ -39,7 +40,7 @@ export class UserRepo extends Repo<UserRequest, UserResponse | UserDataBase>{
         return null;
     }
 
-    override async TakeCertain(id: string): Promise<any | null> {
+    override async TakeCertain(id: string): Promise<UserResponse | null> {
         let dbValue = await this.db.GetById(this.tableName, id);
         if (dbValue) {
             let rerurnValue = this.ConvertFrom(dbValue);
@@ -62,7 +63,9 @@ export class UserRepo extends Repo<UserRequest, UserResponse | UserDataBase>{
         }
         return null;
     }
-
+    async AppendToken(id: string, token: Token): Promise<boolean>{
+        return await this.db.PushProp(this.tableName, id, "usedRefreshTokens", token.accessToken);
+    }
     override async Save(reqObj: any): Promise<any | null> {
         let saveResult = await this.db.Post(this.tableName, reqObj);
         return this.ConvertFrom(saveResult);

@@ -5,7 +5,7 @@ export class UserDataBase{
     public emailConfirmed = false;
     public login: string;
     public email: string;
-
+    public usedRefreshTokens: Array<string> = []
     constructor(
         user: UserRequest,
         public salt: string,

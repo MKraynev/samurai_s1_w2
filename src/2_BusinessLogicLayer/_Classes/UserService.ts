@@ -3,11 +3,11 @@ import { UserRepo } from "../../3_DataAccessLayer/Users/UserRepo";
 import { UserSorter } from "../../3_DataAccessLayer/Users/UserSorter";
 import { PageHandler } from "../../3_DataAccessLayer/_Classes/DataManagment/PageHandler";
 import { Paged } from "../../3_DataAccessLayer/_Types/Paged";
-import { JWT_SECRET } from "../../settings";
+import { ACCESS_TOKEN_TIME, JWT_SECRET, REFRESH_TOKEN_TIME } from "../../settings";
 import { Token } from "./Data/Token";
 import { UserResponse } from "./Data/UserForResponse";
 import bcrypt from "bcrypt";
-import jwt from "jsonwebtoken"
+import jwt, { JwtPayload } from "jsonwebtoken"
 import { UniqueValGenerator } from "./UniqueValGenerator";
 import { UserDataBase } from "../../3_DataAccessLayer/_Classes/Data/UserDB";
 import { WithId } from "mongodb";
@@ -63,7 +63,7 @@ export class UserService {
         return foundValues;
     }
 
-    public async CheckUserLogs(loginOrEmail: string, password: string): Promise<any> {
+    public async CheckUserLogs(loginOrEmail: string, password: string): Promise<UserResponse | null> {
 
         let user = await this.repo.GetUserByLoginOrEmail(loginOrEmail, true);
 
@@ -76,18 +76,59 @@ export class UserService {
 
                 return new UserResponse(user._id, user);
             }
-            return false;
+            return null;
         }
-        return false;
+        return null;
     }
 
-    public async GenerateToken(user: any): Promise<Token> {
-        let tokenVal = await jwt.sign({ id: user.id }, JWT_SECRET, { expiresIn: "1h" });
-        let token: Token = {
-            accessToken: tokenVal
+    public async GenerateTokens(user: UserResponse): Promise<Array<Token>> {
+        let accessTokenVal = await jwt.sign({ id: user.id }, JWT_SECRET, { expiresIn: ACCESS_TOKEN_TIME });
+        let refreshTokenVal = await jwt.sign({ id: user.id }, JWT_SECRET, { expiresIn: REFRESH_TOKEN_TIME });
+
+        let accessToken: Token = {
+            accessToken: accessTokenVal
+        }
+        let refreshToken: Token = {
+            accessToken: refreshTokenVal
         }
 
-        return token;
+        let tokens: Array<Token> = [accessToken, refreshToken];
+
+
+        return tokens;
+    }
+    public async RefreshTokens(currentRefreshToken: Token): Promise<Array<Token> | null> {
+        let user = await this.GetUserByToken(currentRefreshToken);
+        if (!user) return null;
+
+        let updateRes = await this.repo.AppendToken(user.id, currentRefreshToken);
+        if (!updateRes) return null;
+
+        return this.GenerateTokens(user);
+    }
+
+    public async RefreshTokenNotUsed(userId: string, token: string): Promise<boolean> {
+        let user = await this.repo.TakeCertain(userId);
+
+        return !!user && !user.usedRefreshTokens.includes(token);
+    }
+
+    public async isTokenExpired(token: Token): Promise<boolean> {
+        try {
+            let decoded = await jwt.decode(token.accessToken) as JwtPayload;
+            if (decoded && decoded.exp) {
+                let nowTime: number = Date.now()
+                let verdict = nowTime >= decoded.exp * 1000;
+                
+                return verdict;
+            }
+            return true;
+        }
+        catch {
+            return true;
+        }
+
+
     }
     public async GetUserByToken(token: Token): Promise<UserResponse | null> {
         let userId = await this.DecodeIdFromToken(token);

@@ -10,7 +10,7 @@ export class UserResponse{
     public createdAt: string;
     public emailConfirmed: Boolean;
     public emailConfirmId: string;
-
+    public usedRefreshTokens: Array<string> = [] 
     constructor(_id: ObjectId, user: UserDataBase) {
         this.id = _id.toString();
         this.login = user.login;
@@ -18,5 +18,6 @@ export class UserResponse{
         this.createdAt = user.createdAt;
         this.emailConfirmed = user.emailConfirmed;
         this.emailConfirmId = user.emailConfirmId;
+        this.usedRefreshTokens = user.usedRefreshTokens;
     }
 }

@@ -7,7 +7,7 @@ import { postRouter } from "./1_PresentationLayer/PostRouter/NewPostsRouter";
 import { userRouter } from "./1_PresentationLayer/UserRouter/UserRouter";
 import { authRouter } from "./1_PresentationLayer/AuthRouter/AuthRouter";
 import { commentRouter } from "./1_PresentationLayer/Comments/CommentsRoutine";
-import { emailSender } from "./1_PresentationLayer/_Classes/Email/EmailSender";
+import cookieParser from "cookie-parser";
 import ngrok from "ngrok"
 
 export const BlogsPath = "/blogs";
@@ -20,6 +20,7 @@ export const TestClearAllPath = "/testing/all-data";
 
 export const app = express();
 app.use(express.json());
+app.use(cookieParser())
 
 app.use(BlogsPath, blogRouter);
 app.use(PostsPath, postRouter);
@@ -46,9 +47,10 @@ const StartApp = async () => {
         console.log("app is running");
     })
 
-    //await ngrokConnect();
+    await ngrokConnect();
 
     //let sendRes = await emailSender.SendRegistrationMail("becaury@gmail.com", "Registration", "543321");
 }
 
 StartApp();
+

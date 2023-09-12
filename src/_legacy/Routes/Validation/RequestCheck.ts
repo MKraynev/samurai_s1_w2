@@ -1,14 +1,12 @@
 import { Request, Response, NextFunction, response } from "express";
 import { ValidBase64Key, } from "../../Authorization/BasicAuthorization/BasicAuthorization";
 import { AuthorizationStatus } from "../../Authorization/IAuthorizer";
-import { body, validationResult, oneOf, param } from "express-validator"
+import { body, validationResult, oneOf } from "express-validator"
 import { ErrorLog } from "../../Errors/Error";
 import { _BlogRepo } from "../../Repos/BlogRepo";
 import { dataManager } from "../../../2_BusinessLogicLayer/_Classes/DataManager";
 import { Token } from "../../../2_BusinessLogicLayer/_Classes/Data/Token";
 import { RequestParser } from "../../../1_PresentationLayer/_Classes/RequestManagment/RequestParser";
-import { RequestWithBody, RequestWithParams } from "../Types/Requests";
-import { RequestWithQuery } from "../../../1_PresentationLayer/_Types/RequestTypes";
 import { UserRequest } from "../../../1_PresentationLayer/_Classes/Data/UserForRequest";
 import { LoginEmailStatus } from "../../../2_BusinessLogicLayer/_Classes/UserService";
 import { UserResponse } from "../../../2_BusinessLogicLayer/_Classes/Data/UserForResponse";
@@ -33,21 +31,37 @@ export const RequestBaseAuthorized =
 
     }
 export const RequestJwtAuthorized = async (request: any, response: Response, next: NextFunction) => {
-    let token: Token | null = RequestParser.ReadToken(request);
-    if (token) {
-        let user = await dataManager.userService.GetUserByToken(token);
-        if (user) {
-            request.user = user;
-            next();
-            return;
-        }
+    let tokenFromBody: Token | null = RequestParser.ReadTokenFromBody(request);
+    let tokenFromCookie: Token | null = RequestParser.ReadTokenFromCookie(request);
+    let token = tokenFromBody || tokenFromCookie;
+
+    if (!token) {
+        let error = new ErrorLog();
+        error.add("Request", "Missing authorization data")
+        response.status(401).send(error);
+        return;
     }
 
+    let tokenExpired = await dataManager.userService.isTokenExpired(token);
+    if (tokenExpired) {
+        let error = new ErrorLog();
+        error.add("Request", "Missing authorization data")
+        response.status(401).send(error);
+        return;
+    }
+
+    let user = await dataManager.userService.GetUserByToken(token);
+    if (user) {
+        request.user = user;
+        request.token = token;
+        next();
+        return;
+    }
 
     let error = new ErrorLog();
-    error.add("Request", "Missing authorization data")
-    response.status(401).send(error);
-    return;
+        error.add("Request", "Missing authorization data")
+        response.status(401).send(error);
+        return;
 }
 
 const FieldNotEmpty = (fieldName: string) => body(fieldName).trim().notEmpty().withMessage(`Empty field: ${fieldName}`);
@@ -142,7 +156,7 @@ export const UserLoginAndEmailFreeByUserInBody = async (request: any, response: 
     return;
 }
 
-export const UserLoginAndEmailFreeByEmailInBody = async (request: any, response: Response, next: NextFunction) => {
+export const EmailAvailableForConfirm = async (request: any, response: Response, next: NextFunction) => {
     let user = await dataManager.userService.GetUserByMail(request.body.email);
     if (user && user.emailConfirmed == false) {
         request.user = user;

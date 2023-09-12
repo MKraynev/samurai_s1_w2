@@ -1,17 +1,17 @@
 import { Router, Response, Request } from "express"
 import { dataManager } from "../../2_BusinessLogicLayer/_Classes/DataManager";
-import { CheckFormatErrors, UserAvailableForConfirmation, UserLoginAndEmailFreeByEmailInBody, UserLoginAndEmailFreeByUserInBody, ValidAuthFields, ValidEmail, ValidUserFields } from "../../_legacy/Routes/Validation/RequestCheck";
+import { CheckFormatErrors, RequestJwtAuthorized, UserAvailableForConfirmation, EmailAvailableForConfirm, UserLoginAndEmailFreeByUserInBody, ValidAuthFields, ValidEmail, ValidUserFields } from "../../_legacy/Routes/Validation/RequestCheck";
 import { RequestWithBody } from "../_Types/RequestTypes";
 import { AuthRequest } from "../_Classes/Data/AuthRequest";
 import { UserRequest } from "../_Classes/Data/UserForRequest";
 import { emailSender } from "../_Classes/Email/EmailSender";
 import { UserResponse } from "../../2_BusinessLogicLayer/_Classes/Data/UserForResponse";
-import { RequestParser } from "../_Classes/RequestManagment/RequestParser";
 import { Token } from "../../2_BusinessLogicLayer/_Classes/Data/Token";
+import { CONFIRM_ADRESS, TOKEN_COOKIE_NAME } from "../../settings";
 
 
 export const authRouter = Router();
-export const confirmAdress = "https://samurai-s1-w2.vercel.app/auth/registration-confirmation";
+export const confirmAdress = CONFIRM_ADRESS;
 
 authRouter.post("/login",
     ValidAuthFields,
@@ -21,18 +21,20 @@ authRouter.post("/login",
         let user = await dataManager.userService.CheckUserLogs(request.body.loginOrEmail, request.body.password)
 
         if (user) {
-            let userToken = await dataManager.userService.GenerateToken(user);
-            response.status(200).send(userToken);
+            let [accessToken, refreshToken] = await dataManager.userService.GenerateTokens(user);
+
+            response.cookie(TOKEN_COOKIE_NAME, refreshToken, { httpOnly: true, secure: true, })
+            response.status(200).send(accessToken);
             return;
         }
 
         response.sendStatus(401)
     })
 
-authRouter.get("/me", async (request: Request, response: Response) => {
-    let token: Token | null = RequestParser.ReadToken(request);
-
-    if (token) {
+authRouter.get("/me",
+    RequestJwtAuthorized,
+    async (request: any, response: Response) => {
+        let token: Token = request.token;
         let user = await dataManager.userService.GetUserByToken(token);
 
         if (user) {
@@ -44,10 +46,27 @@ authRouter.get("/me", async (request: Request, response: Response) => {
                 })
             return;
         }
-    }
 
-    response.sendStatus(401);
-})
+        response.sendStatus(401);
+    })
+
+authRouter.post("/refresh-token",
+    RequestJwtAuthorized,
+    async (request: any, response: Response) => {
+        let token: Token = request.token;
+
+        let newTokens = await dataManager.userService.RefreshTokens(token);
+
+        if (!newTokens) {
+            response.sendStatus(401);
+            return;
+        }
+
+        let [accessToken, refreshToken] = newTokens;
+
+        response.cookie(TOKEN_COOKIE_NAME, refreshToken, { httpOnly: true, secure: true, })
+        response.status(200).send(accessToken);
+    })
 
 authRouter.post("/registration",
     ValidUserFields,
@@ -69,7 +88,7 @@ authRouter.post("/registration",
 
 authRouter.post("/registration-email-resending",
     ValidEmail,
-    UserLoginAndEmailFreeByEmailInBody,
+    EmailAvailableForConfirm,
     CheckFormatErrors,
     async (request: any, response: Response) => {
         let user = request.user as UserResponse;
@@ -78,6 +97,7 @@ authRouter.post("/registration-email-resending",
         if (newLinkVal) {
             emailSender.SendRegistrationMail(user.email, confirmAdress, newLinkVal);
             response.sendStatus(204);
+            return;
         }
 
         response.sendStatus(400);
@@ -97,3 +117,16 @@ authRouter.post("/registration-confirmation",
         response.sendStatus(400);
 
     })
+///hometask_08/api/auth/logout
+authRouter.post("/logout",
+    RequestJwtAuthorized,
+    async (request: any, response: Response) => {
+        let token: Token = request.token;
+        let newTokens = await dataManager.userService.RefreshTokens(token);
+
+        if(newTokens){
+            response.sendStatus(204);
+            return;
+        }
+        response.sendStatus(401);
+     })
