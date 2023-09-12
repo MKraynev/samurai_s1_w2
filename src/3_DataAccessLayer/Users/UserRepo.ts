@@ -1,7 +1,7 @@
 import { ObjectId, WithId } from "mongodb";
 import { Repo } from "../_Classes/DataManagment/Repo/Repo"
 import { UserRequest } from "../../1_PresentationLayer/_Classes/Data/UserForRequest";
-import { UserResponse } from "../../2_BusinessLogicLayer/_Classes/Data/UserForResponse";
+import { UserResponceLite, UserResponse } from "../../2_BusinessLogicLayer/_Classes/Data/UserForResponse";
 import { UserDataBase } from "../_Classes/Data/UserDB";
 import { Sorter } from "../_Classes/DataManagment/Sorter";
 import { PageHandler } from "../_Classes/DataManagment/PageHandler";
@@ -32,7 +32,7 @@ export class UserRepo extends Repo<UserRequest, UserResponse | UserDataBase>{
 
         if (dbData) {
             let returnValues = dbData.map(dbVal => {
-                return this.ConvertFrom(dbVal)
+                return new UserResponceLite(this.ConvertFrom(dbVal))
             })
             let pagedData = dbHandler.GetPaged(returnValues);
             return pagedData;

@@ -4,6 +4,7 @@ import { dataManager } from "../../2_BusinessLogicLayer/_Classes/DataManager";
 import { CheckFormatErrors, RequestBaseAuthorized, ValidUserFields } from "../../_legacy/Routes/Validation/RequestCheck";
 import { CompleteRequest, RequestWithBody, RequestWithParams } from "../_Types/RequestTypes";
 import { UserRequest } from "../_Classes/Data/UserForRequest";
+import { UserResponceLite } from "../../2_BusinessLogicLayer/_Classes/Data/UserForResponse";
 
 export const userRouter = Router();
 
@@ -31,7 +32,7 @@ userRouter.post("",
         
         let savedPost = await dataManager.userService.SaveUser(reqObj);
         if (savedPost) {
-            response.status(201).send(savedPost);
+            response.status(201).send(new UserResponceLite(savedPost));
             return;
         }
         response.sendStatus(400);
