@@ -8,7 +8,7 @@ import { authRouter } from "./1_PresentationLayer/AuthRouter/AuthRouter";
 import { commentRouter } from "./1_PresentationLayer/Comments/CommentsRoutine";
 import cookieParser from "cookie-parser";
 import ngrok from "ngrok"
-import { PORT_NUM } from "./settings";
+import { CONFIRM_ADRESS, PORT_NUM } from "./settings";
 
 export const BlogsPath = "/blogs";
 export const PostsPath = "/posts";
@@ -31,14 +31,15 @@ app.use(commentPath, commentRouter);
 app.use(TestClearAllPath, _NewTestClearAllRouter)
 
 const PORT: number = PORT_NUM;
-const ngrokConnect = async ()=> {
+const ngrokConnect = async (): Promise<string> => {
     const url = await ngrok.connect();
     console.log(url);
-  };
+    return url;
+};
 
 const StartApp = async () => {
 
-    if(await dataManager.Run()){
+    if (await dataManager.Run()) {
         console.log("db is running")
     }
 
@@ -46,7 +47,7 @@ const StartApp = async () => {
         console.log("app is running");
     })
 
-    //await ngrokConnect();
+    await ngrokConnect();
 }
 
 StartApp();

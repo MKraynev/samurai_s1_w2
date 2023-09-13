@@ -8,5 +8,6 @@ export const MAIL_PASSWORD = process.env.GMAIL_PASSWORD || "";
 export const CONFIRM_ADRESS = process.env.USER_CONFIRM_ADRESS || "http://localhost/auth/registration-confirmation";
 export const ACCESS_TOKEN_TIME = process.env.ACCESS_TOKEN_EXPIRE || "10s";
 export const REFRESH_TOKEN_TIME = process.env.REFRESH_TOKEN_EXPIRE || "20s";
-export const TOKEN_COOKIE_NAME = process.env.COOKIE_TOKEN_NAME || "samurai";
+export const TOKEN_COOKIE_NAME = process.env.COOKIE_TOKEN_REFRESH_NAME || "samurai";
+export const TOKEN_BODY_NAME = process.env.COOKIE_TOKEN_ACCESS_NAME || "samurai";
 export const PORT_NUM: number = +(process.env.PORT_NUMBER || "5001");

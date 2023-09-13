@@ -92,7 +92,10 @@ export class RequestParser {
 
     }
     static ReadTokenFromCookie(request: any): Token | null {
-        let token: Token = request.cookies[TOKEN_COOKIE_NAME];
+        let token: Token = {
+            accessToken: request.cookies[TOKEN_COOKIE_NAME]
+        };
+        
         return token || null;
 
     }

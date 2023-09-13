@@ -23,7 +23,7 @@ export class UserRepo extends Repo<UserRequest, UserResponse | UserDataBase>{
 
     }
     ConvertTo(reqValue: UserRequest): UserDataBase {
-        return new UserDataBase(reqValue, "", "", "", "");
+        return new UserDataBase(reqValue, "", "", "");
     }
     override async TakeAll(sorter: UserSorter, pageHandler: PageHandler): Promise<Paged<any[]> | null> {
 

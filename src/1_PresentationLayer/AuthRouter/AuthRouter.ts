@@ -10,8 +10,8 @@ import { Token } from "../../2_BusinessLogicLayer/_Classes/Data/Token";
 import { CONFIRM_ADRESS, TOKEN_COOKIE_NAME } from "../../settings";
 
 
+
 export const authRouter = Router();
-export const confirmAdress = CONFIRM_ADRESS;
 
 authRouter.post("/login",
     ValidAuthFields,
@@ -22,8 +22,8 @@ authRouter.post("/login",
 
         if (user) {
             let [accessToken, refreshToken] = await dataManager.userService.GenerateTokens(user);
-
-            response.cookie(TOKEN_COOKIE_NAME, refreshToken, { httpOnly: true, secure: true, })
+            
+            response.cookie("refreshToken", refreshToken.accessToken, { httpOnly: true, secure: true, })
             response.status(200).send(accessToken);
             return;
         }
@@ -64,7 +64,7 @@ authRouter.post("/refresh-token",
 
         let [accessToken, refreshToken] = newTokens;
 
-        response.cookie(TOKEN_COOKIE_NAME, refreshToken, { httpOnly: true, secure: true, })
+        response.cookie("refreshToken", refreshToken.accessToken, { httpOnly: true, secure: true, })
         response.status(200).send(accessToken);
     })
 
@@ -78,7 +78,7 @@ authRouter.post("/registration",
 
         let savedUser = await dataManager.userService.SaveUser(reqObj);
         if (savedUser) {
-            emailSender.SendRegistrationMail(savedUser.email, confirmAdress, savedUser.emailConfirmId);
+            emailSender.SendRegistrationMail(savedUser.email, CONFIRM_ADRESS, savedUser.emailConfirmId);
             response.sendStatus(204);
             return;
         }
@@ -95,7 +95,7 @@ authRouter.post("/registration-email-resending",
 
         let newLinkVal = await dataManager.userService.UpdateUserEmailConfirmId(user.id);
         if (newLinkVal) {
-            emailSender.SendRegistrationMail(user.email, confirmAdress, newLinkVal);
+            emailSender.SendRegistrationMail(user.email, CONFIRM_ADRESS, newLinkVal);
             response.sendStatus(204);
             return;
         }

@@ -32,7 +32,7 @@ export class UserService {
 
         let emailConfirmId = UniqueValGenerator();
 
-        let userObj = new UserDataBase(user, salt, hashedPass, emailConfirmId);
+        let userObj = new UserDataBase(user, salt, hashedPass, emailConfirmId, user.emailConfirmed);
         let savedUser = await this.repo.Save(userObj);
 
         return savedUser;

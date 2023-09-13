@@ -37,7 +37,7 @@ export const RequestJwtAuthorized = async (request: any, response: Response, nex
 
     if (!token) {
         let error = new ErrorLog();
-        error.add("Request", "Missing authorization data")
+        error.add("Request", "There is no token")
         response.status(401).send(error);
         return;
     }
@@ -45,12 +45,20 @@ export const RequestJwtAuthorized = async (request: any, response: Response, nex
     let tokenExpired = await dataManager.userService.isTokenExpired(token);
     if (tokenExpired) {
         let error = new ErrorLog();
-        error.add("Request", "Missing authorization data")
+        error.add("Request", "Token expired")
         response.status(401).send(error);
         return;
     }
 
     let user = await dataManager.userService.GetUserByToken(token);
+  
+    if(user?.usedRefreshTokens.includes(token.accessToken)){
+        let error = new ErrorLog();
+        error.add("Request", "Token not available")
+        response.status(401).send(error);
+        return;
+    }
+
     if (user) {
         request.user = user;
         request.token = token;

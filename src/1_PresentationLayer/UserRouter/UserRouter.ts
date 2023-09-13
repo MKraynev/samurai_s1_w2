@@ -28,7 +28,7 @@ userRouter.post("",
     async (request: RequestWithBody<UserRequest>, response: Response) => {
 
 
-        let reqObj = new UserRequest(request.body.login, request.body.password, request.body.email);
+        let reqObj = new UserRequest(request.body.login, request.body.password, request.body.email, true);
         
         let savedPost = await dataManager.userService.SaveUser(reqObj);
         if (savedPost) {
