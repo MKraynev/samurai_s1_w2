@@ -1,11 +1,11 @@
 import express from "express";
-import { blogRouter } from "./1_PresentationLayer/BlogRouter/NewBlogsRouter";
-import { dataManager } from "./2_BusinessLogicLayer/_Classes/DataManager";
-import { _NewTestClearAllRouter } from "./1_PresentationLayer/TestRouter/NewTestRouter";
-import { postRouter } from "./1_PresentationLayer/PostRouter/NewPostsRouter";
-import { userRouter } from "./1_PresentationLayer/UserRouter/UserRouter";
-import { authRouter } from "./1_PresentationLayer/AuthRouter/AuthRouter";
-import { commentRouter } from "./1_PresentationLayer/Comments/CommentsRoutine";
+import { blogRouter } from "./Entities/Blogs/Router/BlogsRouter";
+import { dataManager } from "./Common/Data/DataManager/DataManager";
+import { _NewTestClearAllRouter } from "./Entities/ClearAll/Router/TestRouter";
+import { postRouter } from "./Entities/Posts/Router/PostsRouter";
+import { userRouter } from "./Entities/Users/Admin/Router/UserRouter";
+import { authRouter } from "./Entities/Users/Common/Router/AuthRouter";
+import { commentRouter } from "./Entities/Comments/Router/CommentsRouter";
 import cookieParser from "cookie-parser";
 import ngrok from "ngrok"
 import { CONFIRM_ADRESS, PORT_NUM } from "./settings";
