@@ -1,22 +1,20 @@
 import { ObjectId } from "mongodb";
 import { UserDataBase } from "./UserForDataBase";
 
-export class UserResponse {
+export class UserResponse extends UserDataBase {
     public id: string;
-    public login: string;
-    public email: string;
-    public createdAt: string;
-    public emailConfirmed: Boolean;
-    public emailConfirmId: string;
-    public usedRefreshTokens: Array<string> = []
     constructor(_id: ObjectId, user: UserDataBase) {
+        super(
+            user.login,
+            user.email,
+            user.salt,
+            user.hashedPass,
+            user.emailConfirmId,
+            user.emailConfirmed,
+            user.createdAt
+        )
+
         this.id = _id.toString();
-        this.login = user.login;
-        this.email = user.email;
-        this.createdAt = user.createdAt;
-        this.emailConfirmed = user.emailConfirmed;
-        this.emailConfirmId = user.emailConfirmId;
-        this.usedRefreshTokens = user.usedRefreshTokens;
     }
 }
 

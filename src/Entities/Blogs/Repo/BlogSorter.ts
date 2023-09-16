@@ -1,5 +1,5 @@
 import { BlogResponse } from "../Entities/BlogForResponse";
-import { Sorter, SorterType } from "../../../Common/Data/Repo/Sort/Sorter";
+import { Sorter, SorterType } from "../../../Common/Database/Sort/Sorter";
 
 export class BlogSorter extends Sorter<BlogResponse>{
     constructor(

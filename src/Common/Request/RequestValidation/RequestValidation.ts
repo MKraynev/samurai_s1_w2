@@ -1,71 +1,67 @@
 import { Request, Response, NextFunction, response } from "express";
-import { ValidBase64Key, } from "../../../Entities/Users/Admin/Router/Middleware/BasicAuthorization";
 import { AuthorizationStatus } from "../../../Entities/Users/Admin/Router/Middleware/IAuthorizer";
 import { body, validationResult } from "express-validator"
 import { ErrorLog } from "./Error";
-import { dataManager } from "../../Data/DataManager/DataManager";
+// import { dataManager } from "../../DataManager/DataManager";
 import { Token } from "../../../Entities/Users/Common/Entities/Token";
 import { RequestParser } from "../RequestParser/RequestParser";
+import { Base64 } from "../../Authentication/Base64";
+import { ADMIN_PASSWORD } from "../../../settings";
 
 export const RequestBaseAuthorized = (request: Request<{}, {}, {}, {}>, reponse: Response, next: NextFunction) => {
     let headerValue = request.header("authorization");
-    let error = new ErrorLog();
-    switch (ValidBase64Key(headerValue)) {
-        case AuthorizationStatus.AccessAllowed:
-            next();
-            return;
-            break;
 
-        case AuthorizationStatus.WrongLoginPassword:
-        case AuthorizationStatus.DataIsMissing:
-            error.add("Request", "Missing authorization data")
-            response.status(401).send(error);
-            break;
-    }
-
-}
-
-export const RequestJwtAuthorized = async (request: any, response: Response, next: NextFunction) => {
-    let tokenFromBody: Token | null = RequestParser.ReadTokenFromBody(request);
-    let tokenFromCookie: Token | null = RequestParser.ReadTokenFromCookie(request);
-    let token = tokenFromBody || tokenFromCookie;
-
-    if (!token) {
+    if (!headerValue || !Base64.ValidBase64Key(headerValue, ADMIN_PASSWORD)) {
         let error = new ErrorLog();
-        error.add("Request", "There is no token")
+        error.add("Request", "Missing authorization data")
         response.status(401).send(error);
-        return;
     }
-
-    let tokenExpired = await dataManager.userService.isTokenExpired(token);
-    if (tokenExpired) {
-        let error = new ErrorLog();
-        error.add("Request", "Token expired")
-        response.status(401).send(error);
-        return;
-    }
-
-    let user = await dataManager.userService.GetUserByToken(token);
-
-    if (user?.usedRefreshTokens.includes(token.accessToken)) {
-        let error = new ErrorLog();
-        error.add("Request", "Token not available")
-        response.status(401).send(error);
-        return;
-    }
-
-    if (user) {
-        request.user = user;
-        request.token = token;
-        next();
-        return;
-    }
-
-    let error = new ErrorLog();
-    error.add("Request", "Missing authorization data")
-    response.status(401).send(error);
+    next();
     return;
+
 }
+
+// export const RequestJwtAuthorized = async (request: any, response: Response, next: NextFunction) => {
+//     let tokenFromBody: Token | null = RequestParser.ReadTokenFromBody(request);
+//     let tokenFromCookie: Token | null = RequestParser.ReadTokenFromCookie(request);
+//     let token = tokenFromBody || tokenFromCookie;
+
+//     if (!token) {
+//         let error = new ErrorLog();
+//         error.add("Request", "There is no token")
+//         response.status(401).send(error);
+//         return;
+//     }
+
+//     let tokenExpired = await dataManager.userService.isTokenExpired(token);
+//     if (tokenExpired) {
+//         let error = new ErrorLog();
+//         error.add("Request", "Token expired")
+//         response.status(401).send(error);
+//         return;
+//     }
+
+//     let user = await dataManager.userService.GetUserByToken(token);
+
+//     if (user?.usedRefreshTokens.includes(token.accessToken)) {
+//         let error = new ErrorLog();
+//         error.add("Request", "Token not available")
+//         response.status(401).send(error);
+//         return;
+//     }
+
+//     if (user) {
+//         request.user = user;
+//         request.token = token;
+//         next();
+//         return;
+//     }
+
+//     let error = new ErrorLog();
+//     error.add("Request", "Missing authorization data")
+//     response.status(401).send(error);
+//     return;
+// }
 
 export const FieldNotEmpty = (fieldName: string) => body(fieldName).trim().notEmpty().withMessage(`Empty field: ${fieldName}`);
 export const FieldIsUri = (fieldName: string) => body(fieldName).isURL().withMessage(`Wrong URL value: ${fieldName}`);

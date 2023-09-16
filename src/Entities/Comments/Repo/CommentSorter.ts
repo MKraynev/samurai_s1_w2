@@ -1,6 +1,6 @@
 import { CommentResponse } from "../Entities/CommentForResponse";
 import { CommentDataBase } from "../Entities/CommentForDataBase";
-import { Sorter, SorterType } from "../../../Common/Data/Repo/Sort/Sorter";
+import { Sorter, SorterType } from "../../../Common/Database/Sort/Sorter";
 
 export class CommentSorter extends Sorter<CommentDataBase>{
     constructor(

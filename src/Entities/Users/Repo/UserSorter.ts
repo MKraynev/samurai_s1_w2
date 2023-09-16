@@ -1,6 +1,6 @@
 import { BlogResponse } from "../../Blogs/Entities/BlogForResponse";
 import { UserResponse } from "../Admin/Entities/UserForResponse";
-import { Sorter, SorterType } from "../../../Common/Data/Repo/Sort/Sorter";
+import { Sorter, SorterType } from "../../../Common/Database/Sort/Sorter";
 
 export class UserSorter extends Sorter<UserResponse>{
     constructor(

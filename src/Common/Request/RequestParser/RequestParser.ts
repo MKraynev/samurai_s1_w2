@@ -1,8 +1,8 @@
 import { Request } from "express"
-import { Sorter, SorterType } from "../../Data/Repo/Sort/Sorter";
+import { Sorter, SorterType } from "../../Database/Sort/Sorter";
 import { BlogSorter } from "../../../Entities/Blogs/Repo/BlogSorter";
 import { BlogResponse } from "../../../Entities/Blogs/Entities/BlogForResponse";
-import { PageHandler } from "../../Data/Repo/Paginator/PageHandler";
+import { Paginator } from "../../Paginator/PageHandler";
 import { PostResponse } from "../../../Entities/Posts/Entities/PostForResponse";
 import { PostSorter } from "../../../Entities/Posts/Repo/PostSorter";
 import { UserResponse } from "../../../Entities/Users/Admin/Entities/UserForResponse";
@@ -64,7 +64,7 @@ export class RequestParser {
         )
 
     }
-    static ReadQueryPageHandle(request: Request): PageHandler {
+    static ReadQueryPageHandle(request: Request): Paginator {
         let strPageNumber = request.query.pageNumber as string;
         let strPageSize = request.query.pageSize as string;
 
@@ -72,7 +72,7 @@ export class RequestParser {
         let pageSize = Number.parseInt(strPageSize);
 
 
-        return new PageHandler(
+        return new Paginator(
             pageNumber,
             pageSize
         )

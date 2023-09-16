@@ -1,4 +1,4 @@
-import { BlogResponse } from "../../../../Entities/Blogs/Entities/BlogForResponse";
+import { BlogResponse } from "../../../Entities/Blogs/Entities/BlogForResponse";
 
 export class Sorter<T>{
     constructor(

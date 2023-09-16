@@ -1,4 +1,4 @@
-import { dataManager } from "../../../../Common/Data/DataManager/DataManager";
+// import { dataManager } from "../../../../Common/DataManager/DataManager";
 import { FieldMaxLength, FieldMinLength, FieldNotEmpty } from "../../../../Common/Request/RequestValidation/RequestValidation";
 import {Request, Response, NextFunction} from "express"
 
@@ -15,11 +15,11 @@ export const ValidPostFieldsLight = [
     FieldNotEmpty("content"), FieldMinLength("content", 5), FieldMaxLength("content", 1000)
 ];
 
-export const PostIdExist = async (request: Request<{ id: string }, {}, {}, {}>, response: Response, next: NextFunction) => {
-    let post = await dataManager.postRepo.TakeCertain(request.params.id);
-    if (!post) {
-        response.sendStatus(404);
-        return;
-    }
-    next();
-}
+// export const PostIdExist = async (request: Request<{ id: string }, {}, {}, {}>, response: Response, next: NextFunction) => {
+//     let post = await dataManager.postRepo.TakeCertain(request.params.id);
+//     if (!post) {
+//         response.sendStatus(404);
+//         return;
+//     }
+//     next();
+//}

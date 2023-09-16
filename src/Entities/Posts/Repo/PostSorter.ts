@@ -1,5 +1,5 @@
 import { PostResponse } from "../Entities/PostForResponse";
-import { Sorter, SorterType } from "../../../Common/Data/Repo/Sort/Sorter";
+import { Sorter, SorterType } from "../../../Common/Database/Sort/Sorter";
 
 export class PostSorter extends Sorter<PostResponse>{
     constructor(

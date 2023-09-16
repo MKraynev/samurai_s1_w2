@@ -1,6 +1,6 @@
 import { body } from "express-validator";
 import { FieldIsUri, FieldMaxLength, FieldMinLength, FieldNotEmpty } from "../../../../Common/Request/RequestValidation/RequestValidation";
-import { dataManager } from "../../../../Common/Data/DataManager/DataManager";
+// import { dataManager } from "../../../../Common/DataManager/DataManager";
 
 export const ValidBlogFields = [
     FieldNotEmpty("name"), FieldMinLength("name", 2), FieldMaxLength("name", 15),
@@ -8,9 +8,9 @@ export const ValidBlogFields = [
     FieldNotEmpty("websiteUrl"), FieldIsUri("websiteUrl")
 ];
 
-export const BlogIdExist = body("blogId").custom(async idVal => {
-    let requestedData = await dataManager.blogRepo.TakeCertain(idVal);
-    if (!requestedData) {
-        throw new Error(`Wrong blogId: blogId`)
-    }
-})
+// export const BlogIdExist = body("blogId").custom(async idVal => {
+//     let requestedData = await dataManager.blogRepo.TakeCertain(idVal);
+//     if (!requestedData) {
+//         throw new Error(`Wrong blogId: blogId`)
+//     }
+// })
