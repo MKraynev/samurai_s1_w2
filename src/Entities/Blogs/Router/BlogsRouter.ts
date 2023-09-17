@@ -8,7 +8,7 @@ import { PostSorter } from "../../Posts/Repo/PostSorter";
 import { PostRequest } from "../../Posts/Entities/PostForRequest";
 import { ValidBlogFields } from "./Middleware/BlogMiddleware";
 import { ValidPostFieldsLight } from "../../Posts/Router/Middleware/PostMiddleware";
-import { ServiseExecutionStatus, _blogService } from "../BuisnessLogic/BlogService";
+import { ServiseExecutionStatus, blogService } from "../BuisnessLogic/BlogService";
 
 export const blogRouter = Router();
 
@@ -17,33 +17,38 @@ blogRouter.get("",
         let searchParams = RequestParser.ReadQueryBlogSorter(request);
         let pageHandler = RequestParser.ReadQueryPageHandle(request);
 
-        let findBlogsAction = await _blogService.GetBlogs(searchParams, pageHandler);
+        let search = await blogService.GetBlogs(searchParams, pageHandler);
 
-        if(findBlogsAction.executionStatus !== ServiseExecutionStatus.Success){
-            response.sendStatus(400);
-            return;
+        switch (search.executionStatus) {
+            case ServiseExecutionStatus.DataBaseFailed:
+            case ServiseExecutionStatus.Unauthorized:
+                response.sendStatus(400);
+                break;
+
+            case ServiseExecutionStatus.Success:
+                response.status(200).send(search.executionResultObject);
+                break;
         }
-
-        response.status(200).send(findBlogsAction.executionResultObject);
-
-        // let foundValues = await dataManager.blogRepo.TakeAll(searchParams, pageHandler);
-        // let returnValues = foundValues || [];
-        // let findBlogsOperation = await BlogServise
-        // response.status(200).send(returnValues)
     })
 
-// blogRouter.get("/:id",
-//     async (request: RequestWithParams<{ id: string }>, response: Response) => {
+blogRouter.get("/:id",
+    async (request: RequestWithParams<{ id: string }>, response: Response) => {
+        let search = await blogService.GetBlogById(request.params.id);
+        switch (search.executionStatus) {
+            case ServiseExecutionStatus.DataBaseFailed:
+            case ServiseExecutionStatus.Unauthorized:
+                response.sendStatus(400);
+                break;
 
-//         let foundValue = await dataManager.blogRepo.TakeCertain(request.params.id);
-//         if (foundValue) {
-//             response.status(200).send(foundValue);
-//         }
-//         else {
-//             response.sendStatus(404);
-//         }
+            case ServiseExecutionStatus.NotFound:
+                response.sendStatus(404);
+                break;
 
-//     })
+            case ServiseExecutionStatus.Success:
+                response.status(200).send(search.executionResultObject);
+                break;
+        }
+    })
 
 // blogRouter.get("/:id/posts",
 //     async (request: RequestWithParams<{ id: string }>, response: Response) => {
@@ -65,21 +70,33 @@ blogRouter.get("",
 //         response.sendStatus(404);
 //     })
 
-// blogRouter.post("",
-//     RequestBaseAuthorized,
-//     ValidBlogFields,
-//     CheckFormatErrors,
-//     async (request: RequestWithBody<BlogRequest>, response: Response) => {
-//         let reqObj = new BlogRequest(request.body.name, request.body.description, request.body.websiteUrl);
+blogRouter.post("",
+    ValidBlogFields,
+    CheckFormatErrors,
+    async (request: RequestWithBody<BlogRequest>, response: Response) => {
+        let reqObj = new BlogRequest(request.body.name, request.body.description, request.body.websiteUrl);
 
-//         let savedBlog = await dataManager.blogRepo.Save(reqObj);
-//         if (savedBlog) {
-//             response.status(201).send(savedBlog);
-//         }
-//         else {
-//             response.sendStatus(400);
-//         }
-//     })
+        let save = await blogService.SaveBlog(reqObj, request);
+
+        switch (save.executionStatus) {
+            case ServiseExecutionStatus.DataBaseFailed:
+            case ServiseExecutionStatus.NotFound:
+            case ServiseExecutionStatus.Unauthorized:
+                response.sendStatus(401);
+                break;
+
+            case ServiseExecutionStatus.Success:
+                response.status(201).send(save.executionResultObject);
+                break;
+        }
+        // let savedBlog = await dataManager.blogRepo.Save(reqObj);
+        // if (savedBlog) {
+        //     response.status(201).send(savedBlog);
+        // }
+        // else {
+        //     response.sendStatus(400);
+        // }
+    })
 
 // blogRouter.post("/:id/posts",
 //     RequestBaseAuthorized,
@@ -102,43 +119,70 @@ blogRouter.get("",
 //     })
 
 
-// blogRouter.put("/:id",
-//     RequestBaseAuthorized,
-//     ValidBlogFields,
-//     CheckFormatErrors,
-//     async (request: CompleteRequest<{ id: string }, BlogRequest, {}>, response: Response) => {
+blogRouter.put("/:id",
+    ValidBlogFields,
+    CheckFormatErrors,
+    async (request: CompleteRequest<{ id: string }, BlogRequest, {}>, response: Response) => {
+        let reqData: BlogRequest = new BlogRequest(request.body.name, request.body.description, request.body.websiteUrl)
 
-//         let reqData: BlogRequest = new BlogRequest(request.body.name, request.body.description, request.body.websiteUrl)
+        let update = await blogService.UpdateBlog(request.params.id, reqData, request);
+        switch (update.executionStatus) {
+            case ServiseExecutionStatus.DataBaseFailed:
+            case ServiseExecutionStatus.NotFound:
+            case ServiseExecutionStatus.Unauthorized:
+                response.sendStatus(401);
+                break;
 
-//         let requestedId = request.params.id;
+            case ServiseExecutionStatus.Success:
+                response.sendStatus(204);
+                break;
+        }
+        // let requestedId = request.params.id;
 
-//         let existedBlog = await dataManager.blogRepo.TakeCertain(requestedId);
+        // let existedBlog = await dataManager.blogRepo.TakeCertain(requestedId);
 
-//         if (existedBlog) {
-//             let updateResultIsPositive = await dataManager.blogRepo.Update(requestedId, reqData);
+        // if (existedBlog) {
+        //     let updateResultIsPositive = await dataManager.blogRepo.Update(requestedId, reqData);
 
-//             if (updateResultIsPositive) {
-//                 response.sendStatus(204);
-//                 return;
-//             }
-//         }
+        //     if (updateResultIsPositive) {
+        //         response.sendStatus(204);
+        //         return;
+        //     }
+        // }
 
-//         response.sendStatus(404);
-//     })
+        // response.sendStatus(404);
+    })
 
-// blogRouter.delete("/:id",
-//     RequestBaseAuthorized,
-//     CheckFormatErrors,
-//     async (request: RequestWithParams<{ id: string }>, response: Response) => {
-//         let idVal = request.params.id;
+blogRouter.delete("/:id",
+    async (request: RequestWithParams<{ id: string }>, response: Response) => {
+        let idVal = request.params.id;
 
-//         let blogDeleted = await dataManager.blogRepo.DeleteCertain(idVal);
+        let deleteOperation = await blogService.DeleteBlog(idVal, request);
 
-//         if (blogDeleted) {
-//             response.sendStatus(204);
-//         }
-//         else {
-//             response.sendStatus(404);
-//         }
-//     })
+        switch (deleteOperation.executionStatus) {
+            case ServiseExecutionStatus.Unauthorized:
+                response.sendStatus(401);
+                break;
+
+            case ServiseExecutionStatus.DataBaseFailed:
+                response.sendStatus(503);
+                break;
+
+            case ServiseExecutionStatus.Success:
+                response.sendStatus(204);
+                break;
+
+            case ServiseExecutionStatus.NotFound:
+                response.sendStatus(404);
+                break;
+        }
+        // let blogDeleted = await dataManager.blogRepo.DeleteCertain(idVal);
+
+        // if (blogDeleted) {
+        //     response.sendStatus(204);
+        // }
+        // else {
+        //     response.sendStatus(404);
+        // }
+    })
 

@@ -16,19 +16,11 @@ export class Paginator {
         }
     }
 
-    GetPaged<T>(obj: Array<T>): Page<T> {
-
-        let { pageNumber, ...rest } = this;
-        // let pagedObj: Page<T> = {
-        //     ...rest,
-        //     items: obj
-        // }
-
+    GetPaged<T>(obj: Array<T> | null): Page<T> {
         return new Page<T>(this.pagesCount, this.page, this.pageSize, this.totalCount, obj)
     }
-    // let [skipVal, maxPages, skipedPages] = this.FindSkip(collectionSize, pageHandler.pageSize, pageHandler.pageNumber);
+
     public GetAvailableSkip(totalCount: number): number {
-        // let collectionSize = await this.Count(tableName, sorter);
         if (totalCount > this.pageSize) {
             let maxPages = Math.ceil(totalCount / this.pageSize);
             this.page = Math.min(maxPages, this.pageNumber);

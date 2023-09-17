@@ -29,7 +29,7 @@ app.use(BlogsPath, blogRouter);
 // app.use(authPath, authRouter);
 // app.use(commentPath, commentRouter);
 
-// app.use(TestClearAllPath, _NewTestClearAllRouter)
+app.use(TestClearAllPath, _NewTestClearAllRouter)
 
 const PORT: number = PORT_NUM;
 const ngrokConnect = async (): Promise<string> => {

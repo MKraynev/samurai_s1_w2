@@ -14,6 +14,10 @@ import { BlogResponse } from "../../Entities/Blogs/Entities/BlogForResponse";
 import { PostResponse } from "../../Entities/Posts/Entities/PostForResponse";
 import { CommentResponse } from "../../Entities/Comments/Entities/CommentForResponse";
 import { UserResponse } from "../../Entities/Users/Admin/Entities/UserForResponse";
+import { BlogRequest } from "../../Entities/Blogs/Entities/BlogForRequest";
+import { PostRequest } from "../../Entities/Posts/Entities/PostForRequest";
+import { UserRequest } from "../../Entities/Users/Admin/Entities/UserForRequest";
+import { CommentRequest } from "../../Entities/Comments/Entities/CommentRequest";
 
 
 type MongoSearch = {
@@ -21,10 +25,11 @@ type MongoSearch = {
 }
 
 export type AvailableReturnDbTypes = BlogResponse | PostResponse | UserResponse | CommentResponse;
+export type AvailableUpdateTypes = BlogRequest | PostRequest | UserRequest | CommentRequest;
 export type AvailableInputDbTypes = BlogDataBase | PostDataBase | UserDataBase | CommentDataBase;
 type AvailableSorterTypes = BlogSorter | PostSorter | UserSorter;
 
-class MongoDb extends DataBase<AvailableInputDbTypes, AvailableReturnDbTypes> {
+export class MongoDb extends DataBase<AvailableInputDbTypes, AvailableUpdateTypes, AvailableReturnDbTypes> {
     private _dbIsRunning = false;
     private _client: MongoClient;
     private _db: Db;
@@ -54,7 +59,7 @@ class MongoDb extends DataBase<AvailableInputDbTypes, AvailableReturnDbTypes> {
 
     }
 
-    async GetOneByValueInOnePropery(tableName: AvailableDbTables, propName: keyof (AvailableReturnDbTypes), propVal: string): Promise<ExecutionResultContainer<ExecutionResult, AvailableReturnDbTypes>> {
+    async GetOneByValueInOnePropery(tableName: AvailableDbTables, propName: keyof (AvailableReturnDbTypes) | string, propVal: string): Promise<ExecutionResultContainer<ExecutionResult, AvailableReturnDbTypes>> {
         try {
             let query: any = {}
             query[propName] = propVal;
@@ -138,14 +143,14 @@ class MongoDb extends DataBase<AvailableInputDbTypes, AvailableReturnDbTypes> {
         }
     }
 
-    async UpdateOne(tableName: AvailableDbTables, id: string, updateObject: AvailableReturnDbTypes): Promise<ExecutionResultContainer<ExecutionResult, AvailableReturnDbTypes>> {
+    async UpdateOne(tableName: AvailableDbTables, id: string, updateObject: AvailableUpdateTypes): Promise<ExecutionResultContainer<ExecutionResult, AvailableReturnDbTypes | undefined>> {
         try {
             let updateResult = await this._db.collection(tableName).updateOne({ _id: new ObjectId(id) }, { $set: updateObject })
 
             if (updateResult.matchedCount === 1)
                 return await this.GetOneById(tableName, id);
 
-            return new ExecutionResultContainer(ExecutionResult.Failed);
+            return new ExecutionResultContainer(ExecutionResult.Pass, undefined, "not found");
         }
         catch {
             return new ExecutionResultContainer(ExecutionResult.Failed);
@@ -192,14 +197,12 @@ class MongoDb extends DataBase<AvailableInputDbTypes, AvailableReturnDbTypes> {
             let dbId = new ObjectId(id);
             let deleteResult = await this._db.collection(tableName).deleteOne({ _id: dbId })
 
-            let operationResult = new ExecutionResultContainer<ExecutionResult, boolean>(ExecutionResult.Failed);
+            if (deleteResult.deletedCount === 1)
+                return new ExecutionResultContainer(ExecutionResult.Pass, true);
 
-            if (deleteResult.deletedCount === 1) {
-                operationResult.executionResultObject = true;
-                operationResult.executionStatus = ExecutionResult.Pass;
-            }
 
-            return operationResult;
+            return new ExecutionResultContainer(ExecutionResult.Pass, false);
+
         }
         catch {
             return new ExecutionResultContainer<ExecutionResult, boolean>(ExecutionResult.Failed);

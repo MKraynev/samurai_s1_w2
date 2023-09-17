@@ -1,12 +1,12 @@
 import request from "supertest"
 import { BlogsPath, TestClearAllPath, app } from "../../src/app"
-import { Encode64 } from "../../src/_legacy/Authorization/BasicAuthorization/BasicAuthorization";
-import { PageHandler } from "../../src/3_DataAccessLayer/_Classes/DataManagment/PageHandler";
+import { Base64 } from "../../src/Common/Authentication/Base64";
 
 
 
 
-export const _encodedKey = Encode64("admin:qwerty");
+
+export const _encodedKey = Base64.Encode64("admin:qwerty");
 const blogCompleteStructure = {
     name: expect.any(String),
     description: expect.any(String),
