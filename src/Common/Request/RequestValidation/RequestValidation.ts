@@ -5,7 +5,7 @@ import { ErrorLog } from "./Error";
 // import { dataManager } from "../../DataManager/DataManager";
 import { Token } from "../../../Entities/Users/Common/Entities/Token";
 import { RequestParser } from "../RequestParser/RequestParser";
-import { Base64 } from "../../Authentication/Base64";
+import { Base64 } from "../../Authentication/Admin/Base64";
 import { ADMIN_PASSWORD } from "../../../settings";
 
 export const RequestBaseAuthorized = (request: Request<{}, {}, {}, {}>, reponse: Response, next: NextFunction) => {

@@ -1,15 +1,13 @@
-// import { Router, Response, Request } from "express"
-// import { dataManager } from "../../../../Common/DataManager/DataManager";
-// import { CheckFormatErrors, RequestJwtAuthorized, ValidEmail } from "../../../../Common/Request/RequestValidation/RequestValidation";
-// import { RequestWithBody } from "../../../../Common/Request/Entities/RequestTypes";
-// import { AuthRequest } from "../Entities/AuthRequest";
-// import { UserRequest } from "../../Admin/Entities/UserForRequest";
-// import { emailSender } from "../../../../EmailHandler/EmailSender";
-// import { UserResponse } from "../../Admin/Entities/UserForResponse";
-// import { Token } from "../Entities/Token";
-// import { CONFIRM_ADRESS } from "../../../../settings";
-// import { ValidUserFields } from "../../Admin/Router/Middleware/UserMiddleware";
-// import { EmailAvailableForConfirm, UserAvailableForConfirmation, UserLoginAndEmailFreeByUserInBody, ValidAuthFields } from "./Middleware/AuthMeddleware";
+import { Router, Response, Request } from "express"
+import { CheckFormatErrors, ValidEmail } from "../../../../Common/Request/RequestValidation/RequestValidation";
+import { RequestWithBody } from "../../../../Common/Request/Entities/RequestTypes";
+import { AuthRequest } from "../Entities/AuthRequest";
+import { UserRequest } from "../../Admin/Entities/UserForRequest";
+import { emailSender } from "../../../../EmailHandler/EmailSender";
+import { UserResponse } from "../../Admin/Entities/UserForResponse";
+import { Token } from "../Entities/Token";
+import { CONFIRM_ADRESS } from "../../../../settings";
+import { ValidUserFields } from "../../Admin/Router/Middleware/UserMiddleware";
 
 
 

@@ -1,3 +1,5 @@
+import { UserRequest } from "./UserForRequest";
+
 export class UserDataBase {
     public usedRefreshTokens: Array<string> = []
     constructor(
@@ -8,5 +10,6 @@ export class UserDataBase {
         public emailConfirmId: string,
         public emailConfirmed: boolean = false,
         public createdAt: string = (new Date()).toISOString()
-    ) { }
+    ) {
+     }
 }

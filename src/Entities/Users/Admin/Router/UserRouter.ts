@@ -1,78 +1,96 @@
 import { Router, Request, Response } from "express"
 import { RequestParser } from "../../../../Common/Request/RequestParser/RequestParser";
-
-import { CheckFormatErrors, RequestBaseAuthorized } from "../../../../Common/Request/RequestValidation/RequestValidation";
-import { RequestWithBody, RequestWithParams } from "../../../../Common/Request/Entities/RequestTypes";
-import { UserResponceLite } from "../Entities/UserForResponse";
-// import { dataManager } from "../../../../Common/DataManager/DataManager";
-import { UserRequest } from "../Entities/UserForRequest";
+import { userService } from "../../Common/BuisnessLogic/UserService";
+import { ServiseExecutionStatus } from "../../../Blogs/BuisnessLogic/BlogService";
 import { ValidUserFields } from "./Middleware/UserMiddleware";
+import { CheckFormatErrors } from "../../../../Common/Request/RequestValidation/RequestValidation";
+import { RequestWithBody, RequestWithParams } from "../../../../Common/Request/Entities/RequestTypes";
+import { UserRequest } from "../Entities/UserForRequest";
 
 export const userRouter = Router();
 
-// userRouter.get("", async (request: Request, response: Response) => {
+userRouter.get("", async (request: Request, response: Response) => {
 
-//     let searchParams = RequestParser.ReadQueryUserSorter(request);
-//     let pageHandler = RequestParser.ReadQueryPageHandle(request);
+    let searchParams = RequestParser.ReadQueryUserSorter(request);
+    let pageHandler = RequestParser.ReadQueryPageHandle(request);
 
-//     //let foundValues = await dataManager.userRepo.TakeAll(searchParams, pageHandler);
-//     let foundValues = await dataManager.userService.GetUsers(searchParams, pageHandler);
-//     let returnValues = foundValues || [];
+    let search = await userService.GetUsers(searchParams, pageHandler, request);
 
-//     response.status(200).send(returnValues)
-//     return;
-// })
+        switch (search.executionStatus) {
+            case ServiseExecutionStatus.DataBaseFailed:
+            case ServiseExecutionStatus.Unauthorized:
+                response.sendStatus(401);
+                break;
 
-// userRouter.post("",
-//     RequestBaseAuthorized,
-//     ValidUserFields,
-//     CheckFormatErrors,
-//     async (request: RequestWithBody<UserRequest>, response: Response) => {
-
-
-//         let reqObj = new UserRequest(request.body.login, request.body.password, request.body.email, true);
+            case ServiseExecutionStatus.Success:
+                response.status(200).send(search.executionResultObject);
+                break;
+        }
         
-//         let savedPost = await dataManager.userService.SaveUser(reqObj);
-//         if (savedPost) {
-//             response.status(201).send(new UserResponceLite(savedPost));
-//             return;
-//         }
-//         response.sendStatus(400);
+    //let foundValues = await dataManager.userRepo.TakeAll(searchParams, pageHandler);
+    // let foundValues = await dataManager.userService.GetUsers(searchParams, pageHandler);
+    // let returnValues = foundValues || [];
 
-//     })
+    // response.status(200).send(returnValues)
+    return;
+})
 
-// // userRouter.put("/:id",
-// // RequestAuthorized,
-// // CheckFormatErrors,
-// // async (request: CompleteRequest<{ id: string }, UserRequest, {}>, response: Response) => {
-// //     let requestedPostId = request.params.id;
+userRouter.post("",
+    ValidUserFields,
+    CheckFormatErrors,
+    async (request: RequestWithBody<UserRequest>, response: Response) => {
+        let reqObj = new UserRequest(request.body.login, request.body.password, request.body.email, true);
+        
+        let save = await userService.SaveUser(reqObj, request);
 
-// //     let requestedUser = await dataManager.userRepo.TakeCertain(requestedPostId);
-// //     if (requestedUser) {
-// //         let reqData: UserRequest = new UserRequest(
-// //             request.body.login, request.body.password, request.body.email)
+        switch (save.executionStatus) {
+            case ServiseExecutionStatus.DataBaseFailed:
+            case ServiseExecutionStatus.NotFound:
+            case ServiseExecutionStatus.Unauthorized:
+                response.sendStatus(401);
+                break;
 
-// //         let updateResultIsPositive = await dataManager.userRepo.Update(requestedPostId, reqData);
+            case ServiseExecutionStatus.Success:
+                response.status(201).send(save.executionResultObject);
+                break;
+        }
+        // let savedPost = await dataManager.userService.SaveUser(reqObj);
+        // if (savedPost) {
+        //     response.status(201).send(new UserResponceLite(savedPost));
+        //     return;
+        // }
+        // response.sendStatus(400);
+    })
 
-// //         if (updateResultIsPositive) {
-// //             response.sendStatus(204);
-// //             return;
-// //         }
-// //     }
-// //     response.sendStatus(404);
-// // })
+userRouter.delete("/:id",
+    async (request: RequestWithParams<{ id: string }>, response: Response) => {
+        let idVal = request.params.id;
 
-// userRouter.delete("/:id",
-//     RequestBaseAuthorized,
-//     CheckFormatErrors,
-//     async (request: RequestWithParams<{ id: string }>, response: Response) => {
-//         let idVal = request.params.id;
-//         let userIsDeleted = await dataManager.userService.DeleteUser(idVal);
+        let deleteOperation = await userService.DeleteUser(idVal, request);
 
-//         if (userIsDeleted) response.sendStatus(204);
+        switch (deleteOperation.executionStatus) {
+            case ServiseExecutionStatus.Unauthorized:
+                response.sendStatus(401);
+                break;
 
-//         else response.sendStatus(404);
-//         return;
-//     }
+            case ServiseExecutionStatus.DataBaseFailed:
+                response.sendStatus(500);
+                break;
 
-// )
+            case ServiseExecutionStatus.Success:
+                response.sendStatus(204);
+                break;
+
+            case ServiseExecutionStatus.NotFound:
+                response.sendStatus(404);
+                break;
+        }
+        // let userIsDeleted = await dataManager.userService.DeleteUser(idVal);
+
+        // if (userIsDeleted) response.sendStatus(204);
+
+        // else response.sendStatus(404);
+        // return;
+    }
+
+)

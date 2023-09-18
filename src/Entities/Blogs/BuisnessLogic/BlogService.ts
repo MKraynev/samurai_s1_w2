@@ -1,5 +1,5 @@
 import { Request } from "express"
-import { AdminAuthentication, AuthenticationResult, IAuthenticator } from "../../../Common/Authentication/AdminAuthenticator";
+import { AdminAuthentication, AuthenticationResult, IAuthenticator } from "../../../Common/Authentication/Admin/AdminAuthenticator";
 import { AvailableDbTables, DataBase, ExecutionResult, ExecutionResultContainer } from "../../../Common/Database/DataBase";
 import { MongoDb, mongoDb } from "../../../Common/Database/MongoDb";
 import { Page } from "../../../Common/Paginator/Page";

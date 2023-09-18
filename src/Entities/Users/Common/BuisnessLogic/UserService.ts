@@ -1,5 +1,4 @@
 import { UserRequest } from "../../Admin/Entities/UserForRequest";
-// import { UserRepo } from "../../Repo/UserRepo";
 import { UserSorter } from "../../Repo/UserSorter";
 import { Paginator } from "../../../../Common/Paginator/PageHandler";
 import { Page } from "../../../../Common/Paginator/Page";
@@ -11,7 +10,12 @@ import jwt, { JwtPayload } from "jsonwebtoken"
 import { UniqueValGenerator } from "../../../../Common/DataManager/HandleFunctions/UniqueValGenerator";
 import { UserDataBase } from "../../Admin/Entities/UserForDataBase";
 import { WithId } from "mongodb";
-import { type } from "os";
+import { MongoDb, mongoDb } from "../../../../Common/Database/MongoDb";
+import { AvailableDbTables, ExecutionResult, ExecutionResultContainer } from "../../../../Common/Database/DataBase";
+import { TokenHandler, tokenHandler } from "../../../../Common/Authentication/User/TokenAuthentication";
+import { ServiseExecutionStatus } from "../../../Blogs/BuisnessLogic/BlogService";
+import { AdminAuthentication, AuthenticationResult, IAuthenticator } from "../../../../Common/Authentication/Admin/AdminAuthenticator";
+import { Request } from "express"
 
 export enum LoginEmailStatus {
     LoginAndEmailFree,
@@ -20,160 +24,209 @@ export enum LoginEmailStatus {
 
 }
 
-// export class UserService {
-//     private repo: UserRepo;
+type UserServiceDto = ExecutionResultContainer<ExecutionResult, UserResponse>;
+type UserServiceDtos = ExecutionResultContainer<ExecutionResult, UserResponse[]>;
 
-//     constructor(userRepo: UserRepo) {
-//         this.repo = userRepo;
-//     }
+export class UserService {
+    private userTable = AvailableDbTables.users;
+    constructor(private _db: MongoDb, private _authenticator: IAuthenticator, private tokenHandler: TokenHandler) { }
 
-//     public async SaveUser(user: UserRequest): Promise<UserResponse> {
-//         let salt = await bcrypt.genSalt(10);
-//         let hashedPass = await bcrypt.hash(user.password, salt);
+    public async GetUsers(searchConfig: UserSorter, paginator: Paginator, request: Request): Promise<ExecutionResultContainer<ServiseExecutionStatus, Page<UserResponse> | null>> {
+        let accessVerdict = this._authenticator.AccessCheck(request);
 
-//         let emailConfirmId = UniqueValGenerator();
+        if (accessVerdict !== AuthenticationResult.Accept)
+            return new ExecutionResultContainer(ServiseExecutionStatus.Unauthorized);
 
-//         let userObj = new UserDataBase(user.login, user.email, salt, hashedPass, emailConfirmId);
-//         let savedUser = await this.repo.Save(userObj);
+        let countOperation = await this._db.Count(this.userTable, searchConfig);
 
-//         return savedUser;
-//     }
-//     public async UpdateUserEmailConfirmId(userId: string): Promise<string | null> {
-//         try {
-//             let emailConfirmId = UniqueValGenerator();
-//             let updatedUser = await this.repo.UpdateProperty(userId, "emailConfirmId", emailConfirmId);
-//             if (updatedUser) {
-//                 return emailConfirmId;
-//             }
-//             return null;
-//         }
-//         catch {
-//             return null;
-//         }
-//     }
+        if (countOperation.executionStatus === ExecutionResult.Failed || countOperation.executionResultObject === null)
+            return new ExecutionResultContainer(ServiseExecutionStatus.DataBaseFailed);
 
-//     public async DeleteUser(id: string): Promise<boolean> {
-//         return this.repo.DeleteCertain(id);
-//     }
-//     public async ClearUsers(): Promise<boolean> {
-//         return this.repo.DeleteMany();
-//     }
+        let neededSkipObjectsNumber = paginator.GetAvailableSkip(countOperation.executionResultObject);
+        let foundObjectsOperation = await this._db.GetMany(this.userTable, searchConfig, neededSkipObjectsNumber, paginator.pageSize) as UserServiceDtos;
 
-//     public async GetUsers(sorter: UserSorter, pageHandler: Paginator): Promise<Page<any> | null> {
-//         let foundValues = await this.repo.TakeAll(sorter, pageHandler);
-//         return foundValues;
-//     }
+        if (foundObjectsOperation.executionStatus === ExecutionResult.Failed)
+            return new ExecutionResultContainer(ServiseExecutionStatus.DataBaseFailed);
 
-//     public async CheckUserLogs(loginOrEmail: string, password: string): Promise<UserResponse | null> {
+        let pagedObjects = paginator.GetPaged(foundObjectsOperation.executionResultObject);
+        let operationResult = new ExecutionResultContainer(ServiseExecutionStatus.Success, pagedObjects)
 
-//         let user = await this.repo.GetUserByLoginOrEmail(loginOrEmail, true);
+        return operationResult;
+    }
+    public async SaveUser(user: UserRequest, request: Request): Promise<ExecutionResultContainer<ServiseExecutionStatus, UserResponse | null>> {
+        let accessVerdict = this._authenticator.AccessCheck(request);
 
-//         if (user) {
-//             user = user as WithId<UserDataBase>;
-//             let dbHash = user.hashedPass;
-//             let currentHash = await bcrypt.hash(password, user.salt);
-
-//             if (dbHash === currentHash) {
-
-//                 return new UserResponse(user._id, user);
-//             }
-//             return null;
-//         }
-//         return null;
-//     }
-
-//     public async GenerateTokens(user: UserResponse): Promise<Array<Token>> {
-//         let accessTokenVal = await jwt.sign({ id: user.id }, JWT_SECRET, { expiresIn: ACCESS_TOKEN_TIME });
-//         let refreshTokenVal = await jwt.sign({ id: user.id }, JWT_SECRET, { expiresIn: REFRESH_TOKEN_TIME });
-
-//         let accessToken: Token = {
-//             accessToken: accessTokenVal
-//         }
-//         let refreshToken: Token = {
-//             accessToken: refreshTokenVal
-//         }
-
-//         let tokens: Array<Token> = [accessToken, refreshToken];
+        if (accessVerdict !== AuthenticationResult.Accept)
+            return new ExecutionResultContainer(ServiseExecutionStatus.Unauthorized);
 
 
-//         return tokens;
-//     }
-//     public async RefreshTokens(currentRefreshToken: Token): Promise<Array<Token> | null> {
-//         let user = await this.GetUserByToken(currentRefreshToken);
-//         if (!user) return null;
+        let salt = await bcrypt.genSalt(10);
+        let hashedPass = await bcrypt.hash(user.password, salt);
+        let emailConfirmId = UniqueValGenerator();
 
-//         let updateRes = await this.repo.AppendToken(user.id, currentRefreshToken);
-//         if (!updateRes) return null;
+        let userObj = new UserDataBase(user.login, user.email, salt, hashedPass, emailConfirmId, user.emailConfirmed);
+        let save = await this._db.SetOne(this.userTable, userObj) as UserServiceDto;
 
-//         return this.GenerateTokens(user);
-//     }
+        if (save.executionStatus === ExecutionResult.Failed) {
+            return new ExecutionResultContainer(ServiseExecutionStatus.DataBaseFailed);
+        }
+        return new ExecutionResultContainer(ServiseExecutionStatus.Success, save.executionResultObject);
+    }
+    public async DeleteUser(id: string, request: Request<{}, {}, {}, {}>): Promise<ExecutionResultContainer<ServiseExecutionStatus, boolean | null>> {
+        let accessVerdict = this._authenticator.AccessCheck(request);
 
-//     public async RefreshTokenNotUsed(userId: string, token: string): Promise<boolean> {
-//         let user = await this.repo.TakeCertain(userId);
+        if (accessVerdict !== AuthenticationResult.Accept)
+            return new ExecutionResultContainer(ServiseExecutionStatus.Unauthorized);
 
-//         return !!user && !user.usedRefreshTokens.includes(token);
-//     }
+        let deleteOperation = await this._db.DeleteOne(this.userTable, id);
 
-//     public async isTokenExpired(token: Token): Promise<boolean> {
-//         try {
-//             let decoded = await jwt.decode(token.accessToken) as JwtPayload;
-//             if (decoded && decoded.exp) {
-//                 let nowTime: number = Date.now()
-//                 let verdict = nowTime >= decoded.exp * 1000;
-                
-//                 return verdict;
-//             }
-//             return true;
-//         }
-//         catch {
-//             return true;
-//         }
+        if (deleteOperation.executionStatus === ExecutionResult.Failed)
+            return new ExecutionResultContainer(ServiseExecutionStatus.DataBaseFailed);
+
+        if (!deleteOperation.executionResultObject) {
+            return new ExecutionResultContainer(ServiseExecutionStatus.NotFound);
+        }
+
+        return new ExecutionResultContainer(ServiseExecutionStatus.Success, true);
+    }
+    
+    // public async UpdateUserEmailConfirmId(userId: string): Promise<string | null> {
+    //     try {
+    //         let emailConfirmId = UniqueValGenerator();
+    //         let updatedUser = await this.repo.UpdateProperty(userId, "emailConfirmId", emailConfirmId);
+    //         if (updatedUser) {
+    //             return emailConfirmId;
+    //         }
+    //         return null;
+    //     }
+    //     catch {
+    //         return null;
+    //     }
+    // }
+
+    // public async DeleteUser(id: string): Promise<boolean> {
+    //     return this.repo.DeleteCertain(id);
+    // }
+    // public async ClearUsers(): Promise<boolean> {
+    //     return this.repo.DeleteMany();
+    // }
+
+    // public async GetUsers(sorter: UserSorter, pageHandler: Paginator): Promise<Page<any> | null> {
+    //     let foundValues = await this.repo.TakeAll(sorter, pageHandler);
+    //     return foundValues;
+    // }
+
+    // public async CheckUserLogs(loginOrEmail: string, password: string): Promise<UserResponse | null> {
+
+    //     let user = await this.repo.GetUserByLoginOrEmail(loginOrEmail, true);
+
+    //     if (user) {
+    //         user = user as WithId<UserDataBase>;
+    //         let dbHash = user.hashedPass;
+    //         let currentHash = await bcrypt.hash(password, user.salt);
+
+    //         if (dbHash === currentHash) {
+
+    //             return new UserResponse(user._id, user);
+    //         }
+    //         return null;
+    //     }
+    //     return null;
+    // }
+
+    // public async GenerateTokens(user: UserResponse): Promise<Array<Token>> {
+    //     let accessTokenVal = await jwt.sign({ id: user.id }, JWT_SECRET, { expiresIn: ACCESS_TOKEN_TIME });
+    //     let refreshTokenVal = await jwt.sign({ id: user.id }, JWT_SECRET, { expiresIn: REFRESH_TOKEN_TIME });
+
+    //     let accessToken: Token = {
+    //         accessToken: accessTokenVal
+    //     }
+    //     let refreshToken: Token = {
+    //         accessToken: refreshTokenVal
+    //     }
+
+    //     let tokens: Array<Token> = [accessToken, refreshToken];
 
 
-//     }
-//     public async GetUserByToken(token: Token): Promise<UserResponse | null> {
-//         let userId = await this.DecodeIdFromToken(token);
+    //     return tokens;
+    // }
+    // public async RefreshTokens(currentRefreshToken: Token): Promise<Array<Token> | null> {
+    //     let user = await this.GetUserByToken(currentRefreshToken);
+    //     if (!user) return null;
 
-//         if (userId) {
-//             let user = await this.repo.TakeCertain(userId);
+    //     let updateRes = await this.repo.AppendToken(user.id, currentRefreshToken);
+    //     if (!updateRes) return null;
 
-//             return user;
-//         }
-//         return null;
-//     }
-//     public async GetUserByMail(email: string): Promise<UserResponse | null> {
-//         let foundUser = await this.repo.GetUserByLoginOrEmail(email, false) as UserResponse | null;
-//         return foundUser;
-//     }
-//     public async GetUserByConfirmEmailCode(code: string): Promise<UserResponse | null> {
-//         let foundUser = await this.repo.GetByConfirmEmailCode(code);
+    //     return this.GenerateTokens(user);
+    // }
 
-//         return foundUser;
-//     }
+    // public async RefreshTokenNotUsed(userId: string, token: string): Promise<boolean> {
+    //     let user = await this.repo.TakeCertain(userId);
 
-//     private async DecodeIdFromToken(token: Token): Promise<string | null> {
-//         try {
-//             let decodeRes: any = await jwt.verify(token.accessToken, JWT_SECRET);
-//             return decodeRes.id;
-//         }
-//         catch {
-//             return null;
-//         }
-//     }
+    //     return !!user && !user.usedRefreshTokens.includes(token);
+    // }
 
-//     public async CurrentLoginOrEmailExist(login: string, email: string): Promise<LoginEmailStatus> {
-//         let foundUserByLogin = await this.repo.GetUserByLoginOrEmail(login);
-//         let foundUserByEmail = await this.repo.GetUserByLoginOrEmail(email);
+    // public async isTokenExpired(token: Token): Promise<boolean> {
+    //     try {
+    //         let decoded = await jwt.decode(token.accessToken) as JwtPayload;
+    //         if (decoded && decoded.exp) {
+    //             let nowTime: number = Date.now()
+    //             let verdict = nowTime >= decoded.exp * 1000;
 
-//         if (foundUserByLogin) return LoginEmailStatus.LoginExist;
+    //             return verdict;
+    //         }
+    //         return true;
+    //     }
+    //     catch {
+    //         return true;
+    //     }
 
-//         if (foundUserByEmail) return LoginEmailStatus.EmailEXist;
 
-//         return LoginEmailStatus.LoginAndEmailFree;
-//     }
+    // }
+    // public async GetUserByToken(token: Token): Promise<UserResponse | null> {
+    //     let userId = await this.DecodeIdFromToken(token);
 
-//     public async ConfirmUser(user: UserResponse): Promise<UserResponse | null> {
-//         let updatedUser = await this.repo.UpdateProperty(user.id, "emailConfirmed", true);
-//         return updatedUser;
-//     }
-// }
+    //     if (userId) {
+    //         let user = await this.repo.TakeCertain(userId);
+
+    //         return user;
+    //     }
+    //     return null;
+    // }
+    // public async GetUserByMail(email: string): Promise<UserResponse | null> {
+    //     let foundUser = await this.repo.GetUserByLoginOrEmail(email, false) as UserResponse | null;
+    //     return foundUser;
+    // }
+    // public async GetUserByConfirmEmailCode(code: string): Promise<UserResponse | null> {
+    //     let foundUser = await this.repo.GetByConfirmEmailCode(code);
+
+    //     return foundUser;
+    // }
+
+    // private async DecodeIdFromToken(token: Token): Promise<string | null> {
+    //     try {
+    //         let decodeRes: any = await jwt.verify(token.accessToken, JWT_SECRET);
+    //         return decodeRes.id;
+    //     }
+    //     catch {
+    //         return null;
+    //     }
+    // }
+
+    // public async CurrentLoginOrEmailExist(login: string, email: string): Promise<LoginEmailStatus> {
+    //     let foundUserByLogin = await this.repo.GetUserByLoginOrEmail(login);
+    //     let foundUserByEmail = await this.repo.GetUserByLoginOrEmail(email);
+
+    //     if (foundUserByLogin) return LoginEmailStatus.LoginExist;
+
+    //     if (foundUserByEmail) return LoginEmailStatus.EmailEXist;
+
+    //     return LoginEmailStatus.LoginAndEmailFree;
+    // }
+
+    // public async ConfirmUser(user: UserResponse): Promise<UserResponse | null> {
+    //     let updatedUser = await this.repo.UpdateProperty(user.id, "emailConfirmed", true);
+    //     return updatedUser;
+    // }
+}
+export const userService = new UserService(mongoDb, AdminAuthentication, tokenHandler)
