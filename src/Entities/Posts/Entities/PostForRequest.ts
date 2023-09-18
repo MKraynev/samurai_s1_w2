@@ -4,5 +4,5 @@ export class PostRequest {
         public shortDescription: string,
         public content: string,
         public blogId: string,
-        public blogName: string) { }
+        public blogName: string| undefined = undefined) { }
 }

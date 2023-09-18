@@ -9,7 +9,7 @@ export const _NewTestClearAllRouter = Router();
 _NewTestClearAllRouter.delete("", async (request: Request, response: Response) => {
     // let blogsDeleted = await dataManager.blogRepo.DeleteMany();
     let blogsDeleted = await mongoDb.DeleteAll(AvailableDbTables.blogs);
-    // let postsDeleted = await dataManager.postRepo.DeleteMany();
+    let postsDeleted = await mongoDb.DeleteAll(AvailableDbTables.posts);
     // let usersDeleted = await dataManager.userService.ClearUsers();
     // let commentDeleted = await dataManager.commentRepo.DeleteMany();
     

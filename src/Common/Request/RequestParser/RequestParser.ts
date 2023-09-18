@@ -25,7 +25,7 @@ export class RequestParser {
             sortDirection == "asc" || sortDirection == "desc" ? sortDirection : undefined
         )
     }
-    static ReadQueryPostSorter(request: Request): Sorter<any> {
+    static ReadQueryPostSorter(request: Request): PostSorter {
         let sortBy: keyof PostResponse & string | undefined = request.query.sortBy as keyof PostResponse & string | undefined;
         let sortDirection: string | undefined = request.query.sortDirection as string | undefined;
 
@@ -94,7 +94,7 @@ export class RequestParser {
         let token: Token = {
             accessToken: request.cookies[TOKEN_COOKIE_NAME]
         };
-        
+
         return token || null;
 
     }

@@ -42,11 +42,18 @@ export class MongoDb extends DataBase<AvailableInputDbTypes, AvailableUpdateType
         this._db = this._client.db(DbName);
     }
 
-    async GetOneById(tableName: AvailableDbTables, id: string): Promise<ExecutionResultContainer<ExecutionResult, AvailableReturnDbTypes>> {
+    async GetOneById(tableName: AvailableDbTables, id: string): Promise<ExecutionResultContainer<ExecutionResult, AvailableReturnDbTypes | undefined>> {
+        let internalId: ObjectId;
+        try {
+            internalId = new ObjectId(id);
+        }
+        catch {
+            return new ExecutionResultContainer(ExecutionResult.Pass, undefined);
+        }
+
         try {
             let executionResult = new ExecutionResultContainer<ExecutionResult, AvailableReturnDbTypes>(ExecutionResult.Pass);
 
-            let internalId = new ObjectId(id);
             let databaseObject = await this._db.collection(tableName).findOne({ _id: internalId }) as WithId<AvailableInputDbTypes> | null;
 
             executionResult.executionResultObject = databaseObject ? this.ExtractDataObject(tableName, databaseObject) : null;
@@ -143,7 +150,7 @@ export class MongoDb extends DataBase<AvailableInputDbTypes, AvailableUpdateType
         }
     }
 
-    async UpdateOne(tableName: AvailableDbTables, id: string, updateObject: AvailableUpdateTypes): Promise<ExecutionResultContainer<ExecutionResult, AvailableReturnDbTypes | undefined>> {
+    async UpdateOne(tableName: AvailableDbTables, id: string, updateObject:  AvailableUpdateTypes): Promise<ExecutionResultContainer<ExecutionResult, AvailableReturnDbTypes | undefined>> {
         try {
             let updateResult = await this._db.collection(tableName).updateOne({ _id: new ObjectId(id) }, { $set: updateObject })
 
@@ -157,7 +164,7 @@ export class MongoDb extends DataBase<AvailableInputDbTypes, AvailableUpdateType
         }
     }
 
-    async UpdateOneProperty(tableName: AvailableDbTables, id: string, property: keyof (AvailableReturnDbTypes), value: string | boolean | number): Promise<ExecutionResultContainer<ExecutionResult, AvailableReturnDbTypes>> {
+    async UpdateOneProperty(tableName: AvailableDbTables, id: string, property: keyof (AvailableReturnDbTypes), value: string | boolean | number): Promise<ExecutionResultContainer<ExecutionResult, AvailableReturnDbTypes | undefined>> {
         try {
             let updateField: any = {};
             updateField[property] = value;
@@ -174,7 +181,7 @@ export class MongoDb extends DataBase<AvailableInputDbTypes, AvailableUpdateType
         }
     }
 
-    async AppendOneProperty(tableName: AvailableDbTables, id: string, property: keyof (AvailableReturnDbTypes), value: string | boolean | number): Promise<ExecutionResultContainer<ExecutionResult, AvailableReturnDbTypes>> {
+    async AppendOneProperty(tableName: AvailableDbTables, id: string, property: keyof (AvailableReturnDbTypes), value: string | boolean | number): Promise<ExecutionResultContainer<ExecutionResult, AvailableReturnDbTypes | undefined>> {
         try {
             let updateField: any = {};
             updateField[property] = value;
@@ -193,8 +200,15 @@ export class MongoDb extends DataBase<AvailableInputDbTypes, AvailableUpdateType
     }
 
     async DeleteOne(tableName: AvailableDbTables, id: string): Promise<ExecutionResultContainer<ExecutionResult, boolean>> {
+        let dbId: ObjectId;
         try {
-            let dbId = new ObjectId(id);
+            dbId = new ObjectId(id);
+        }
+        catch {
+            return new ExecutionResultContainer(ExecutionResult.Pass, false);
+        }
+
+        try {
             let deleteResult = await this._db.collection(tableName).deleteOne({ _id: dbId })
 
             if (deleteResult.deletedCount === 1)
@@ -357,7 +371,9 @@ export class MongoDb extends DataBase<AvailableInputDbTypes, AvailableUpdateType
 
             case AvailableDbTables.posts:
                 object = object as WithId<PostDataBase>;
-                return new PostResponse(object._id, object);
+                let post = new PostResponse(object._id, object);
+                post.blogName = object.blogName;
+                return post;
 
             case AvailableDbTables.comments:
                 object = object as WithId<CommentDataBase>

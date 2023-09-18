@@ -1,13 +1,9 @@
 import { Router, Request, Response } from "express";
 import { RequestParser } from "../../../Common/Request/RequestParser/RequestParser";
-// import { dataManager } from "../../../Common/DataManager/DataManager";
 import { CompleteRequest, RequestWithBody, RequestWithParams } from "../../../Common/Request/Entities/RequestTypes";
-import { CheckFormatErrors, RequestBaseAuthorized } from "../../../Common/Request/RequestValidation/RequestValidation";
+import { CheckFormatErrors } from "../../../Common/Request/RequestValidation/RequestValidation";
 import { BlogRequest } from "../Entities/BlogForRequest";
-import { PostSorter } from "../../Posts/Repo/PostSorter";
-import { PostRequest } from "../../Posts/Entities/PostForRequest";
 import { ValidBlogFields } from "./Middleware/BlogMiddleware";
-import { ValidPostFieldsLight } from "../../Posts/Router/Middleware/PostMiddleware";
 import { ServiseExecutionStatus, blogService } from "../BuisnessLogic/BlogService";
 
 export const blogRouter = Router();
@@ -165,7 +161,7 @@ blogRouter.delete("/:id",
                 break;
 
             case ServiseExecutionStatus.DataBaseFailed:
-                response.sendStatus(503);
+                response.sendStatus(500);
                 break;
 
             case ServiseExecutionStatus.Success:

@@ -24,7 +24,7 @@ app.use(express.json());
 app.use(cookieParser())
 
 app.use(BlogsPath, blogRouter);
-// app.use(PostsPath, postRouter);
+app.use(PostsPath, postRouter);
 // app.use(UsersPath, userRouter);
 // app.use(authPath, authRouter);
 // app.use(commentPath, commentRouter);

@@ -1,37 +1,32 @@
-import { Request } from "express"
 import { AdminAuthentication, AuthenticationResult, IAuthenticator } from "../../../Common/Authentication/AdminAuthenticator";
-import { AvailableDbTables, DataBase, ExecutionResult, ExecutionResultContainer } from "../../../Common/Database/DataBase";
+import { AvailableDbTables, ExecutionResult, ExecutionResultContainer } from "../../../Common/Database/DataBase";
 import { MongoDb, mongoDb } from "../../../Common/Database/MongoDb";
 import { Page } from "../../../Common/Paginator/Page";
 import { Paginator } from "../../../Common/Paginator/PageHandler";
-import { BlogRequest } from "../Entities/BlogForRequest";
-import { BlogResponse } from "../Entities/BlogForResponse";
-import { BlogSorter } from "../Repo/BlogSorter";
-import { BlogDataBase } from "../Entities/BlogForDataBase";
+import { ServiseExecutionStatus, blogService } from "../../Blogs/BuisnessLogic/BlogService";
+import { PostDataBase } from "../Entities/PostForDataBase";
+import { PostRequest } from "../Entities/PostForRequest";
+import { PostResponse } from "../Entities/PostForResponse";
+import { PostSorter } from "../Repo/PostSorter";
+import { Request } from "express"
 
-export enum ServiseExecutionStatus {
-    Unauthorized,
-    DataBaseFailed,
-    Success,
-    NotFound
-}
-type BlogServiceDto = ExecutionResultContainer<ExecutionResult, BlogResponse>;
-type BlogServiceDtos = ExecutionResultContainer<ExecutionResult, BlogResponse[]>;
+type PostServiceDto = ExecutionResultContainer<ExecutionResult, PostResponse>;
+type PostServiceDtos = ExecutionResultContainer<ExecutionResult, PostResponse[]>;
 
-class BlogServise {
-    private blogsTable = AvailableDbTables.blogs;
+class PostService {
+    private postsTable = AvailableDbTables.posts;
 
     constructor(private _db: MongoDb, private _authenticator: IAuthenticator) { }
 
-    public async GetBlogs(searchConfig: BlogSorter, paginator: Paginator): Promise<ExecutionResultContainer<ServiseExecutionStatus, Page<BlogResponse> | null>> {
+    public async GetPosts(searchConfig: PostSorter, paginator: Paginator): Promise<ExecutionResultContainer<ServiseExecutionStatus, Page<PostResponse> | null>> {
 
-        let countOperation = await this._db.Count(this.blogsTable, searchConfig);
+        let countOperation = await this._db.Count(this.postsTable, searchConfig);
 
         if (countOperation.executionStatus === ExecutionResult.Failed || countOperation.executionResultObject === null)
             return new ExecutionResultContainer(ServiseExecutionStatus.DataBaseFailed);
 
         let neededSkipObjectsNumber = paginator.GetAvailableSkip(countOperation.executionResultObject);
-        let foundObjectsOperation = await this._db.GetMany(this.blogsTable, searchConfig, neededSkipObjectsNumber, paginator.pageSize) as BlogServiceDtos;
+        let foundObjectsOperation = await this._db.GetMany(this.postsTable, searchConfig, neededSkipObjectsNumber, paginator.pageSize) as PostServiceDtos;
 
         if (foundObjectsOperation.executionStatus === ExecutionResult.Failed)
             return new ExecutionResultContainer(ServiseExecutionStatus.DataBaseFailed);
@@ -41,8 +36,8 @@ class BlogServise {
 
         return operationResult;
     }
-    public async GetBlogById(id: string): Promise<ExecutionResultContainer<ServiseExecutionStatus, BlogResponse | null>> {
-        let foundObjectsOperation = await this._db.GetOneById(this.blogsTable, id) as BlogServiceDto;
+    public async GetPostById(id: string): Promise<ExecutionResultContainer<ServiseExecutionStatus, PostResponse | null>> {
+        let foundObjectsOperation = await this._db.GetOneById(this.postsTable, id) as PostServiceDto;
 
         if (foundObjectsOperation.executionStatus === ExecutionResult.Failed) {
             return new ExecutionResultContainer(ServiseExecutionStatus.DataBaseFailed);
@@ -53,14 +48,20 @@ class BlogServise {
 
         return new ExecutionResultContainer(ServiseExecutionStatus.Success, foundObjectsOperation.executionResultObject);
     }
-    public async SaveBlog(blog: BlogRequest, request: Request<{}, {}, {}, {}>): Promise<ExecutionResultContainer<ServiseExecutionStatus, BlogResponse | null>> {
+    public async SavePost(post: PostRequest, request: Request<{}, {}, {}, {}>): Promise<ExecutionResultContainer<ServiseExecutionStatus, PostResponse | null>> {
+        let searchBlog = await blogService.GetBlogById(post.blogId);
+        if (searchBlog.executionStatus !== ServiseExecutionStatus.Success || !searchBlog.executionResultObject) {
+            return new ExecutionResultContainer(ServiseExecutionStatus.NotFound);
+        }
+
         let accessVerdict = this._authenticator.AccessCheck(request);
 
         if (accessVerdict !== AuthenticationResult.Accept)
             return new ExecutionResultContainer(ServiseExecutionStatus.Unauthorized);
 
-        let blogForSave = new BlogDataBase(blog);
-        let saveOperation = await this._db.SetOne(this.blogsTable, blogForSave) as BlogServiceDto;
+        let postForSave = new PostDataBase(post);
+        postForSave.blogName = searchBlog.executionResultObject.name;
+        let saveOperation = await this._db.SetOne(this.postsTable, postForSave) as PostServiceDto;
 
         if (saveOperation.executionStatus === ExecutionResult.Failed || !saveOperation.executionResultObject) {
             return new ExecutionResultContainer(ServiseExecutionStatus.DataBaseFailed);
@@ -68,13 +69,19 @@ class BlogServise {
 
         return new ExecutionResultContainer(ServiseExecutionStatus.Success, saveOperation.executionResultObject);
     }
-    public async UpdateBlog(id: string, blog: BlogRequest, request: Request<{}, {}, {}, {}>): Promise<ExecutionResultContainer<ServiseExecutionStatus, BlogResponse | null>> {
+    public async UpdatePost(id: string, post: PostRequest, request: Request<{}, {}, {}, {}>): Promise<ExecutionResultContainer<ServiseExecutionStatus, PostResponse | null>> {
+        let searchBlog = await blogService.GetBlogById(post.blogId);
+
+        if (searchBlog.executionStatus !== ServiseExecutionStatus.Success || !searchBlog.executionResultObject)
+            return new ExecutionResultContainer(ServiseExecutionStatus.NotFound);
+
         let accessVerdict = this._authenticator.AccessCheck(request);
 
         if (accessVerdict !== AuthenticationResult.Accept)
             return new ExecutionResultContainer(ServiseExecutionStatus.Unauthorized);
 
-        let update = await this._db.UpdateOne(this.blogsTable, id, blog) as BlogServiceDto;
+        post.blogName = searchBlog.executionResultObject.name;
+        let update = await this._db.UpdateOne(this.postsTable, id, post) as PostServiceDto;
 
         if (update.executionStatus === ExecutionResult.Failed)
             return new ExecutionResultContainer(ServiseExecutionStatus.DataBaseFailed);
@@ -82,16 +89,15 @@ class BlogServise {
         if (!update.executionResultObject)
             return new ExecutionResultContainer(ServiseExecutionStatus.NotFound);
 
-
         return new ExecutionResultContainer(ServiseExecutionStatus.Success, update.executionResultObject);
     }
-    public async DeleteBlog(id: string, request: Request<{}, {}, {}, {}>): Promise<ExecutionResultContainer<ServiseExecutionStatus, boolean | null>> {
+    public async DeletePost(id: string, request: Request<{}, {}, {}, {}>): Promise<ExecutionResultContainer<ServiseExecutionStatus, boolean | null>> {
         let accessVerdict = this._authenticator.AccessCheck(request);
 
         if (accessVerdict !== AuthenticationResult.Accept)
             return new ExecutionResultContainer(ServiseExecutionStatus.Unauthorized);
 
-        let deleteOperation = await this._db.DeleteOne(this.blogsTable, id);
+        let deleteOperation = await this._db.DeleteOne(this.postsTable, id);
 
         if (deleteOperation.executionStatus === ExecutionResult.Failed)
             return new ExecutionResultContainer(ServiseExecutionStatus.DataBaseFailed);
@@ -104,4 +110,4 @@ class BlogServise {
     }
 }
 
-export const blogService = new BlogServise(mongoDb, AdminAuthentication);
+export const postService = new PostService(mongoDb, AdminAuthentication);
