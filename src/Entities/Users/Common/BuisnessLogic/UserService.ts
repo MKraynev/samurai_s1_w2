@@ -12,10 +12,11 @@ import { UserDataBase } from "../../Admin/Entities/UserForDataBase";
 import { WithId } from "mongodb";
 import { MongoDb, mongoDb } from "../../../../Common/Database/MongoDb";
 import { AvailableDbTables, ExecutionResult, ExecutionResultContainer } from "../../../../Common/Database/DataBase";
-import { TokenHandler, tokenHandler } from "../../../../Common/Authentication/User/TokenAuthentication";
+import { TokenHandler, TokenStatus, tokenHandler } from "../../../../Common/Authentication/User/TokenAuthentication";
 import { ServiseExecutionStatus } from "../../../Blogs/BuisnessLogic/BlogService";
 import { AdminAuthentication, AuthenticationResult, IAuthenticator } from "../../../../Common/Authentication/Admin/AdminAuthenticator";
 import { Request } from "express"
+import { AuthRequest } from "../Entities/AuthRequest";
 
 export enum LoginEmailStatus {
     LoginAndEmailFree,
@@ -24,11 +25,27 @@ export enum LoginEmailStatus {
 
 }
 
-type UserServiceDto = ExecutionResultContainer<ExecutionResult, UserResponse>;
-type UserServiceDtos = ExecutionResultContainer<ExecutionResult, UserResponse[]>;
+export enum UserServiceExecutionResult {
+    DataBaseFailed,
+    Unauthorized,
+    NotFound,
+    WrongPassword,
+    ServiceFail,
+    UserAlreadyExist,
+    Success
+}
 
-export class UserService {
+export type UserServiceDto = ExecutionResultContainer<ExecutionResult, UserResponse>;
+export type UserServiceDtos = ExecutionResultContainer<ExecutionResult, UserResponse[]>;
+type LoginTokens = {
+    accessToken: Token,
+    refreshToken: Token
+}
+
+export class AdminUserService {
     private userTable = AvailableDbTables.users;
+    private usedTokenName = "usedRefreshTokens";
+
     constructor(private _db: MongoDb, private _authenticator: IAuthenticator, private tokenHandler: TokenHandler) { }
 
     public async GetUsers(searchConfig: UserSorter, paginator: Paginator, request: Request): Promise<ExecutionResultContainer<ServiseExecutionStatus, Page<UserResponse> | null>> {
@@ -53,12 +70,28 @@ export class UserService {
 
         return operationResult;
     }
-    public async SaveUser(user: UserRequest, request: Request): Promise<ExecutionResultContainer<ServiseExecutionStatus, UserResponse | null>> {
+    public async SaveUser(user: UserRequest, request: Request): Promise<ExecutionResultContainer<UserServiceExecutionResult, UserResponse | null>> {
         let accessVerdict = this._authenticator.AccessCheck(request);
 
         if (accessVerdict !== AuthenticationResult.Accept)
-            return new ExecutionResultContainer(ServiseExecutionStatus.Unauthorized);
+            return new ExecutionResultContainer(UserServiceExecutionResult.Unauthorized);
 
+        user.emailConfirmed = true;
+        return await this.PostUser(user);
+    }
+    public async RegisterUser(user: UserRequest): Promise<ExecutionResultContainer<UserServiceExecutionResult, UserResponse | null>> {
+        user.emailConfirmed = false;
+        return await this.PostUser(user);
+    }
+
+    private async PostUser(user: UserRequest): Promise<ExecutionResultContainer<UserServiceExecutionResult, UserResponse | null>> {
+        let findUserByLogin = await this._db.GetOneByValueInOnePropery(this.userTable, "login", user.login);
+        let findUserByEmail = await this._db.GetOneByValueInOnePropery(this.userTable, "email", user.email);
+
+        if (findUserByEmail.executionResultObject || findUserByLogin.executionResultObject) {
+
+            throw new ExecutionResultContainer(UserServiceExecutionResult.UserAlreadyExist);
+        }
 
         let salt = await bcrypt.genSalt(10);
         let hashedPass = await bcrypt.hash(user.password, salt);
@@ -68,10 +101,11 @@ export class UserService {
         let save = await this._db.SetOne(this.userTable, userObj) as UserServiceDto;
 
         if (save.executionStatus === ExecutionResult.Failed) {
-            return new ExecutionResultContainer(ServiseExecutionStatus.DataBaseFailed);
+            return new ExecutionResultContainer(UserServiceExecutionResult.DataBaseFailed);
         }
-        return new ExecutionResultContainer(ServiseExecutionStatus.Success, save.executionResultObject);
+        return new ExecutionResultContainer(UserServiceExecutionResult.Success, save.executionResultObject);
     }
+
     public async DeleteUser(id: string, request: Request<{}, {}, {}, {}>): Promise<ExecutionResultContainer<ServiseExecutionStatus, boolean | null>> {
         let accessVerdict = this._authenticator.AccessCheck(request);
 
@@ -89,7 +123,103 @@ export class UserService {
 
         return new ExecutionResultContainer(ServiseExecutionStatus.Success, true);
     }
-    
+
+    public async Login(authRequest: AuthRequest): Promise<ExecutionResultContainer<UserServiceExecutionResult, LoginTokens>> {
+        let findUser = await this._db.GetOneByValueInTwoProperties(this.userTable, "email", "login", authRequest.loginOrEmail) as UserServiceDto;
+
+        if (findUser.executionStatus === ExecutionResult.Failed || !findUser.executionResultObject) {
+            return new ExecutionResultContainer(UserServiceExecutionResult.DataBaseFailed);
+        }
+
+        let requestHashedPass = await bcrypt.hash(authRequest.password, findUser.executionResultObject.salt);
+        if (requestHashedPass !== findUser.executionResultObject.hashedPass) {
+            return new ExecutionResultContainer(UserServiceExecutionResult.WrongPassword);
+        }
+        let tokenLoad: any;
+        tokenLoad.id = findUser.executionResultObject.id;
+
+        let accessToken = await this.tokenHandler.GenerateToken(tokenLoad, ACCESS_TOKEN_TIME);
+        let refreshToken = await this.tokenHandler.GenerateToken(tokenLoad, REFRESH_TOKEN_TIME);
+
+        if (!accessToken || !refreshToken) {
+            return new ExecutionResultContainer(UserServiceExecutionResult.ServiceFail);
+        }
+
+        let tokens: LoginTokens = {
+            accessToken: accessToken,
+            refreshToken: refreshToken
+        }
+
+        return new ExecutionResultContainer(UserServiceExecutionResult.Success, tokens);
+    }
+    public async GetUserByToken(token: Token): Promise<ExecutionResultContainer<UserServiceExecutionResult, UserResponse>> {
+        let parceUserId = await this.tokenHandler.DecodePropertyFromToken(token, "id");
+
+        if (parceUserId.tokenStatus !== TokenStatus.Accepted || !parceUserId.propertyVal) {
+            return new ExecutionResultContainer(UserServiceExecutionResult.NotFound);
+        }
+        let id = parceUserId.propertyVal as string;
+
+        let userSearch = await this._db.GetOneById(this.userTable, id) as UserServiceDto;
+        if (userSearch.executionStatus === ExecutionResult.Failed || !userSearch.executionResultObject) {
+            return new ExecutionResultContainer(UserServiceExecutionResult.DataBaseFailed);
+        }
+
+        return new ExecutionResultContainer(UserServiceExecutionResult.Success, userSearch.executionResultObject);
+    }
+    public async RefreshUserAccess(refreshToken: Token): Promise<ExecutionResultContainer<UserServiceExecutionResult, LoginTokens>> {
+        let parceUserId = await this.tokenHandler.DecodePropertyFromToken(refreshToken, "id");
+
+        if (parceUserId.tokenStatus !== TokenStatus.Accepted || !parceUserId.propertyVal)
+            return new ExecutionResultContainer(UserServiceExecutionResult.NotFound);
+
+        let id = parceUserId.propertyVal as string;
+
+        let appendToUser = await this._db.AppendOneProperty(this.userTable, id, this.usedTokenName, refreshToken.accessToken);
+        if (appendToUser.executionStatus === ExecutionResult.Failed)
+            return new ExecutionResultContainer(UserServiceExecutionResult.NotFound);
+
+        let includedObj: any;
+        includedObj.id = id;
+
+        let accessToken = await this.tokenHandler.GenerateToken(includedObj, ACCESS_TOKEN_TIME);
+        let newRefreshToken = await this.tokenHandler.GenerateToken(includedObj, REFRESH_TOKEN_TIME);
+
+        if (accessToken && newRefreshToken) {
+            let tokens: LoginTokens = {
+                accessToken: accessToken,
+                refreshToken: newRefreshToken
+            }
+            return new ExecutionResultContainer(UserServiceExecutionResult.Success, tokens);
+        }
+        return new ExecutionResultContainer(UserServiceExecutionResult.ServiceFail);
+    }
+    public async GetConfirmId(userEmail: string): Promise<ExecutionResultContainer<UserServiceExecutionResult, UserResponse>> {
+        let findUser = await this._db.GetOneByValueInOnePropery(this.userTable, "email", userEmail) as UserServiceDto;
+
+        if (findUser.executionStatus !== ExecutionResult.Pass || !findUser.executionResultObject) {
+            return new ExecutionResultContainer(UserServiceExecutionResult.NotFound);
+        }
+        let emailConfirmId = UniqueValGenerator();
+        let setNewConfirmId = await this._db.UpdateOneProperty(this.userTable, findUser.executionResultObject.id, "emailConfirmId", emailConfirmId) as UserServiceDto;
+
+        if (setNewConfirmId.executionStatus === ExecutionResult.Pass)
+            return new ExecutionResultContainer(UserServiceExecutionResult.Success, setNewConfirmId.executionResultObject);
+
+        return new ExecutionResultContainer(UserServiceExecutionResult.ServiceFail);
+    }
+    public async ConfirmUser(confirmId: string): Promise<ExecutionResultContainer<UserServiceExecutionResult, UserResponse>> {
+        let findUser = await this._db.GetOneByValueInOnePropery(this.userTable, "emailConfirmId", confirmId) as UserServiceDto;
+
+        if (findUser.executionStatus === ExecutionResult.Failed || !findUser.executionResultObject)
+            return new ExecutionResultContainer(UserServiceExecutionResult.NotFound);
+
+        let confirmUser = await this._db.UpdateOneProperty(this.userTable, findUser.executionResultObject.id, "emailConfirmed", true) as UserServiceDto;
+        if (confirmUser.executionStatus === ExecutionResult.Pass && confirmUser.executionResultObject)
+            return new ExecutionResultContainer(UserServiceExecutionResult.Success, confirmUser.executionResultObject);
+
+            return new ExecutionResultContainer(UserServiceExecutionResult.DataBaseFailed);
+    }
     // public async UpdateUserEmailConfirmId(userId: string): Promise<string | null> {
     //     try {
     //         let emailConfirmId = UniqueValGenerator();
@@ -229,4 +359,4 @@ export class UserService {
     //     return updatedUser;
     // }
 }
-export const userService = new UserService(mongoDb, AdminAuthentication, tokenHandler)
+export const userService = new AdminUserService(mongoDb, AdminAuthentication, tokenHandler)

@@ -44,12 +44,7 @@ export class MongoDb extends DataBase<AvailableInputDbTypes, AvailableUpdateType
 
     async GetOneById(tableName: AvailableDbTables, id: string): Promise<ExecutionResultContainer<ExecutionResult, AvailableReturnDbTypes | undefined>> {
         let internalId: ObjectId;
-        try {
-            internalId = new ObjectId(id);
-        }
-        catch {
-            return new ExecutionResultContainer(ExecutionResult.Pass, undefined);
-        }
+        internalId = new ObjectId(id);
 
         try {
             let executionResult = new ExecutionResultContainer<ExecutionResult, AvailableReturnDbTypes>(ExecutionResult.Pass);
@@ -60,7 +55,7 @@ export class MongoDb extends DataBase<AvailableInputDbTypes, AvailableUpdateType
 
             return executionResult;
         }
-        catch {
+        catch(e) {
             return new ExecutionResultContainer(ExecutionResult.Failed)
         }
 
@@ -83,7 +78,7 @@ export class MongoDb extends DataBase<AvailableInputDbTypes, AvailableUpdateType
         }
     }
 
-    async GetOneByValueInTwoProperties(tableName: AvailableDbTables, propName_1: keyof (AvailableReturnDbTypes), propName_2: keyof (AvailableReturnDbTypes), propVal: string): Promise<ExecutionResultContainer<ExecutionResult, AvailableReturnDbTypes>> {
+    async GetOneByValueInTwoProperties(tableName: AvailableDbTables, propName_1: keyof (AvailableReturnDbTypes) | string, propName_2: keyof (AvailableReturnDbTypes) | string, propVal: string): Promise<ExecutionResultContainer<ExecutionResult, AvailableReturnDbTypes>> {
         try {
             let query_1: any = {}
             query_1[propName_1] = propVal;
@@ -150,7 +145,7 @@ export class MongoDb extends DataBase<AvailableInputDbTypes, AvailableUpdateType
         }
     }
 
-    async UpdateOne(tableName: AvailableDbTables, id: string, updateObject:  AvailableUpdateTypes): Promise<ExecutionResultContainer<ExecutionResult, AvailableReturnDbTypes | undefined>> {
+    async UpdateOne(tableName: AvailableDbTables, id: string, updateObject: AvailableUpdateTypes): Promise<ExecutionResultContainer<ExecutionResult, AvailableReturnDbTypes | undefined>> {
         try {
             let updateResult = await this._db.collection(tableName).updateOne({ _id: new ObjectId(id) }, { $set: updateObject })
 
@@ -164,7 +159,7 @@ export class MongoDb extends DataBase<AvailableInputDbTypes, AvailableUpdateType
         }
     }
 
-    async UpdateOneProperty(tableName: AvailableDbTables, id: string, property: keyof (AvailableReturnDbTypes), value: string | boolean | number): Promise<ExecutionResultContainer<ExecutionResult, AvailableReturnDbTypes | undefined>> {
+    async UpdateOneProperty(tableName: AvailableDbTables, id: string, property: string, value: string | boolean | number): Promise<ExecutionResultContainer<ExecutionResult, AvailableReturnDbTypes | undefined>> {
         try {
             let updateField: any = {};
             updateField[property] = value;
@@ -181,7 +176,7 @@ export class MongoDb extends DataBase<AvailableInputDbTypes, AvailableUpdateType
         }
     }
 
-    async AppendOneProperty(tableName: AvailableDbTables, id: string, property: keyof (AvailableReturnDbTypes), value: string | boolean | number): Promise<ExecutionResultContainer<ExecutionResult, AvailableReturnDbTypes | undefined>> {
+    async AppendOneProperty(tableName: AvailableDbTables, id: string, property: keyof (AvailableReturnDbTypes) | string, value: string | boolean | number): Promise<ExecutionResultContainer<ExecutionResult, AvailableReturnDbTypes | undefined>> {
         try {
             let updateField: any = {};
             updateField[property] = value;

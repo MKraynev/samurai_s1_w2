@@ -59,11 +59,11 @@ import { FieldMaxLength, FieldMinLength, FieldNotEmpty } from "../../../../../Co
 //     return;
 // }
 
-// export const ValidAuthFields = [
-//     oneOf(
-//         [
-//             FieldNotEmpty("loginOrEmail"), FieldMinLength("loginOrEmail", 3), FieldMaxLength("loginOrEmail", 10),
-//             FieldNotEmpty("loginOrEmail"), body("loginOrEmail").isEmail().withMessage("Wrong email: email")
-//         ]),
-//     FieldNotEmpty("password"), FieldMinLength("password", 6), FieldMaxLength("password", 20),
-// ];
+export const ValidAuthFields = [
+    oneOf(
+        [
+            FieldNotEmpty("loginOrEmail"), FieldMinLength("loginOrEmail", 3), FieldMaxLength("loginOrEmail", 10),
+            FieldNotEmpty("loginOrEmail"), body("loginOrEmail").isEmail().withMessage("Wrong email: email")
+        ]),
+    FieldNotEmpty("password"), FieldMinLength("password", 6), FieldMaxLength("password", 20),
+];

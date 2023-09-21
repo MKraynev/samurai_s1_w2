@@ -13,6 +13,7 @@ export class ExecutionResultContainer<ExecutionStatusType, ExecutionResultObject
 
 }
 
+
 export enum AvailableDbTables {
     blogs = "blogs",
     posts = "posts",
@@ -30,11 +31,11 @@ export abstract class DataBase<SaveObject, UpdateObject, ReturnObject> {
 
     abstract UpdateOne(tableName: AvailableDbTables, id: string, updateObject: UpdateObject): Promise<ExecutionResultContainer<ExecutionResult, ReturnObject | undefined>>;
     abstract UpdateOneProperty(tableName: AvailableDbTables, id: string, propertyName: keyof (SaveObject), value: string | boolean | number): Promise<ExecutionResultContainer<ExecutionResult, ReturnObject | undefined>>;
-    abstract AppendOneProperty(tableName: AvailableDbTables, id: string, propertyName: keyof (SaveObject), value: string | boolean | number): Promise<ExecutionResultContainer<ExecutionResult, ReturnObject| undefined>>;
+    abstract AppendOneProperty(tableName: AvailableDbTables, id: string, propertyName: keyof (SaveObject), value: string | boolean | number): Promise<ExecutionResultContainer<ExecutionResult, ReturnObject | undefined>>;
 
-    abstract DeleteOne(tableName: AvailableDbTables, id: string): Promise<ExecutionResultContainer<ExecutionResult, boolean| undefined>>;
-    abstract DeleteAll(tableName: AvailableDbTables): Promise<ExecutionResultContainer<ExecutionResult, boolean| undefined>>;
+    abstract DeleteOne(tableName: AvailableDbTables, id: string): Promise<ExecutionResultContainer<ExecutionResult, boolean | undefined>>;
+    abstract DeleteAll(tableName: AvailableDbTables): Promise<ExecutionResultContainer<ExecutionResult, boolean | undefined>>;
 
-    abstract Count(tableName: AvailableDbTables, sorter: Sorter<any>): Promise<ExecutionResultContainer<ExecutionResult, number| undefined>>;
-    abstract RunDb(): Promise<ExecutionResultContainer<ExecutionResult, boolean| undefined>>;
+    abstract Count(tableName: AvailableDbTables, sorter: Sorter<any>): Promise<ExecutionResultContainer<ExecutionResult, number | undefined>>;
+    abstract RunDb(): Promise<ExecutionResultContainer<ExecutionResult, boolean | undefined>>;
 }
