@@ -27,7 +27,7 @@ type MongoSearch = {
 export type AvailableReturnDbTypes = BlogResponse | PostResponse | UserResponse | CommentResponse;
 export type AvailableUpdateTypes = BlogRequest | PostRequest | UserRequest | CommentRequest;
 export type AvailableInputDbTypes = BlogDataBase | PostDataBase | UserDataBase | CommentDataBase;
-type AvailableSorterTypes = BlogSorter | PostSorter | UserSorter;
+type AvailableSorterTypes = BlogSorter | PostSorter | UserSorter | CommentSorter;
 
 export class MongoDb extends DataBase<AvailableInputDbTypes, AvailableUpdateTypes, AvailableReturnDbTypes> {
     private _dbIsRunning = false;
@@ -236,7 +236,7 @@ export class MongoDb extends DataBase<AvailableInputDbTypes, AvailableUpdateType
         }
     }
 
-    async Count(tableName: AvailableDbTables, sorter: BlogSorter | PostSorter | UserSorter): Promise<ExecutionResultContainer<ExecutionResult, number>> {
+    async Count(tableName: AvailableDbTables, sorter: BlogSorter | PostSorter | UserSorter | CommentSorter): Promise<ExecutionResultContainer<ExecutionResult, number>> {
         try {
             let searchPattert = this.BuildMongoSearcher(sorter);
             let collectionSize = await this._db.collection(tableName).countDocuments(searchPattert);

@@ -1,11 +1,8 @@
 import { NextFunction, Request, Response } from "express";
-import { UserResponse } from "../../../Admin/Entities/UserForResponse";
-// import { dataManager } from "../../../../../Common/DataManager/DataManager";
-import { ErrorLog } from "../../../../../Common/Request/RequestValidation/Error";
-import { UserRequest } from "../../../Admin/Entities/UserForRequest";
-import { LoginEmailStatus } from "../../BuisnessLogic/UserService";
 import { body, oneOf } from "express-validator";
 import { FieldMaxLength, FieldMinLength, FieldNotEmpty } from "../../../../../Common/Request/RequestValidation/RequestValidation";
+import { Token } from "../../Entities/Token";
+import { TOKEN_COOKIE_NAME } from "../../../../../settings";
 
 // export const UserAvailableForConfirmation = async (request: any, response: Response, next: NextFunction) => {
 //     let code = request.query.code ? request.query.code : request.body.code;
@@ -67,3 +64,34 @@ export const ValidAuthFields = [
         ]),
     FieldNotEmpty("password"), FieldMinLength("password", 6), FieldMaxLength("password", 20),
 ];
+
+export const ParseAccessToken = async (request: Request, response: Response, next: NextFunction) => {
+    let headerString: string | undefined = request.header("authorization");
+    if (headerString?.toLocaleLowerCase().startsWith("bearer ")) {
+        let tokenString = headerString.split(" ")[1];
+        let token: Token = {
+            accessToken: tokenString
+        }
+        request.accessToken = token;
+        next();
+    }
+    else{
+        response.sendStatus(401);
+        return;
+    }
+};
+
+export const ParseRefreshToken = (request: Request, response: Response, next: NextFunction) => {
+    let tokenVal = request.cookies[TOKEN_COOKIE_NAME];
+    
+    if(!tokenVal){
+        response.sendStatus(401);
+        return;
+    }
+
+    let token: Token = {
+        accessToken: tokenVal
+    };
+    request.refreshToken = token;
+    next();
+}

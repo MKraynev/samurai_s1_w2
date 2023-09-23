@@ -16,7 +16,7 @@ export class Paginator {
         }
     }
 
-    GetPaged<T>(obj: Array<T> | null): Page<T> {
+    GetPaged<T>(obj: T): Page<T> {
         return new Page<T>(this.pagesCount, this.page, this.pageSize, this.totalCount, obj)
     }
 

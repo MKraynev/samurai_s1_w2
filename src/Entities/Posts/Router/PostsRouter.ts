@@ -2,14 +2,16 @@ import { Router, Request, Response } from "express";
 import { RequestParser } from "../../../Common/Request/RequestParser/RequestParser";
 import { postService } from "../BuisnessLogic/PostService";
 import { ServiseExecutionStatus } from "../../Blogs/BuisnessLogic/BlogService";
-import { RequestWithBody, RequestWithParams } from "../../../Common/Request/Entities/RequestTypes";
+import { CompleteRequest, RequestWithBody, RequestWithParams } from "../../../Common/Request/Entities/RequestTypes";
 import { ValidPostFields } from "./Middleware/PostMiddleware";
 import { CheckFormatErrors } from "../../../Common/Request/RequestValidation/RequestValidation";
 import { PostRequest } from "../Entities/PostForRequest";
+import { ParseAccessToken } from "../../Users/Common/Router/Middleware/AuthMeddleware";
+import { ValidCommentFields } from "../../Comments/Router/Middleware/CommentMiddleware";
+import { CommentRequest } from "../../Comments/Entities/CommentRequest";
 
 export const postRouter = Router();
 
-//POSTS
 postRouter.get("",
     async (request: Request, response: Response) => {
         let searchParams = RequestParser.ReadQueryPostSorter(request);
@@ -170,38 +172,80 @@ postRouter.delete("/:id",
         // return;
     })
 
-// postRouter.get("/:id/comments",
-//     PostIdExist,
-//     async (request: RequestWithParams<{ id: string }>, response: Response) => {
-//         let pageHandler = RequestParser.ReadQueryPageHandle(request);
-//         let searchParams = RequestParser.ReadQueryCommentSorter(request, request.params.id);
+postRouter.get("/:id/comments",
+    async (request: RequestWithParams<{ id: string }>, response: Response) => {
+        let postId = request.params.id;
+        let pageHandler = RequestParser.ReadQueryPageHandle(request);
+        let searchParams = RequestParser.ReadQueryCommentSorter(request, postId);
 
-//         let foundValues = await dataManager.commentRepo.TakeAll(searchParams, pageHandler);
-//         if (foundValues) {
-//             response.status(200).send(foundValues);
-//             return;
-//         }
-//         response.sendStatus(404);
-//         return;
-//     })
+        let getComments = await postService.GetPostComments(postId, searchParams, pageHandler);
 
-// postRouter.post("/:id/comments",
-//     RequestJwtAuthorized,
-//     PostIdExist,
-//     ValidCommentFields,
-//     CheckFormatErrors,
-//     async (request: any, response: Response) => {
-//         let user: UserResponse  = request.user;
+        switch (getComments.executionStatus) {
+            case ServiseExecutionStatus.Success:
+                let comments = getComments.executionResultObject;
+                if (comments) {
+                    response.status(200).send(comments);
+                    return;
+                }
 
-//         let comment = new CommentRequest(request.body.content);
-//         let commentToDb = new CommentRequestForDB(comment, request.params.id, user.id, user.login);
+            case ServiseExecutionStatus.NotFound:
+            case ServiseExecutionStatus.DataBaseFailed:
+            default:
+                response.sendStatus(404);
+                break;
+        }
+        // let foundValues = await dataManager.commentRepo.TakeAll(searchParams, pageHandler);
+        // if (foundValues) {
+        //     response.status(200).send(foundValues);
+        //     return;
+        // }
+        // response.sendStatus(404);
+        // return;
+    })
 
-//         let savedComment = await dataManager.commentRepo.Save(commentToDb);
+postRouter.post("/:id/comments",
+    ValidCommentFields,
+    CheckFormatErrors,
+    ParseAccessToken,
+    async (request: CompleteRequest<{ id: string }, { content: string }, {}>, response: Response) => {
 
-//         if (savedComment) {
-//             response.status(201).send(savedComment);
-//             return;
-//         }
-//         response.sendStatus(400);
-//         return;
-//     })
+        let token = request.accessToken;
+        let comment = new CommentRequest(request.body.content);
+        let postId = request.params.id;
+
+
+        let saveComment = await postService.SaveComment(postId, token, comment);
+
+        switch (saveComment.executionStatus) {
+            case ServiseExecutionStatus.NotFound:
+                response.sendStatus(404);
+                break;
+            case ServiseExecutionStatus.Unauthorized:
+                response.sendStatus(401);
+                break;
+
+            case ServiseExecutionStatus.Success:
+                let savedComment = saveComment.executionResultObject;
+                if (savedComment) {
+                    response.status(201).send(savedComment);
+                    return;
+                }
+
+            default:
+                response.sendStatus(400);
+                break;
+        }
+        // let user: UserResponse  = request.user;
+
+        // let comment = new CommentRequest(request.body.content);
+        // let commentToDb = new CommentRequestForDB(comment, request.params.id, user.id, user.login);
+
+        // let savedComment = await dataManager.commentRepo.Save(commentToDb);
+
+        // if (savedComment) {
+        //     response.status(201).send(savedComment);
+        //     return;
+        // }
+        // response.sendStatus(400);
+        // return;
+    })

@@ -1,14 +1,13 @@
 import { Router, Response, Request } from "express"
 import { CheckFormatErrors, FieldNotEmpty, ValidEmail } from "../../../../Common/Request/RequestValidation/RequestValidation";
-import { RequestWithBody, RequestWithQuery } from "../../../../Common/Request/Entities/RequestTypes";
+import { RequestWithBody } from "../../../../Common/Request/Entities/RequestTypes";
 import { AuthRequest } from "../Entities/AuthRequest";
 import { UserRequest } from "../../Admin/Entities/UserForRequest";
 import { emailSender } from "../../../../EmailHandler/EmailSender";
-import { UserResponse } from "../../Admin/Entities/UserForResponse";
 import { Token } from "../Entities/Token";
 import { CONFIRM_ADRESS } from "../../../../settings";
 import { ValidUserFields } from "../../Admin/Router/Middleware/UserMiddleware";
-import { ValidAuthFields } from "./Middleware/AuthMeddleware";
+import { ParseAccessToken, ParseRefreshToken, ValidAuthFields } from "./Middleware/AuthMeddleware";
 import { UserServiceExecutionResult, userService } from "../BuisnessLogic/UserService";
 
 
@@ -49,10 +48,11 @@ authRouter.post("/login",
 
         // response.sendStatus(401)
     })
-//TODO реализовать мидлвер с проверкой наличия токенаЫ
+
 authRouter.get("/me",
-    async (request: any, response: Response) => {
-        let token: Token = request.token;
+    ParseAccessToken,
+    async (request: Request, response: Response) => {
+        let token: Token = request.accessToken;
         let search = await userService.GetUserByToken(token);
 
         switch (search.executionStatus) {
@@ -88,8 +88,9 @@ authRouter.get("/me",
     })
 
 authRouter.post("/refresh-token",
-    async (request: any, response: Response) => {
-        let token: Token = request.token;
+    ParseRefreshToken,
+    async (request: Request, response: Response) => {
+        let token: Token = request.refreshToken;
 
         let generateNewTokens = await userService.RefreshUserAccess(token);
 
@@ -235,8 +236,9 @@ authRouter.post("/registration-confirmation",
     })
 
 authRouter.post("/logout",
-    async (request: any, response: Response) => {
-        let token: Token = request.token;
+    ParseRefreshToken,
+    async (request: Request, response: Response) => {
+        let token: Token = request.refreshToken;
 
         let generateNewTokens = await userService.RefreshUserAccess(token);
 
@@ -270,4 +272,4 @@ authRouter.post("/logout",
         //     return;
         // }
         // response.sendStatus(401);
-     })
+    })

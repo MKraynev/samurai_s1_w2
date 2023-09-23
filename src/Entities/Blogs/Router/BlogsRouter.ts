@@ -5,6 +5,9 @@ import { CheckFormatErrors } from "../../../Common/Request/RequestValidation/Req
 import { BlogRequest } from "../Entities/BlogForRequest";
 import { ValidBlogFields } from "./Middleware/BlogMiddleware";
 import { ServiseExecutionStatus, blogService } from "../BuisnessLogic/BlogService";
+import { PostSorter } from "../../Posts/Repo/PostSorter";
+import { ValidPostFieldsLight } from "../../Posts/Router/Middleware/PostMiddleware";
+import { PostRequest } from "../../Posts/Entities/PostForRequest";
 
 
 export const blogRouter = Router();
@@ -47,25 +50,37 @@ blogRouter.get("/:id",
         }
     })
 
-// blogRouter.get("/:id/posts",
-//     async (request: RequestWithParams<{ id: string }>, response: Response) => {
-//         let reqId = request.params.id;
+blogRouter.get("/:id/posts",
+    async (request: RequestWithParams<{ id: string }>, response: Response) => {
+        let blogId = request.params.id;
 
-//         let existedBlog = await dataManager.blogRepo.TakeCertain(reqId);
-//         if (existedBlog) {
-//             //Для запроса создаем объект PostSorter
-//             let searchParams = RequestParser.ReadQueryPostSorter(request) as PostSorter;
-//             searchParams.searchBlogId = reqId;
+        // let existedBlog = await dataManager.blogRepo.TakeCertain(reqId);
+        // if (existedBlog) {
+        //Для запроса создаем объект PostSorter
+        let searchParams = RequestParser.ReadQueryPostSorter(request) as PostSorter;
+        let pageHandler = RequestParser.ReadQueryPageHandle(request);
 
-//             let pageHandler = RequestParser.ReadQueryPageHandle(request);
-//             let foundValue = await dataManager.postRepo.TakeAll(searchParams, pageHandler)
+        let findPosts = await blogService.GetBlogPosts(blogId, searchParams, pageHandler);
 
-//             response.status(200).send(foundValue);
-//             return;
+        switch (findPosts.executionStatus) {
+            case ServiseExecutionStatus.Success:
+                if (findPosts.executionResultObject) {
+                    response.status(200).send(findPosts.executionResultObject);
+                    return;
+                }
 
-//         }
-//         response.sendStatus(404);
-//     })
+            case ServiseExecutionStatus.NotFound:
+            default:
+                response.sendStatus(404);
+        }
+        //     let foundValue = await dataManager.postRepo.TakeAll(searchParams, pageHandler)
+
+        //     response.status(200).send(foundValue);
+        //     return;
+
+        // }
+        // response.sendStatus(404);
+    })
 
 blogRouter.post("",
     ValidBlogFields,
@@ -95,25 +110,29 @@ blogRouter.post("",
         // }
     })
 
-// blogRouter.post("/:id/posts",
-//     RequestBaseAuthorized,
-//     ValidPostFieldsLight,
-//     CheckFormatErrors,
-//     async (request: CompleteRequest<{ id: string }, PostRequest, {}>, response: Response) => {
-//         let blogId = request.params.id;
+blogRouter.post("/:id/posts",
+    ValidPostFieldsLight,
+    CheckFormatErrors,
+    async (request: CompleteRequest<{ id: string }, PostRequest, {}>, response: Response) => {
+        let blogId = request.params.id;
+        let reqPost = new PostRequest(request.body.title, request.body.shortDescription, request.body.content, blogId)
 
+        let savePost = await blogService.SavePost(reqPost);
 
-//         let existedBlog = await dataManager.blogRepo.TakeCertain(blogId);
-//         if (existedBlog) {
-//             let reqPost = new PostRequest(request.body.title, request.body.shortDescription, request.body.content, blogId, existedBlog.name)
-//             let savedPost = await dataManager.postRepo.Save(reqPost);
-//             if (savedPost) {
-//                 response.status(201).send(savedPost);
-//                 return;
-//             }
-//         }
-//         response.sendStatus(404);
-//     })
+        switch (savePost.executionStatus) {
+            case ServiseExecutionStatus.Success:
+                let savedPost = savePost.executionResultObject;
+                if (savedPost) {
+                    response.status(201).send(savedPost);
+                    return;
+                }
+
+            case ServiseExecutionStatus.NotFound:
+            case ServiseExecutionStatus.DataBaseFailed:
+            default:
+                response.sendStatus(404);
+        }
+    })
 
 
 blogRouter.put("/:id",

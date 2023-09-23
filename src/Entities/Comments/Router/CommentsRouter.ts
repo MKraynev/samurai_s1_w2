@@ -1,18 +1,13 @@
-import { Router, Request, Response } from "express";
-// import { dataManager } from "../../../Common/DataManager/DataManager";
+import { Router, Response } from "express";
 import { CompleteRequest, RequestWithParams } from "../../../Common/Request/Entities/RequestTypes";
-// import { CheckFormatErrors, RequestJwtAuthorized } from "../../../Common/Request/RequestValidation/RequestValidation";
-import { UserResponse } from "../../Users/Admin/Entities/UserForResponse";
-import { DeleteResult, UpdateResult } from "../Repo/CommentsRepo";
-import { CommentRequest } from "../Entities/CommentRequest";
 import { ValidCommentFields } from "./Middleware/CommentMiddleware";
 import { CommentServiceExecutionResult, commentService } from "../BuisnessLogic/CommentService";
-import { ServiseExecutionStatus } from "../../Blogs/BuisnessLogic/BlogService";
 import { Token } from "../../Users/Common/Entities/Token";
 import { CheckFormatErrors } from "../../../Common/Request/RequestValidation/RequestValidation";
+import { ParseAccessToken } from "../../Users/Common/Router/Middleware/AuthMeddleware";
 
 export const commentRouter = Router();
-//TODO добавить рутины
+
 commentRouter.get("/:id",
     async (request: RequestWithParams<{ id: string }>, response: Response) => {
 
@@ -43,9 +38,15 @@ commentRouter.get("/:id",
     })
 
 commentRouter.delete("/:id",
-    async (request: CompleteRequest<{ id: string }, { token: Token }, {}>, response: Response) => {
+    ParseAccessToken,
+    async (request: RequestWithParams<{ id: string }>, response: Response) => {
         let id = request.params.id;
-        let token = request.body.token;
+        let token = request.accessToken;
+
+        if (!token) {
+            response.sendStatus(404);
+            return;
+        }
 
         let deleteComment = await commentService.DeleteComment(id, token);
 
@@ -88,10 +89,11 @@ commentRouter.delete("/:id",
 
 commentRouter.put("/:id",
     ValidCommentFields,
+    ParseAccessToken,
     CheckFormatErrors,
-    async (request: CompleteRequest<{ id: string }, { token: Token, content: string }, {}>, response: Response) => {
+    async (request: CompleteRequest<{ id: string }, { content: string }, {}>, response: Response) => {
         let commentId = request.params.id;
-        let userToken = request.body.token;
+        let userToken = request.accessToken;
         let content = request.body.content;
 
         let updateComment = await commentService.UpdateComment(commentId, userToken, content);

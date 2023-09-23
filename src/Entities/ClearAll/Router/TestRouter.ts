@@ -1,25 +1,20 @@
 import { Request, Response, Router } from "express";
 import { mongoDb } from "../../../Common/Database/MongoDb";
-import { AvailableDbTables } from "../../../Common/Database/DataBase";
-// import { dataManager } from "../../../Common/DataManager/DataManager";
+import { AvailableDbTables, ExecutionResult } from "../../../Common/Database/DataBase";
 
 
 export const _NewTestClearAllRouter = Router();
 
 _NewTestClearAllRouter.delete("", async (request: Request, response: Response) => {
-    // let blogsDeleted = await dataManager.blogRepo.DeleteMany();
     let blogsDeleted = await mongoDb.DeleteAll(AvailableDbTables.blogs);
     let postsDeleted = await mongoDb.DeleteAll(AvailableDbTables.posts);
-    // let usersDeleted = await dataManager.userService.ClearUsers();
-    // let commentDeleted = await dataManager.commentRepo.DeleteMany();
+    let usersDeleted = await mongoDb.DeleteAll(AvailableDbTables.users);
+    let commentDeleted = await mongoDb.DeleteAll(AvailableDbTables.comments);
     
+    let results: ExecutionResult[] = [blogsDeleted.executionStatus, postsDeleted.executionStatus, usersDeleted.executionStatus, commentDeleted.executionStatus];
+    if(results.includes(ExecutionResult.Failed)){
+        response.sendStatus(404);
+        return;
+    }
     response.sendStatus(204);
-
-    // if (blogsDeleted && postsDeleted && usersDeleted && commentDeleted) {
-    //     response.sendStatus(204);
-    // }
-    // else {
-    //     response.sendStatus(404);
-    // }
-    // return;
 })

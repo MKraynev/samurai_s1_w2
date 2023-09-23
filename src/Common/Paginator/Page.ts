@@ -4,7 +4,7 @@ export class Page<T>{
         public page: number,
         public pageSize: number,
         public totalCount: number,
-        public items: Array<T> | null
+        public items: T | null
     ) { }
 
 }

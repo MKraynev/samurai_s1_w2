@@ -9,7 +9,6 @@ import bcrypt from "bcrypt";
 import jwt, { JwtPayload } from "jsonwebtoken"
 import { UniqueValGenerator } from "../../../../Common/DataManager/HandleFunctions/UniqueValGenerator";
 import { UserDataBase } from "../../Admin/Entities/UserForDataBase";
-import { WithId } from "mongodb";
 import { MongoDb, mongoDb } from "../../../../Common/Database/MongoDb";
 import { AvailableDbTables, ExecutionResult, ExecutionResultContainer } from "../../../../Common/Database/DataBase";
 import { TokenHandler, TokenStatus, tokenHandler } from "../../../../Common/Authentication/User/TokenAuthentication";

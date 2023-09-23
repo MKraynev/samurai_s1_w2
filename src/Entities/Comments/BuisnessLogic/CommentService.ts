@@ -1,8 +1,5 @@
-import { Request } from "express"
-import { AdminAuthentication, AuthenticationResult, IAuthenticator } from "../../../Common/Authentication/Admin/AdminAuthenticator";
 import { AvailableDbTables, ExecutionResult, ExecutionResultContainer } from "../../../Common/Database/DataBase";
 import { MongoDb, mongoDb } from "../../../Common/Database/MongoDb";
-import { ServiseExecutionStatus } from "../../Blogs/BuisnessLogic/BlogService";
 import { CommentResponse } from "../Entities/CommentForResponse";
 import { Token } from "../../Users/Common/Entities/Token";
 import { UserServiceExecutionResult, userService } from "../../Users/Common/BuisnessLogic/UserService";

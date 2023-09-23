@@ -1,7 +1,6 @@
 import { Token } from "../../../Entities/Users/Common/Entities/Token";
 import jwt, { JwtPayload } from "jsonwebtoken"
 import { JWT_SECRET } from "../../../settings";
-import { Result } from "express-validator";
 
 export enum TokenStatus {
     Invalid,
@@ -43,6 +42,7 @@ export class TokenHandler {
                 let tokenIsFresh = nowTime >= decoded.exp * 1000;
 
                 let status: TokenStatus = tokenIsFresh ? TokenStatus.Accepted : TokenStatus.Expired;
+                return status;
             }
             return TokenStatus.Invalid;
         }
