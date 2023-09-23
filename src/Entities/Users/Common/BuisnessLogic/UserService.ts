@@ -47,7 +47,7 @@ export class AdminUserService {
 
     constructor(private _db: MongoDb, private _authenticator: IAuthenticator, private tokenHandler: TokenHandler) { }
 
-    public async GetUsers(searchConfig: UserSorter, paginator: Paginator, request: Request): Promise<ExecutionResultContainer<ServiseExecutionStatus, Page<UserResponse> | null>> {
+    public async GetUsers(searchConfig: UserSorter, paginator: Paginator, request: Request): Promise<ExecutionResultContainer<ServiseExecutionStatus, Page<UserResponse[]> | null>> {
         let accessVerdict = this._authenticator.AccessCheck(request);
 
         if (accessVerdict !== AuthenticationResult.Accept)
@@ -61,7 +61,7 @@ export class AdminUserService {
         let neededSkipObjectsNumber = paginator.GetAvailableSkip(countOperation.executionResultObject);
         let foundObjectsOperation = await this._db.GetMany(this.userTable, searchConfig, neededSkipObjectsNumber, paginator.pageSize) as UserServiceDtos;
 
-        if (foundObjectsOperation.executionStatus === ExecutionResult.Failed)
+        if (foundObjectsOperation.executionStatus === ExecutionResult.Failed || !foundObjectsOperation.executionResultObject)
             return new ExecutionResultContainer(ServiseExecutionStatus.DataBaseFailed);
 
         let pagedObjects = paginator.GetPaged(foundObjectsOperation.executionResultObject);
