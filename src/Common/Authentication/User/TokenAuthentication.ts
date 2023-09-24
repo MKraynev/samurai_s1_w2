@@ -36,7 +36,8 @@ export class TokenHandler {
     }
     public async isTokenExpired(token: Token): Promise<TokenStatus> {
         try {
-            let decoded = await jwt.decode(token.accessToken) as JwtPayload;
+            // let decoded = await jwt.decode(token.accessToken) as JwtPayload;
+            let decoded = await jwt.verify(token.accessToken, this.secret) as JwtPayload
             if (decoded && decoded.exp) {
                 let nowTime: number = Date.now()
                 let tokenIsFresh = nowTime >= decoded.exp * 1000;

@@ -134,8 +134,11 @@ export class AdminUserService {
         if (requestHashedPass !== findUser.executionResultObject.hashedPass) {
             return new ExecutionResultContainer(UserServiceExecutionResult.WrongPassword);
         }
-        let tokenLoad: any;
-        tokenLoad.id = findUser.executionResultObject.id;
+        let tokenLoad: any = {
+            id: findUser.executionResultObject.id
+        };
+
+        // tokenLoad.id = findUser.executionResultObject.id;
 
         let accessToken = await this.tokenHandler.GenerateToken(tokenLoad, ACCESS_TOKEN_TIME);
         let refreshToken = await this.tokenHandler.GenerateToken(tokenLoad, REFRESH_TOKEN_TIME);

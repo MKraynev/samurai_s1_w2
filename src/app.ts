@@ -42,16 +42,13 @@ const ngrokConnect = async (): Promise<string> => {
 
 const StartApp = async () => {
 
-    // if (await dataManager.Run()) {
-    //     console.log("db is running")
-    // }
     await mongoDb.RunDb();
 
     app.listen(PORT, () => {
         console.log("app is running");
     })
 
-    //await ngrokConnect();
+    await ngrokConnect();
 }
 
 StartApp();
