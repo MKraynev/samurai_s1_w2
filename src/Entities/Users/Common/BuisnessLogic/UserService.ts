@@ -11,7 +11,7 @@ import { UniqueValGenerator } from "../../../../Common/DataManager/HandleFunctio
 import { UserDataBase } from "../../Admin/Entities/UserForDataBase";
 import { MongoDb, mongoDb } from "../../../../Common/Database/MongoDb";
 import { AvailableDbTables, ExecutionResult, ExecutionResultContainer } from "../../../../Common/Database/DataBase";
-import { TokenHandler, TokenStatus, tokenHandler } from "../../../../Common/Authentication/User/TokenAuthentication";
+import { TokenHandler, TokenLoad, TokenStatus, tokenHandler } from "../../../../Common/Authentication/User/TokenAuthentication";
 import { ServiseExecutionStatus } from "../../../Blogs/BuisnessLogic/BlogService";
 import { AdminAuthentication, AuthenticationResult, IAuthenticator } from "../../../../Common/Authentication/Admin/AdminAuthenticator";
 import { Request } from "express"
@@ -134,7 +134,7 @@ export class AdminUserService {
         if (requestHashedPass !== findUser.executionResultObject.hashedPass) {
             return new ExecutionResultContainer(UserServiceExecutionResult.WrongPassword);
         }
-        let tokenLoad: any = {
+        let tokenLoad: TokenLoad = {
             id: findUser.executionResultObject.id
         };
 
@@ -181,8 +181,10 @@ export class AdminUserService {
         if (appendToUser.executionStatus === ExecutionResult.Failed)
             return new ExecutionResultContainer(UserServiceExecutionResult.NotFound);
 
-        let includedObj: any;
-        includedObj.id = id;
+        let includedObj: TokenLoad = {
+            id: id
+        };
+        // includedObj.id = id;
 
         let accessToken = await this.tokenHandler.GenerateToken(includedObj, ACCESS_TOKEN_TIME);
         let newRefreshToken = await this.tokenHandler.GenerateToken(includedObj, REFRESH_TOKEN_TIME);
@@ -266,22 +268,22 @@ export class AdminUserService {
     //     return null;
     // }
 
-    // public async GenerateTokens(user: UserResponse): Promise<Array<Token>> {
-    //     let accessTokenVal = await jwt.sign({ id: user.id }, JWT_SECRET, { expiresIn: ACCESS_TOKEN_TIME });
-    //     let refreshTokenVal = await jwt.sign({ id: user.id }, JWT_SECRET, { expiresIn: REFRESH_TOKEN_TIME });
+    public async GenerateTokens(user: UserResponse): Promise<Array<Token>> {
+        let accessTokenVal = await jwt.sign({ id: user.id }, JWT_SECRET, { expiresIn: ACCESS_TOKEN_TIME });
+        let refreshTokenVal = await jwt.sign({ id: user.id }, JWT_SECRET, { expiresIn: REFRESH_TOKEN_TIME });
 
-    //     let accessToken: Token = {
-    //         accessToken: accessTokenVal
-    //     }
-    //     let refreshToken: Token = {
-    //         accessToken: refreshTokenVal
-    //     }
+        let accessToken: Token = {
+            accessToken: accessTokenVal
+        }
+        let refreshToken: Token = {
+            accessToken: refreshTokenVal
+        }
 
-    //     let tokens: Array<Token> = [accessToken, refreshToken];
+        let tokens: Array<Token> = [accessToken, refreshToken];
 
 
-    //     return tokens;
-    // }
+        return tokens;
+    }
     // public async RefreshTokens(currentRefreshToken: Token): Promise<Array<Token> | null> {
     //     let user = await this.GetUserByToken(currentRefreshToken);
     //     if (!user) return null;

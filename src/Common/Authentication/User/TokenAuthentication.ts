@@ -8,6 +8,12 @@ export enum TokenStatus {
     Accepted,
     PropertyNotFound
 }
+
+export type TokenLoad = {
+    id: string;
+}
+
+
 export class TokerDecodeResult {
     constructor(
         public tokenStatus: TokenStatus,
@@ -18,15 +24,23 @@ export class TokenHandler {
     constructor(private secret: string) { }
     public async DecodePropertyFromToken(token: Token, propertyName: string): Promise<TokerDecodeResult> {
         try {
-            if (await this.isTokenExpired(token) !== TokenStatus.Accepted) {
-                return new TokerDecodeResult(TokenStatus.Expired);
+            let tokenStatus = await this.isTokenExpired(token);
+
+            switch (tokenStatus) {
+                case TokenStatus.Accepted:
+                    break;
+                case TokenStatus.Expired:
+                case TokenStatus.Invalid:
+                default:
+                    return new TokerDecodeResult(TokenStatus.Expired);
+                    break;
             }
 
             let decodeRes: any = await jwt.verify(token.accessToken, this.secret);
             let propertyValue = decodeRes[propertyName] as string;
-            let result = propertyValue? 
-            new TokerDecodeResult(TokenStatus.Accepted, propertyValue)
-            : new TokerDecodeResult(TokenStatus.PropertyNotFound);
+            let result = propertyValue ?
+                new TokerDecodeResult(TokenStatus.Accepted, propertyValue)
+                : new TokerDecodeResult(TokenStatus.PropertyNotFound);
 
             return result;
         }
@@ -40,7 +54,7 @@ export class TokenHandler {
             let decoded = await jwt.verify(token.accessToken, this.secret) as JwtPayload
             if (decoded && decoded.exp) {
                 let nowTime: number = Date.now()
-                let tokenIsFresh = nowTime >= decoded.exp * 1000;
+                let tokenIsFresh = nowTime <= decoded.exp * 1000;
 
                 let status: TokenStatus = tokenIsFresh ? TokenStatus.Accepted : TokenStatus.Expired;
                 return status;
@@ -51,12 +65,13 @@ export class TokenHandler {
             return TokenStatus.Invalid;
         }
     }
-    public async GenerateToken(obj: any, timeExpire: string): Promise<Token | null> {
+    public async GenerateToken(loadData: TokenLoad, timeExpire: string): Promise<Token | null> {
         try {
-            let accessTokenVal = await jwt.sign(obj, this.secret, { expiresIn: timeExpire });
+            let accessTokenVal = await jwt.sign(loadData, this.secret, { expiresIn: timeExpire });
             let token: Token = {
                 accessToken: accessTokenVal
             }
+            
             return token;
         }
         catch {

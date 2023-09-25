@@ -33,7 +33,7 @@ authRouter.post("/login",
 
 
             case UserServiceExecutionResult.Success:
-                response.cookie("refreshToken", generateTokens.executionResultObject!.refreshToken, { httpOnly: true, secure: true, })
+                response.cookie("refreshToken", generateTokens.executionResultObject!.refreshToken.accessToken, { httpOnly: true, secure: true, })
                 response.status(200).send(generateTokens.executionResultObject!.accessToken);
                 break;
         }
@@ -91,7 +91,8 @@ authRouter.post("/refresh-token",
     ParseRefreshToken,
     async (request: Request, response: Response) => {
         let token: Token = request.refreshToken;
-
+        
+        
         let generateNewTokens = await userService.RefreshUserAccess(token);
 
         switch (generateNewTokens.executionStatus) {
