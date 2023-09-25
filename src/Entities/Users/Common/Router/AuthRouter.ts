@@ -1,5 +1,5 @@
 import { Router, Response, Request } from "express"
-import { CheckFormatErrors, FieldNotEmpty, ValidEmail } from "../../../../Common/Request/RequestValidation/RequestValidation";
+import { CheckFormatErrors, FieldNotEmpty, RequestIsAllowed, ValidEmail } from "../../../../Common/Request/RequestValidation/RequestValidation";
 import { RequestWithBody } from "../../../../Common/Request/Entities/RequestTypes";
 import { AuthRequest } from "../Entities/AuthRequest";
 import { UserRequest } from "../../Admin/Entities/UserForRequest";

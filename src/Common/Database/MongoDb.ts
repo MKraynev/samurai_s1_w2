@@ -18,16 +18,19 @@ import { BlogRequest } from "../../Entities/Blogs/Entities/BlogForRequest";
 import { PostRequest } from "../../Entities/Posts/Entities/PostForRequest";
 import { UserRequest } from "../../Entities/Users/Admin/Entities/UserForRequest";
 import { CommentRequest } from "../../Entities/Comments/Entities/CommentRequest";
+import { LogSorter } from "../../RequestLogger/BuisnessLogic/RequestLoggerService";
+import { RequestLogDataBase } from "../../RequestLogger/Entities/RequestLogDataBase";
+import { RequestLogResponse } from "../../RequestLogger/Entities/RequestLogResponse";
 
 
 type MongoSearch = {
     [key: string]: { $regex: string, $options: string }
 }
 
-export type AvailableReturnDbTypes = BlogResponse | PostResponse | UserResponse | CommentResponse;
+export type AvailableReturnDbTypes = BlogResponse | PostResponse | UserResponse | CommentResponse | RequestLogResponse;
 export type AvailableUpdateTypes = BlogRequest | PostRequest | UserRequest | CommentRequest;
-export type AvailableInputDbTypes = BlogDataBase | PostDataBase | UserDataBase | CommentDataBase;
-type AvailableSorterTypes = BlogSorter | PostSorter | UserSorter | CommentSorter;
+export type AvailableInputDbTypes = BlogDataBase | PostDataBase | UserDataBase | CommentDataBase | RequestLogDataBase;
+type AvailableSorterTypes = BlogSorter | PostSorter | UserSorter | CommentSorter | LogSorter;
 
 export class MongoDb extends DataBase<AvailableInputDbTypes, AvailableUpdateTypes, AvailableReturnDbTypes> {
     private _dbIsRunning = false;
@@ -55,7 +58,7 @@ export class MongoDb extends DataBase<AvailableInputDbTypes, AvailableUpdateType
 
             return executionResult;
         }
-        catch(e) {
+        catch (e) {
             return new ExecutionResultContainer(ExecutionResult.Failed)
         }
 
@@ -236,7 +239,7 @@ export class MongoDb extends DataBase<AvailableInputDbTypes, AvailableUpdateType
         }
     }
 
-    async Count(tableName: AvailableDbTables, sorter: BlogSorter | PostSorter | UserSorter | CommentSorter): Promise<ExecutionResultContainer<ExecutionResult, number>> {
+    async Count(tableName: AvailableDbTables, sorter: AvailableSorterTypes): Promise<ExecutionResultContainer<ExecutionResult, number>> {
         try {
             let searchPattert = this.BuildMongoSearcher(sorter);
             let collectionSize = await this._db.collection(tableName).countDocuments(searchPattert);
@@ -268,7 +271,7 @@ export class MongoDb extends DataBase<AvailableInputDbTypes, AvailableUpdateType
         return result;
     }
 
-    private BuildMongoSorter(sorter: BlogSorter | PostSorter | UserSorter | CommentSorter): Sort {
+    private BuildMongoSorter(sorter: AvailableSorterTypes): Sort {
         let sortDir: SortDirection = sorter.sortDirection;
         let mongoSorter: Sort = {};
 
@@ -292,12 +295,15 @@ export class MongoDb extends DataBase<AvailableInputDbTypes, AvailableUpdateType
                 sorter = sorter as CommentSorter;
                 mongoSorter[sorter.sortBy] = sortDir;
                 break;
+            case SorterType.LogSorter:
+                sorter = sorter as LogSorter;
+                mongoSorter[sorter.sortBy] = sortDir;
         }
 
         return mongoSorter;
     }
 
-    private BuildMongoSearcher(sorter: BlogSorter | PostSorter | UserSorter | CommentSorter): MongoSearch {
+    private BuildMongoSearcher(sorter: AvailableSorterTypes): MongoSearch {
         switch (sorter.sorterType) {
             case SorterType.BlogSorter:
                 sorter = sorter as BlogSorter;
@@ -355,6 +361,19 @@ export class MongoDb extends DataBase<AvailableInputDbTypes, AvailableUpdateType
                     return searcher;
                 }
                 return {}
+            case SorterType.LogSorter:
+                sorter = sorter as LogSorter;
+                // let searcher: any = {
+                //     "ip": sorter.ip,
+                //     "serviceRoot": sorter.serviceRoot
+                // }
+
+                let searcher: any = {
+                    "ip": sorter.ip,
+                    "root": sorter.serviceRoot
+                }
+
+                return searcher;
         }
     }
 
@@ -376,6 +395,10 @@ export class MongoDb extends DataBase<AvailableInputDbTypes, AvailableUpdateType
             case AvailableDbTables.users:
                 object = object as WithId<UserDataBase>
                 return new UserResponse(object._id, object);
+
+            case AvailableDbTables.requestLogs:
+                object = object as WithId<RequestLogDataBase>;
+                return new RequestLogResponse(object._id, object);
         }
     }
 }

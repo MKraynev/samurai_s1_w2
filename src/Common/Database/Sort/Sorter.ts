@@ -12,5 +12,6 @@ export enum SorterType {
     BlogSorter,
     PostSorter,
     UserSorter,
-    CommentSorter
+    CommentSorter,
+    LogSorter
 }

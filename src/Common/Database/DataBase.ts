@@ -18,7 +18,8 @@ export enum AvailableDbTables {
     blogs = "blogs",
     posts = "posts",
     users = "users",
-    comments = "comments"
+    comments = "comments",
+    requestLogs = "requestsLog"
 }
 
 export abstract class DataBase<SaveObject, UpdateObject, ReturnObject> {

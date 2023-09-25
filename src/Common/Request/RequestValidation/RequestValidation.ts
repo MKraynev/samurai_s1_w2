@@ -1,12 +1,10 @@
 import { Request, Response, NextFunction, response } from "express";
-import { AuthorizationStatus } from "../../../Entities/Users/Admin/Router/Middleware/IAuthorizer";
 import { body, validationResult } from "express-validator"
 import { ErrorLog } from "./Error";
-// import { dataManager } from "../../DataManager/DataManager";
-import { Token } from "../../../Entities/Users/Common/Entities/Token";
-import { RequestParser } from "../RequestParser/RequestParser";
 import { Base64 } from "../../Authentication/Admin/Base64";
 import { ADMIN_PASSWORD } from "../../../settings";
+import { requestLogService } from "../../../RequestLogger/BuisnessLogic/RequestLoggerService";
+import { RequestLogRequest } from "../../../RequestLogger/Entities/RequestLogRequest";
 
 export const RequestBaseAuthorized = (request: Request<{}, {}, {}, {}>, reponse: Response, next: NextFunction) => {
     let headerValue = request.header("authorization");
@@ -20,48 +18,6 @@ export const RequestBaseAuthorized = (request: Request<{}, {}, {}, {}>, reponse:
     return;
 
 }
-
-// export const RequestJwtAuthorized = async (request: any, response: Response, next: NextFunction) => {
-//     let tokenFromBody: Token | null = RequestParser.ReadTokenFromBody(request);
-//     let tokenFromCookie: Token | null = RequestParser.ReadTokenFromCookie(request);
-//     let token = tokenFromBody || tokenFromCookie;
-
-//     if (!token) {
-//         let error = new ErrorLog();
-//         error.add("Request", "There is no token")
-//         response.status(401).send(error);
-//         return;
-//     }
-
-//     let tokenExpired = await dataManager.userService.isTokenExpired(token);
-//     if (tokenExpired) {
-//         let error = new ErrorLog();
-//         error.add("Request", "Token expired")
-//         response.status(401).send(error);
-//         return;
-//     }
-
-//     let user = await dataManager.userService.GetUserByToken(token);
-
-//     if (user?.usedRefreshTokens.includes(token.accessToken)) {
-//         let error = new ErrorLog();
-//         error.add("Request", "Token not available")
-//         response.status(401).send(error);
-//         return;
-//     }
-
-//     if (user) {
-//         request.user = user;
-//         request.token = token;
-//         next();
-//         return;
-//     }
-
-//     let error = new ErrorLog();
-//     error.add("Request", "Missing authorization data")
-//     response.status(401).send(error);
-//     return;
-// }
 
 export const FieldNotEmpty = (fieldName: string) => body(fieldName).trim().notEmpty().withMessage(`Empty field: ${fieldName}`);
 export const FieldIsUri = (fieldName: string) => body(fieldName).isURL().withMessage(`Wrong URL value: ${fieldName}`);
@@ -95,3 +51,29 @@ export const CheckFormatErrors = (request: Request<{}, {}, {}, {}>, response: Re
     next()
 }
 
+export const RequestIsAllowed = async (request: Request<{}, {}, {}, {}>, response: Response, next: NextFunction) => {
+    let ip = FormatRequestIp(request.ip);
+    let requestRoot = request.baseUrl + request.path;
+    let requestIsAllowed = await requestLogService.RequestIsAllowed(ip, requestRoot);
+    
+    let reqData = new RequestLogRequest(ip, requestRoot);
+    let SaveRequest = await requestLogService.SaveRequest(reqData);
+    
+    if(requestIsAllowed){
+        next();
+        return;
+    }
+
+    response.sendStatus(429);
+}
+
+const FormatRequestIp = (reqIp: string): string => {
+    let availableLetters: string[] = ["0", "1", "2", "3", "4", "5", "6", "7", "8", "9", "."];
+    let resultVal = "";
+
+    for(let letterPos = 0; letterPos < reqIp.length; letterPos++){
+        if(availableLetters.includes(reqIp[letterPos]))
+        resultVal += reqIp[letterPos];
+    }
+    return resultVal;
+}

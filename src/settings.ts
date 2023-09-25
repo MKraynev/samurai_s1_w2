@@ -12,3 +12,5 @@ export const REFRESH_TOKEN_TIME = process.env.REFRESH_TOKEN_EXPIRE || "20s";
 export const TOKEN_COOKIE_NAME = process.env.COOKIE_TOKEN_REFRESH_NAME || "samurai";
 export const TOKEN_BODY_NAME = process.env.COOKIE_TOKEN_ACCESS_NAME || "samurai";
 export const PORT_NUM: number = +(process.env.PORT_NUMBER || "5001");
+export const REQUEST_LIMIT_COUNT: number = +(process.env.REQUEST_LIMIT_COUNT || "5");
+export const REQUEST_LIMIT_SECONDS: number = +(process.env.REQUEST_LIMIT_TIME_SECONDS || "10");
