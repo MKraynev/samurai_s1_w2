@@ -30,9 +30,10 @@ export class TokenHandler {
                 case TokenStatus.Accepted:
                     break;
                 case TokenStatus.Expired:
+                    return new TokerDecodeResult(TokenStatus.Expired);
                 case TokenStatus.Invalid:
                 default:
-                    return new TokerDecodeResult(TokenStatus.Expired);
+                    return new TokerDecodeResult(TokenStatus.Invalid);
                     break;
             }
 

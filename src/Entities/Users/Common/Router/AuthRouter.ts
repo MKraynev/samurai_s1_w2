@@ -114,7 +114,7 @@ authRouter.post("/refresh-token",
                     return;
                 }
 
-                response.status(400).send(accessToken);
+                response.sendStatus(400);
                 break;
         }
 

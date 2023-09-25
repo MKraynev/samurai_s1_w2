@@ -170,19 +170,24 @@ export class AdminUserService {
         return new ExecutionResultContainer(UserServiceExecutionResult.Success, userSearch.executionResultObject);
     }
     public async RefreshUserAccess(refreshToken: Token): Promise<ExecutionResultContainer<UserServiceExecutionResult, LoginTokens>> {
-        let parceUserId = await this.tokenHandler.DecodePropertyFromToken(refreshToken, "id");
 
-        if (parceUserId.tokenStatus !== TokenStatus.Accepted || !parceUserId.propertyVal)
+        let findUser = await userService.GetUserByToken(refreshToken) as ExecutionResultContainer<UserServiceExecutionResult, UserResponse>;
+        let user = findUser.executionResultObject;
+
+        if(findUser.executionStatus !== UserServiceExecutionResult.Success || !user){
             return new ExecutionResultContainer(UserServiceExecutionResult.NotFound);
+        }
 
-        let id = parceUserId.propertyVal as string;
+        if(user.usedRefreshTokens.includes(refreshToken.accessToken)){
+            return new ExecutionResultContainer(UserServiceExecutionResult.Unauthorized);
+        }
 
-        let appendToUser = await this._db.AppendOneProperty(this.userTable, id, this.usedTokenName, refreshToken.accessToken);
+        let appendToUser = await this._db.AppendOneProperty(this.userTable, user.id, this.usedTokenName, refreshToken.accessToken);
         if (appendToUser.executionStatus === ExecutionResult.Failed)
             return new ExecutionResultContainer(UserServiceExecutionResult.NotFound);
 
         let includedObj: TokenLoad = {
-            id: id
+            id: user.id
         };
         // includedObj.id = id;
 
@@ -222,7 +227,7 @@ export class AdminUserService {
         if (confirmUser.executionStatus === ExecutionResult.Pass && confirmUser.executionResultObject)
             return new ExecutionResultContainer(UserServiceExecutionResult.Success, confirmUser.executionResultObject);
 
-            return new ExecutionResultContainer(UserServiceExecutionResult.DataBaseFailed);
+        return new ExecutionResultContainer(UserServiceExecutionResult.DataBaseFailed);
     }
     // public async UpdateUserEmailConfirmId(userId: string): Promise<string | null> {
     //     try {

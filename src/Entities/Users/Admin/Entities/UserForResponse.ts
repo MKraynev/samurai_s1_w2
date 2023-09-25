@@ -11,7 +11,8 @@ export class UserResponse extends UserDataBase {
             user.hashedPass,
             user.emailConfirmId,
             user.emailConfirmed,
-            user.createdAt
+            user.createdAt,
+            user.usedRefreshTokens
         )
 
         this.id = _id.toString();
