@@ -162,7 +162,7 @@ export class MongoDb extends DataBase<AvailableInputDbTypes, AvailableUpdateType
         }
     }
 
-    async UpdateOneProperty(tableName: AvailableDbTables, id: string, property: string, value: string | boolean | number): Promise<ExecutionResultContainer<ExecutionResult, AvailableReturnDbTypes | undefined>> {
+    async UpdateOneProperty(tableName: AvailableDbTables, id: string, property: string, value: any): Promise<ExecutionResultContainer<ExecutionResult, AvailableReturnDbTypes | undefined>> {
         try {
             let updateField: any = {};
             updateField[property] = value;
@@ -179,7 +179,7 @@ export class MongoDb extends DataBase<AvailableInputDbTypes, AvailableUpdateType
         }
     }
 
-    async AppendOneProperty(tableName: AvailableDbTables, id: string, property: keyof (AvailableReturnDbTypes) | string, value: string | boolean | number): Promise<ExecutionResultContainer<ExecutionResult, AvailableReturnDbTypes | undefined>> {
+    async AppendOneProperty(tableName: AvailableDbTables, id: string, property: keyof (AvailableReturnDbTypes) | string, value: any): Promise<ExecutionResultContainer<ExecutionResult, AvailableReturnDbTypes | undefined>> {
         try {
             let updateField: any = {};
             updateField[property] = value;
@@ -363,10 +363,6 @@ export class MongoDb extends DataBase<AvailableInputDbTypes, AvailableUpdateType
                 return {}
             case SorterType.LogSorter:
                 sorter = sorter as LogSorter;
-                // let searcher: any = {
-                //     "ip": sorter.ip,
-                //     "serviceRoot": sorter.serviceRoot
-                // }
 
                 let searcher: any = {
                     "ip": sorter.ip,
@@ -392,6 +388,7 @@ export class MongoDb extends DataBase<AvailableInputDbTypes, AvailableUpdateType
             case AvailableDbTables.comments:
                 object = object as WithId<CommentDataBase>
                 return new CommentResponse(object._id, object);
+
             case AvailableDbTables.users:
                 object = object as WithId<UserDataBase>
                 return new UserResponse(object._id, object);

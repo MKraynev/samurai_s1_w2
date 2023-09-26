@@ -16,6 +16,10 @@ import { ServiseExecutionStatus } from "../../../Blogs/BuisnessLogic/BlogService
 import { AdminAuthentication, AuthenticationResult, IAuthenticator } from "../../../../Common/Authentication/Admin/AdminAuthenticator";
 import { Request } from "express"
 import { AuthRequest } from "../Entities/AuthRequest";
+import { DeviceRequest } from "../../../Devices/Entities/DeviceForRequest";
+import { DeviceResponse } from "../../../Devices/Entities/DeviceForDataBase";
+import ms from "ms"
+
 
 export enum LoginEmailStatus {
     LoginAndEmailFree,
@@ -36,6 +40,7 @@ export enum UserServiceExecutionResult {
 
 export type UserServiceDto = ExecutionResultContainer<ExecutionResult, UserResponse>;
 export type UserServiceDtos = ExecutionResultContainer<ExecutionResult, UserResponse[]>;
+
 type LoginTokens = {
     accessToken: Token,
     refreshToken: Token
@@ -82,7 +87,6 @@ export class AdminUserService {
         user.emailConfirmed = false;
         return await this.PostUser(user);
     }
-
     private async PostUser(user: UserRequest): Promise<ExecutionResultContainer<UserServiceExecutionResult, UserResponse | null>> {
         let findUserByLogin = await this._db.GetOneByValueInOnePropery(this.userTable, "login", user.login);
         let findUserByEmail = await this._db.GetOneByValueInOnePropery(this.userTable, "email", user.email);
@@ -104,7 +108,6 @@ export class AdminUserService {
         }
         return new ExecutionResultContainer(UserServiceExecutionResult.Success, save.executionResultObject);
     }
-
     public async DeleteUser(id: string, request: Request<{}, {}, {}, {}>): Promise<ExecutionResultContainer<ServiseExecutionStatus, boolean | null>> {
         let accessVerdict = this._authenticator.AccessCheck(request);
 
@@ -122,26 +125,50 @@ export class AdminUserService {
 
         return new ExecutionResultContainer(ServiseExecutionStatus.Success, true);
     }
-
-    public async Login(authRequest: AuthRequest): Promise<ExecutionResultContainer<UserServiceExecutionResult, LoginTokens>> {
+    public async Login(authRequest: AuthRequest, deviceData: DeviceRequest): Promise<ExecutionResultContainer<UserServiceExecutionResult, LoginTokens>> {
         let findUser = await this._db.GetOneByValueInTwoProperties(this.userTable, "email", "login", authRequest.loginOrEmail) as UserServiceDto;
 
         if (findUser.executionStatus === ExecutionResult.Failed || !findUser.executionResultObject) {
             return new ExecutionResultContainer(UserServiceExecutionResult.DataBaseFailed);
         }
 
+        let user = findUser.executionResultObject;
+
         let requestHashedPass = await bcrypt.hash(authRequest.password, findUser.executionResultObject.salt);
         if (requestHashedPass !== findUser.executionResultObject.hashedPass) {
             return new ExecutionResultContainer(UserServiceExecutionResult.WrongPassword);
         }
+
+        let availableDeviceNumber = user.devices.length + 1;
+        let activationTime = new Date();
+
+        let refreshTokenExpireTime_ms = activationTime.getTime() + ms(REFRESH_TOKEN_TIME);
+        let refreshTokenexpireTime = new Date(refreshTokenExpireTime_ms);
+
+        let accessTokenExpireTime_ms = activationTime.getTime() + ms(ACCESS_TOKEN_TIME);
+        let accessTokenexpireTime = new Date(accessTokenExpireTime_ms);
+
+
+        let deviceDataToSave = new DeviceResponse(deviceData, activationTime.toISOString(), availableDeviceNumber, refreshTokenexpireTime.toISOString())
+
+        // let saveLoginDevice = 
+        this._db.AppendOneProperty(this.userTable, user.id, "devices", deviceDataToSave);
+
+        // if (saveLoginDevice.executionStatus !== ExecutionResult.Pass) {
+        //     return new ExecutionResultContainer(UserServiceExecutionResult.DataBaseFailed);
+        // }
+
         let tokenLoad: TokenLoad = {
-            id: findUser.executionResultObject.id
+            id: findUser.executionResultObject.id,
+            deviceId: deviceDataToSave.deviceId,
         };
 
         // tokenLoad.id = findUser.executionResultObject.id;
 
-        let accessToken = await this.tokenHandler.GenerateToken(tokenLoad, ACCESS_TOKEN_TIME);
-        let refreshToken = await this.tokenHandler.GenerateToken(tokenLoad, REFRESH_TOKEN_TIME);
+        // let accessToken = await this.tokenHandler.GenerateToken(tokenLoad, ACCESS_TOKEN_TIME);
+        // let refreshToken = await this.tokenHandler.GenerateToken(tokenLoad, REFRESH_TOKEN_TIME);
+        let accessToken = await this.tokenHandler.GenerateToken(tokenLoad, accessTokenexpireTime.getTime() * 1000);
+        let refreshToken = await this.tokenHandler.GenerateToken(tokenLoad, refreshTokenexpireTime.getTime() * 1000);
 
         if (!accessToken || !refreshToken) {
             return new ExecutionResultContainer(UserServiceExecutionResult.ServiceFail);
@@ -169,38 +196,79 @@ export class AdminUserService {
 
         return new ExecutionResultContainer(UserServiceExecutionResult.Success, userSearch.executionResultObject);
     }
-    public async RefreshUserAccess(refreshToken: Token): Promise<ExecutionResultContainer<UserServiceExecutionResult, LoginTokens>> {
+    public async RefreshUserAccess(refreshToken: Token, deviceData: DeviceRequest): Promise<ExecutionResultContainer<UserServiceExecutionResult, LoginTokens>> {
 
         let findUser = await userService.GetUserByToken(refreshToken) as ExecutionResultContainer<UserServiceExecutionResult, UserResponse>;
         let user = findUser.executionResultObject;
 
-        if(findUser.executionStatus !== UserServiceExecutionResult.Success || !user){
+        if (findUser.executionStatus !== UserServiceExecutionResult.Success || !user) {
             return new ExecutionResultContainer(UserServiceExecutionResult.NotFound);
         }
 
-        if(user.usedRefreshTokens.includes(refreshToken.accessToken)){
+        if (user.usedRefreshTokens.includes(refreshToken.accessToken)) {
             return new ExecutionResultContainer(UserServiceExecutionResult.Unauthorized);
         }
 
-        let appendToUser = await this._db.AppendOneProperty(this.userTable, user.id, this.usedTokenName, refreshToken.accessToken);
-        if (appendToUser.executionStatus === ExecutionResult.Failed)
+        let getTokenData = await this.tokenHandler.GetTokenLoad(refreshToken);
+        let tokenData = getTokenData.propertyVal;
+
+        if (!tokenData) {
+            return new ExecutionResultContainer(UserServiceExecutionResult.Unauthorized);
+        }
+
+        let tokenDeviceIdNotIncludeInUserDevices = user.devices.findIndex(device => device.deviceId === tokenData!.deviceId) === -1;
+
+        if (tokenDeviceIdNotIncludeInUserDevices) {
+            return new ExecutionResultContainer(UserServiceExecutionResult.Unauthorized);
+        }
+
+        let updateTime = new Date();
+        let expireTime_ms = updateTime.getTime() + ms(REFRESH_TOKEN_TIME);
+        let expireTime = new Date(expireTime_ms);
+
+        user.devices.map(device => {
+            if (device.deviceId === tokenData!.deviceId) {
+                device.ip = deviceData.ip;
+                device.lastActiveDate = updateTime.toISOString();
+                device.expireTime = expireTime.toISOString();
+            }
+            return device;
+        })
+
+        let appendToken = await this._db.AppendOneProperty(this.userTable, user.id, this.usedTokenName, refreshToken.accessToken);
+        let updateDeviceData = await this._db.UpdateOneProperty(this.userTable, user.id, "devices", user.devices)
+        if (appendToken.executionStatus === ExecutionResult.Failed)
             return new ExecutionResultContainer(UserServiceExecutionResult.NotFound);
 
-        let includedObj: TokenLoad = {
-            id: user.id
-        };
-        // includedObj.id = id;
+        let tokenLoad: TokenLoad = {
+            id: user.id,
+            deviceId: tokenData.deviceId,
+        }
 
-        let accessToken = await this.tokenHandler.GenerateToken(includedObj, ACCESS_TOKEN_TIME);
-        let newRefreshToken = await this.tokenHandler.GenerateToken(includedObj, REFRESH_TOKEN_TIME);
+
+        let activationTime = new Date();
+
+        let refreshTokenExpireTime_ms = activationTime.getTime() + ms(REFRESH_TOKEN_TIME);
+        let refreshTokenexpireTime = new Date(refreshTokenExpireTime_ms);
+
+        let accessTokenExpireTime_ms = activationTime.getTime() + ms(ACCESS_TOKEN_TIME);
+        let accessTokenexpireTime = new Date(accessTokenExpireTime_ms);
+
+        let accessToken = await this.tokenHandler.GenerateToken(tokenLoad, accessTokenexpireTime.getTime() * 1000);
+        let newRefreshToken = await this.tokenHandler.GenerateToken(tokenLoad, refreshTokenexpireTime.getTime() * 1000);
+
+        // let accessToken = await this.tokenHandler.GenerateToken(tokenLoad, ACCESS_TOKEN_TIME);
+        // let newRefreshToken = await this.tokenHandler.GenerateToken(tokenLoad, REFRESH_TOKEN_TIME);
 
         if (accessToken && newRefreshToken) {
             let tokens: LoginTokens = {
                 accessToken: accessToken,
                 refreshToken: newRefreshToken
             }
+
             return new ExecutionResultContainer(UserServiceExecutionResult.Success, tokens);
         }
+
         return new ExecutionResultContainer(UserServiceExecutionResult.ServiceFail);
     }
     public async GetConfirmId(userEmail: string): Promise<ExecutionResultContainer<UserServiceExecutionResult, UserResponse>> {
@@ -229,143 +297,5 @@ export class AdminUserService {
 
         return new ExecutionResultContainer(UserServiceExecutionResult.DataBaseFailed);
     }
-    // public async UpdateUserEmailConfirmId(userId: string): Promise<string | null> {
-    //     try {
-    //         let emailConfirmId = UniqueValGenerator();
-    //         let updatedUser = await this.repo.UpdateProperty(userId, "emailConfirmId", emailConfirmId);
-    //         if (updatedUser) {
-    //             return emailConfirmId;
-    //         }
-    //         return null;
-    //     }
-    //     catch {
-    //         return null;
-    //     }
-    // }
-
-    // public async DeleteUser(id: string): Promise<boolean> {
-    //     return this.repo.DeleteCertain(id);
-    // }
-    // public async ClearUsers(): Promise<boolean> {
-    //     return this.repo.DeleteMany();
-    // }
-
-    // public async GetUsers(sorter: UserSorter, pageHandler: Paginator): Promise<Page<any> | null> {
-    //     let foundValues = await this.repo.TakeAll(sorter, pageHandler);
-    //     return foundValues;
-    // }
-
-    // public async CheckUserLogs(loginOrEmail: string, password: string): Promise<UserResponse | null> {
-
-    //     let user = await this.repo.GetUserByLoginOrEmail(loginOrEmail, true);
-
-    //     if (user) {
-    //         user = user as WithId<UserDataBase>;
-    //         let dbHash = user.hashedPass;
-    //         let currentHash = await bcrypt.hash(password, user.salt);
-
-    //         if (dbHash === currentHash) {
-
-    //             return new UserResponse(user._id, user);
-    //         }
-    //         return null;
-    //     }
-    //     return null;
-    // }
-
-    public async GenerateTokens(user: UserResponse): Promise<Array<Token>> {
-        let accessTokenVal = await jwt.sign({ id: user.id }, JWT_SECRET, { expiresIn: ACCESS_TOKEN_TIME });
-        let refreshTokenVal = await jwt.sign({ id: user.id }, JWT_SECRET, { expiresIn: REFRESH_TOKEN_TIME });
-
-        let accessToken: Token = {
-            accessToken: accessTokenVal
-        }
-        let refreshToken: Token = {
-            accessToken: refreshTokenVal
-        }
-
-        let tokens: Array<Token> = [accessToken, refreshToken];
-
-
-        return tokens;
-    }
-    // public async RefreshTokens(currentRefreshToken: Token): Promise<Array<Token> | null> {
-    //     let user = await this.GetUserByToken(currentRefreshToken);
-    //     if (!user) return null;
-
-    //     let updateRes = await this.repo.AppendToken(user.id, currentRefreshToken);
-    //     if (!updateRes) return null;
-
-    //     return this.GenerateTokens(user);
-    // }
-
-    // public async RefreshTokenNotUsed(userId: string, token: string): Promise<boolean> {
-    //     let user = await this.repo.TakeCertain(userId);
-
-    //     return !!user && !user.usedRefreshTokens.includes(token);
-    // }
-
-    // public async isTokenExpired(token: Token): Promise<boolean> {
-    //     try {
-    //         let decoded = await jwt.decode(token.accessToken) as JwtPayload;
-    //         if (decoded && decoded.exp) {
-    //             let nowTime: number = Date.now()
-    //             let verdict = nowTime >= decoded.exp * 1000;
-
-    //             return verdict;
-    //         }
-    //         return true;
-    //     }
-    //     catch {
-    //         return true;
-    //     }
-
-
-    // }
-    // public async GetUserByToken(token: Token): Promise<UserResponse | null> {
-    //     let userId = await this.DecodeIdFromToken(token);
-
-    //     if (userId) {
-    //         let user = await this.repo.TakeCertain(userId);
-
-    //         return user;
-    //     }
-    //     return null;
-    // }
-    // public async GetUserByMail(email: string): Promise<UserResponse | null> {
-    //     let foundUser = await this.repo.GetUserByLoginOrEmail(email, false) as UserResponse | null;
-    //     return foundUser;
-    // }
-    // public async GetUserByConfirmEmailCode(code: string): Promise<UserResponse | null> {
-    //     let foundUser = await this.repo.GetByConfirmEmailCode(code);
-
-    //     return foundUser;
-    // }
-
-    // private async DecodeIdFromToken(token: Token): Promise<string | null> {
-    //     try {
-    //         let decodeRes: any = await jwt.verify(token.accessToken, JWT_SECRET);
-    //         return decodeRes.id;
-    //     }
-    //     catch {
-    //         return null;
-    //     }
-    // }
-
-    // public async CurrentLoginOrEmailExist(login: string, email: string): Promise<LoginEmailStatus> {
-    //     let foundUserByLogin = await this.repo.GetUserByLoginOrEmail(login);
-    //     let foundUserByEmail = await this.repo.GetUserByLoginOrEmail(email);
-
-    //     if (foundUserByLogin) return LoginEmailStatus.LoginExist;
-
-    //     if (foundUserByEmail) return LoginEmailStatus.EmailEXist;
-
-    //     return LoginEmailStatus.LoginAndEmailFree;
-    // }
-
-    // public async ConfirmUser(user: UserResponse): Promise<UserResponse | null> {
-    //     let updatedUser = await this.repo.UpdateProperty(user.id, "emailConfirmed", true);
-    //     return updatedUser;
-    // }
 }
 export const userService = new AdminUserService(mongoDb, AdminAuthentication, tokenHandler)

@@ -6,6 +6,8 @@ declare global {
         export interface Request {
             accessToken: Token;
             refreshToken: Token;
+            formatedIp: string;
+            deviceName: string;
         }
     }
 }

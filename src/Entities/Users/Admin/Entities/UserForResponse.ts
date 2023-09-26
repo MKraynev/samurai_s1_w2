@@ -12,7 +12,8 @@ export class UserResponse extends UserDataBase {
             user.emailConfirmId,
             user.emailConfirmed,
             user.createdAt,
-            user.usedRefreshTokens
+            user.usedRefreshTokens,
+            user.devices
         )
 
         this.id = _id.toString();

@@ -1,7 +1,7 @@
 import { Router, Request, Response } from "express";
 import { RequestParser } from "../../../Common/Request/RequestParser/RequestParser";
 import { CompleteRequest, RequestWithBody, RequestWithParams } from "../../../Common/Request/Entities/RequestTypes";
-import { CheckFormatErrors, RequestIsAllowed } from "../../../Common/Request/RequestValidation/RequestValidation";
+import { CheckFormatErrors } from "../../../Common/Request/RequestValidation/RequestValidation";
 import { BlogRequest } from "../Entities/BlogForRequest";
 import { ValidBlogFields } from "./Middleware/BlogMiddleware";
 import { ServiseExecutionStatus, blogService } from "../BuisnessLogic/BlogService";
@@ -13,7 +13,6 @@ import { PostRequest } from "../../Posts/Entities/PostForRequest";
 export const blogRouter = Router();
 
 blogRouter.get("",
-RequestIsAllowed,
     async (request: Request, response: Response) => {
         let searchParams = RequestParser.ReadQueryBlogSorter(request);
         let pageHandler = RequestParser.ReadQueryPageHandle(request);

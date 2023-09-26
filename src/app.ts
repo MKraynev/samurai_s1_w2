@@ -9,23 +9,30 @@ import ngrok from "ngrok"
 import { PORT_NUM } from "./settings";
 import { mongoDb } from "./Common/Database/MongoDb";
 import { authRouter } from "./Entities/Users/Common/Router/AuthRouter";
+import { deviceRouter } from "./Entities/Devices/Router/DeviceRouter";
 
-export const BlogsPath = "/blogs";
-export const PostsPath = "/posts";
-export const UsersPath = "/users";
+
+var useragent = require('express-useragent');
+
+export const blogsPath = "/blogs";
+export const postsPath = "/posts";
+export const usersPath = "/users";
 export const authPath = "/auth";
 export const commentPath = "/comments";
+export const devicesPath = "/security/devices"
 
 export const TestClearAllPath = "/testing/all-data";
 
 export const app = express();
+app.use(useragent.express());
 app.use(express.json());
 app.use(cookieParser())
 
-app.use(BlogsPath, blogRouter);
-app.use(PostsPath, postRouter);
-app.use(UsersPath, userRouter);
+app.use(blogsPath, blogRouter);
+app.use(postsPath, postRouter);
+app.use(usersPath, userRouter);
 app.use(authPath, authRouter);
+app.use(devicesPath, deviceRouter);
 app.use(commentPath, commentRouter);
 app.use(TestClearAllPath, _NewTestClearAllRouter)
 

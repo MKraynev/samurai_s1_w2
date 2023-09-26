@@ -9,18 +9,21 @@ import { CONFIRM_ADRESS } from "../../../../settings";
 import { ValidUserFields } from "../../Admin/Router/Middleware/UserMiddleware";
 import { ParseAccessToken, ParseRefreshToken, ValidAuthFields } from "./Middleware/AuthMeddleware";
 import { UserServiceExecutionResult, userService } from "../BuisnessLogic/UserService";
+import { DeviceRequest } from "../../../Devices/Entities/DeviceForRequest";
 
 
 
 export const authRouter = Router();
 
 authRouter.post("/login",
+    RequestIsAllowed,
     ValidAuthFields,
     CheckFormatErrors,
     async (request: RequestWithBody<AuthRequest>, response: Response) => {
         let authRequest = new AuthRequest(request.body.loginOrEmail, request.body.password);
+        let deviceData = new DeviceRequest(request.formatedIp, request.deviceName);
 
-        let generateTokens = await userService.Login(authRequest);
+        let generateTokens = await userService.Login(authRequest, deviceData);
 
         switch (generateTokens.executionStatus) {
             case UserServiceExecutionResult.DataBaseFailed:
@@ -37,16 +40,6 @@ authRouter.post("/login",
                 response.status(200).send(generateTokens.executionResultObject!.accessToken);
                 break;
         }
-        //let user = await dataManager.userService.CheckUserLogs(request.body.loginOrEmail, request.body.password)
-
-        // if (user) {
-        //     let [accessToken, refreshToken] = await dataManager.userService.GenerateTokens(user);
-
-        //     
-        //     return;
-        // }
-
-        // response.sendStatus(401)
     })
 
 authRouter.get("/me",
@@ -72,28 +65,16 @@ authRouter.get("/me",
                 })
                 break;
         }
-        // let user = await dataManager.userService.GetUserByToken(token);
-
-        // if (user) {
-        //     response.status(200).send(
-        //         {
-        //             email: user.email,
-        //             login: user.login,
-        //             userId: user.id
-        //         })
-        //     return;
-        // }
-
-        // response.sendStatus(401);
     })
 
 authRouter.post("/refresh-token",
+    RequestIsAllowed,
     ParseRefreshToken,
     async (request: Request, response: Response) => {
         let token: Token = request.refreshToken;
-        
-        
-        let generateNewTokens = await userService.RefreshUserAccess(token);
+        let deviceData = new DeviceRequest(request.formatedIp, request.deviceName);
+
+        let generateNewTokens = await userService.RefreshUserAccess(token, deviceData);
 
         switch (generateNewTokens.executionStatus) {
             case UserServiceExecutionResult.DataBaseFailed:
@@ -117,18 +98,6 @@ authRouter.post("/refresh-token",
                 response.sendStatus(400);
                 break;
         }
-
-        // let newTokens = await dataManager.userService.RefreshTokens(token);
-
-        // if (!newTokens) {
-        //     response.sendStatus(401);
-        //     return;
-        // }
-
-        // let [accessToken, refreshToken] = newTokens;
-
-        // response.cookie("refreshToken", refreshToken.accessToken, { httpOnly: true, secure: true, })
-        // response.status(200).send(accessToken);
     })
 
 authRouter.post("/registration",
@@ -160,14 +129,6 @@ authRouter.post("/registration",
 
 
         }
-        // let savedUser = await dataManager.userService.SaveUser(reqObj);
-        // if (savedUser) {
-        //     emailSender.SendRegistrationMail(savedUser.email, CONFIRM_ADRESS, savedUser.emailConfirmId);
-        //     response.sendStatus(204);
-        //     return;
-        // }
-
-        // response.sendStatus(401);
     })
 
 authRouter.post("/registration-email-resending",
@@ -193,14 +154,6 @@ authRouter.post("/registration-email-resending",
                 response.sendStatus(400);
                 break;
         }
-        // let newLinkVal = await dataManager.userService.UpdateUserEmailConfirmId(user.id);
-        // if (newLinkVal) {
-        //     emailSender.SendRegistrationMail(user.email, CONFIRM_ADRESS, newLinkVal);
-        //     response.sendStatus(204);
-        //     return;
-        // }
-
-        // response.sendStatus(400);
     })
 
 authRouter.post("/registration-confirmation",
@@ -226,22 +179,16 @@ authRouter.post("/registration-confirmation",
                 break;
 
         }
-        // let foundUser: UserResponse = request.user;
-        // let confirmedUser = await dataManager.userService.ConfirmUser(foundUser);
-        // if (confirmedUser) {
-        //     response.sendStatus(204);
-        //     return;
-        // }
-        // response.sendStatus(400);
-
     })
 
 authRouter.post("/logout",
+    RequestIsAllowed,
     ParseRefreshToken,
     async (request: Request, response: Response) => {
         let token: Token = request.refreshToken;
+        let deviceData = new DeviceRequest(request.formatedIp, request.deviceName);
 
-        let generateNewTokens = await userService.RefreshUserAccess(token);
+        let generateNewTokens = await userService.RefreshUserAccess(token, deviceData);
 
         switch (generateNewTokens.executionStatus) {
             case UserServiceExecutionResult.DataBaseFailed:
@@ -265,12 +212,4 @@ authRouter.post("/logout",
                 response.status(400).send(accessToken);
                 break;
         }
-        // let token: Token = request.token;
-        // let newTokens = await dataManager.userService.RefreshTokens(token);
-
-        // if(newTokens){
-        //     response.sendStatus(204);
-        //     return;
-        // }
-        // response.sendStatus(401);
     })

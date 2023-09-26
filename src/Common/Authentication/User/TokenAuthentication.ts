@@ -9,20 +9,25 @@ export enum TokenStatus {
     PropertyNotFound
 }
 
+type DeviceInfo = {
+    id: string;
+    name: string;
+}
 export type TokenLoad = {
     id: string;
+    deviceId: number;
 }
 
 
-export class TokerDecodeResult {
+export class TokenDecodeResult<T> {
     constructor(
         public tokenStatus: TokenStatus,
-        public propertyVal?: string | number | boolean) { }
+        public propertyVal?: T) { }
 }
 
 export class TokenHandler {
     constructor(private secret: string) { }
-    public async DecodePropertyFromToken(token: Token, propertyName: string): Promise<TokerDecodeResult> {
+    public async DecodePropertyFromToken(token: Token, propertyName: string): Promise<TokenDecodeResult<string>> {
         try {
             let tokenStatus = await this.isTokenExpired(token);
 
@@ -30,23 +35,23 @@ export class TokenHandler {
                 case TokenStatus.Accepted:
                     break;
                 case TokenStatus.Expired:
-                    return new TokerDecodeResult(TokenStatus.Expired);
+                    return new TokenDecodeResult(TokenStatus.Expired);
                 case TokenStatus.Invalid:
                 default:
-                    return new TokerDecodeResult(TokenStatus.Invalid);
+                    return new TokenDecodeResult(TokenStatus.Invalid);
                     break;
             }
 
             let decodeRes: any = await jwt.verify(token.accessToken, this.secret);
             let propertyValue = decodeRes[propertyName] as string;
             let result = propertyValue ?
-                new TokerDecodeResult(TokenStatus.Accepted, propertyValue)
-                : new TokerDecodeResult(TokenStatus.PropertyNotFound);
+                new TokenDecodeResult<string>(TokenStatus.Accepted, propertyValue)
+                : new TokenDecodeResult<string>(TokenStatus.PropertyNotFound);
 
             return result;
         }
         catch {
-            return new TokerDecodeResult(TokenStatus.Invalid);
+            return new TokenDecodeResult(TokenStatus.Invalid);
         }
     }
     public async isTokenExpired(token: Token): Promise<TokenStatus> {
@@ -66,9 +71,10 @@ export class TokenHandler {
             return TokenStatus.Invalid;
         }
     }
-    public async GenerateToken(loadData: TokenLoad, timeExpire: string): Promise<Token | null> {
+    public async GenerateToken(loadData: TokenLoad, timeExpireInSeconds: number): Promise<Token | null> {
         try {
-            let accessTokenVal = await jwt.sign(loadData, this.secret, { expiresIn: timeExpire });
+            // let accessTokenVal = await jwt.sign(loadData, this.secret, { expiresIn: timeExpire });
+            let accessTokenVal = await jwt.sign({exp: timeExpireInSeconds,  id: loadData.id, deviceId: loadData.deviceId}, this.secret);
             let token: Token = {
                 accessToken: accessTokenVal
             }
@@ -77,6 +83,34 @@ export class TokenHandler {
         }
         catch {
             return null;
+        }
+    }
+    public async GetTokenLoad(token: Token): Promise<TokenDecodeResult<TokenLoad>> {
+        try {
+            let tokenStatus = await this.isTokenExpired(token);
+
+            switch (tokenStatus) {
+                case TokenStatus.Accepted:
+                    break;
+                case TokenStatus.Expired:
+                    return new TokenDecodeResult(TokenStatus.Expired);
+                case TokenStatus.Invalid:
+                default:
+                    return new TokenDecodeResult(TokenStatus.Invalid);
+                    break;
+            }
+
+            let decodeRes: any = await jwt.verify(token.accessToken, this.secret);
+
+            let dataFromToken: TokenLoad = {
+                id: decodeRes["id"],
+                deviceId: decodeRes["deviceId"]
+            }
+
+            return new TokenDecodeResult(TokenStatus.Accepted, dataFromToken);;
+        }
+        catch {
+            return new TokenDecodeResult(TokenStatus.Invalid);
         }
     }
 }

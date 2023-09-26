@@ -6,6 +6,7 @@ import { ADMIN_PASSWORD } from "../../../settings";
 import { requestLogService } from "../../../RequestLogger/BuisnessLogic/RequestLoggerService";
 import { RequestLogRequest } from "../../../RequestLogger/Entities/RequestLogRequest";
 
+
 export const RequestBaseAuthorized = (request: Request<{}, {}, {}, {}>, reponse: Response, next: NextFunction) => {
     let headerValue = request.header("authorization");
 
@@ -51,7 +52,7 @@ export const CheckFormatErrors = (request: Request<{}, {}, {}, {}>, response: Re
     next()
 }
 
-export const RequestIsAllowed = async (request: Request<{}, {}, {}, {}>, response: Response, next: NextFunction) => {
+export const RequestIsAllowed = async (request: Request, response: Response, next: NextFunction) => {
     let ip = FormatRequestIp(request.ip);
     let requestRoot = request.baseUrl + request.path;
     let requestIsAllowed = await requestLogService.RequestIsAllowed(ip, requestRoot);
@@ -60,6 +61,9 @@ export const RequestIsAllowed = async (request: Request<{}, {}, {}, {}>, respons
     let SaveRequest = await requestLogService.SaveRequest(reqData);
     
     if(requestIsAllowed){
+        request.formatedIp = ip;
+        
+        request.deviceName = request.useragent?.platform || "unknownDevice";
         next();
         return;
     }
