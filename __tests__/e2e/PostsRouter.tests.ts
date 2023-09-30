@@ -1,7 +1,7 @@
 import request from "supertest"
-import { BlogsPath, PostsPath, TestClearAllPath, app } from "../../src/app"
+import { TestClearAllPath, app } from "../../src/app"
 import { pagedStructure } from "./BlogsRouter.tests";
-import { Base64 } from "../../src/Common/Authentication/Base64";
+import { Base64 } from "../../src/Common/Authentication/Admin/Base64";
 
 
 

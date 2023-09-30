@@ -21,7 +21,8 @@ authRouter.post("/login",
     CheckFormatErrors,
     async (request: RequestWithBody<AuthRequest>, response: Response) => {
         let authRequest = new AuthRequest(request.body.loginOrEmail, request.body.password);
-        let deviceData = new DeviceRequest(request.formatedIp, request.deviceName);
+
+        let deviceData = new DeviceRequest(request.ip, request.deviceName);
 
         let generateTokens = await userService.Login(authRequest, deviceData);
 
@@ -38,6 +39,8 @@ authRouter.post("/login",
             case UserServiceExecutionResult.Success:
                 response.cookie("refreshToken", generateTokens.executionResultObject!.refreshToken.accessToken, { httpOnly: true, secure: true, })
                 response.status(200).send(generateTokens.executionResultObject!.accessToken);
+
+
                 break;
         }
     })
@@ -72,7 +75,7 @@ authRouter.post("/refresh-token",
     ParseRefreshToken,
     async (request: Request, response: Response) => {
         let token: Token = request.refreshToken;
-        let deviceData = new DeviceRequest(request.formatedIp, request.deviceName);
+        let deviceData = new DeviceRequest(request.ip, request.deviceName);
 
         let generateNewTokens = await userService.RefreshUserAccess(token, deviceData);
 
@@ -101,6 +104,7 @@ authRouter.post("/refresh-token",
     })
 
 authRouter.post("/registration",
+    RequestIsAllowed,
     ValidUserFields,
     CheckFormatErrors,
     async (request: RequestWithBody<UserRequest>, response: Response) => {
@@ -132,6 +136,7 @@ authRouter.post("/registration",
     })
 
 authRouter.post("/registration-email-resending",
+    RequestIsAllowed,
     ValidEmail,
     CheckFormatErrors,
     async (request: RequestWithBody<{ email: string }>, response: Response) => {
@@ -157,6 +162,7 @@ authRouter.post("/registration-email-resending",
     })
 
 authRouter.post("/registration-confirmation",
+    RequestIsAllowed,
     FieldNotEmpty("code"),
     CheckFormatErrors,
     async (request: RequestWithBody<{ code: string }>, response: Response) => {
@@ -186,9 +192,9 @@ authRouter.post("/logout",
     ParseRefreshToken,
     async (request: Request, response: Response) => {
         let token: Token = request.refreshToken;
-        let deviceData = new DeviceRequest(request.formatedIp, request.deviceName);
+        let deviceData = new DeviceRequest(request.ip, request.deviceName);
 
-        let generateNewTokens = await userService.RefreshUserAccess(token, deviceData);
+        let generateNewTokens = await userService.RefreshUserAccess(token, deviceData, true);
 
         switch (generateNewTokens.executionStatus) {
             case UserServiceExecutionResult.DataBaseFailed:
@@ -200,16 +206,6 @@ authRouter.post("/logout",
                 break;
 
             case UserServiceExecutionResult.Success:
-                let accessToken = generateNewTokens.executionResultObject?.accessToken;
-                let refreshToken = generateNewTokens.executionResultObject?.accessToken;
-
-                if (accessToken && refreshToken) {
-                    response.cookie("refreshToken", refreshToken.accessToken, { httpOnly: true, secure: true, })
-                    response.sendStatus(204);
-                    return;
-                }
-
-                response.status(400).send(accessToken);
-                break;
+                response.sendStatus(204);
         }
     })

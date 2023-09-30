@@ -1,7 +1,7 @@
 import { Router, Response } from "express";
 import { CompleteRequest, RequestWithParams } from "../../../Common/Request/Entities/RequestTypes";
 import { ValidCommentFields } from "./Middleware/CommentMiddleware";
-import { CommentServiceExecutionResult, commentService } from "../BuisnessLogic/CommentService";
+import { ServicesWithUsersExecutionResult, commentService } from "../BuisnessLogic/CommentService";
 import { Token } from "../../Users/Common/Entities/Token";
 import { CheckFormatErrors } from "../../../Common/Request/RequestValidation/RequestValidation";
 import { ParseAccessToken } from "../../Users/Common/Router/Middleware/AuthMeddleware";
@@ -14,15 +14,15 @@ commentRouter.get("/:id",
         let findComment = await commentService.GetCommentById(request.params.id);
 
         switch (findComment.executionStatus) {
-            case CommentServiceExecutionResult.Success:
+            case ServicesWithUsersExecutionResult.Success:
                 let comment = findComment.executionResultObject;
                 if (comment) {
                     response.status(200).send(comment);
                     return;
                 }
 
-            case CommentServiceExecutionResult.DataBaseFailed:
-            case CommentServiceExecutionResult.NotFound:
+            case ServicesWithUsersExecutionResult.DataBaseFailed:
+            case ServicesWithUsersExecutionResult.NotFound:
             default:
                 response.sendStatus(404);
                 break;
@@ -51,22 +51,22 @@ commentRouter.delete("/:id",
         let deleteComment = await commentService.DeleteComment(id, token);
 
         switch (deleteComment.executionStatus) {
-            case CommentServiceExecutionResult.Success:
+            case ServicesWithUsersExecutionResult.Success:
                 if (deleteComment.executionResultObject) {
                     response.sendStatus(204);
                     return;
                 }
 
-            case CommentServiceExecutionResult.Unauthorized:
+            case ServicesWithUsersExecutionResult.Unauthorized:
                 response.sendStatus(401);
                 break;
 
-            case CommentServiceExecutionResult.WrongUser:
+            case ServicesWithUsersExecutionResult.WrongUser:
                 response.sendStatus(403);
                 break;
 
-            case CommentServiceExecutionResult.NotFound:
-            case CommentServiceExecutionResult.DataBaseFailed:
+            case ServicesWithUsersExecutionResult.NotFound:
+            case ServicesWithUsersExecutionResult.DataBaseFailed:
             default:
                 response.sendStatus(404);
                 break;
@@ -99,22 +99,22 @@ commentRouter.put("/:id",
         let updateComment = await commentService.UpdateComment(commentId, userToken, content);
 
         switch (updateComment.executionStatus) {
-            case CommentServiceExecutionResult.Success:
+            case ServicesWithUsersExecutionResult.Success:
                 if (updateComment.executionResultObject) {
                     response.sendStatus(204);
                     return;
                 }
 
-            case CommentServiceExecutionResult.Unauthorized:
+            case ServicesWithUsersExecutionResult.Unauthorized:
                 response.sendStatus(401);
                 break;
 
-            case CommentServiceExecutionResult.WrongUser:
+            case ServicesWithUsersExecutionResult.WrongUser:
                 response.sendStatus(403);
                 break;
 
-            case CommentServiceExecutionResult.NotFound:
-            case CommentServiceExecutionResult.DataBaseFailed:
+            case ServicesWithUsersExecutionResult.NotFound:
+            case ServicesWithUsersExecutionResult.DataBaseFailed:
             default:
                 response.sendStatus(404);
                 break;

@@ -1,4 +1,4 @@
-import { DeviceResponse } from "../../../Devices/Entities/DeviceForDataBase";
+import { DeviceDataBase } from "../../../Devices/Entities/DeviceForDataBase";
 import { UserRequest } from "./UserForRequest";
 
 export class UserDataBase {
@@ -10,8 +10,7 @@ export class UserDataBase {
         public emailConfirmId: string,
         public emailConfirmed: boolean = false,
         public createdAt: string = (new Date()).toISOString(),
-        public usedRefreshTokens: Array<string> = [],
-        public devices: Array<DeviceResponse> = []
+        public usedRefreshTokens: Array<string> = []
     ) {
     }
 }

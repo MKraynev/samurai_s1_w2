@@ -5,6 +5,6 @@ export class RequestLogDataBase extends RequestLogRequest {
         requestLog: RequestLogRequest,
         public requestTime: string = (new Date()).toISOString()
     ) {
-        super(requestLog.ip, requestLog.root)
+        super(requestLog.ip, requestLog.root, requestLog.info)
     }
 }

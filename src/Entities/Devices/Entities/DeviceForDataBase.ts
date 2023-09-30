@@ -1,10 +1,10 @@
 import { DeviceRequest } from "./DeviceForRequest";
 
-export class DeviceResponse extends DeviceRequest {
+export class DeviceDataBase extends DeviceRequest {
     constructor(
         deviceData: DeviceRequest,
+        public userId: string,
         public lastActiveDate: string,
-        public deviceId: number,
         public expireTime: string) {
         super(deviceData.ip, deviceData.title);
 

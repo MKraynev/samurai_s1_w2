@@ -24,6 +24,8 @@ export const devicesPath = "/security/devices"
 export const TestClearAllPath = "/testing/all-data";
 
 export const app = express();
+app.set('trust proxy', true);
+
 app.use(useragent.express());
 app.use(express.json());
 app.use(cookieParser())

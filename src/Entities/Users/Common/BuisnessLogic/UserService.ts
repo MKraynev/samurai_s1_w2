@@ -17,8 +17,11 @@ import { AdminAuthentication, AuthenticationResult, IAuthenticator } from "../..
 import { Request } from "express"
 import { AuthRequest } from "../Entities/AuthRequest";
 import { DeviceRequest } from "../../../Devices/Entities/DeviceForRequest";
-import { DeviceResponse } from "../../../Devices/Entities/DeviceForDataBase";
+import { DeviceDataBase } from "../../../Devices/Entities/DeviceForDataBase";
 import ms from "ms"
+import { deviceService } from "../../../Devices/BuisnessLogic/DeviceService";
+import { DeviceResponse } from "../../../Devices/Entities/DeviceForResponse";
+import { ServicesWithUsersExecutionResult } from "../../../Comments/BuisnessLogic/CommentService";
 
 
 export enum LoginEmailStatus {
@@ -48,6 +51,8 @@ type LoginTokens = {
 
 export class AdminUserService {
     private userTable = AvailableDbTables.users;
+    private deviceTable = AvailableDbTables.devices;
+
     private usedTokenName = "usedRefreshTokens";
 
     constructor(private _db: MongoDb, private _authenticator: IAuthenticator, private tokenHandler: TokenHandler) { }
@@ -139,7 +144,12 @@ export class AdminUserService {
             return new ExecutionResultContainer(UserServiceExecutionResult.WrongPassword);
         }
 
-        let availableDeviceNumber = user.devices.length + 1;
+        let getUserDevices = await deviceService.GetUserDevicesByUserId(user.id);
+
+        let availableUserDevices = getUserDevices.executionResultObject || [];
+
+        let devicePositionIfSuchDeviceAlreadyExist = availableUserDevices.findIndex(device => device.ip === deviceData.ip && device.title === deviceData.title);
+
         let activationTime = new Date();
 
         let refreshTokenExpireTime_ms = activationTime.getTime() + ms(REFRESH_TOKEN_TIME);
@@ -149,26 +159,33 @@ export class AdminUserService {
         let accessTokenexpireTime = new Date(accessTokenExpireTime_ms);
 
 
-        let deviceDataToSave = new DeviceResponse(deviceData, activationTime.toISOString(), availableDeviceNumber, refreshTokenexpireTime.toISOString())
+        let deviceDataToSave = new DeviceDataBase(deviceData, user.id, activationTime.toISOString(), refreshTokenexpireTime.toISOString())
 
-        // let saveLoginDevice = 
-        this._db.AppendOneProperty(this.userTable, user.id, "devices", deviceDataToSave);
+        let deviceDbOperation: ExecutionResultContainer<ExecutionResult, DeviceResponse>;
 
-        // if (saveLoginDevice.executionStatus !== ExecutionResult.Pass) {
-        //     return new ExecutionResultContainer(UserServiceExecutionResult.DataBaseFailed);
-        // }
+        if (devicePositionIfSuchDeviceAlreadyExist > -1) {
+            let deviceId = availableUserDevices[devicePositionIfSuchDeviceAlreadyExist].id;
+            deviceDbOperation = await this._db.UpdateOne(this.deviceTable, deviceId, deviceDataToSave) as ExecutionResultContainer<ExecutionResult, DeviceResponse>;
+        }
+        else {
+            deviceDbOperation = await this._db.SetOne(this.deviceTable, deviceDataToSave) as ExecutionResultContainer<ExecutionResult, DeviceResponse>;
+        }
+
+
+        if (deviceDbOperation.executionStatus !== ExecutionResult.Pass || !deviceDbOperation.executionResultObject) {
+            return new ExecutionResultContainer(UserServiceExecutionResult.DataBaseFailed);
+        }
+
+        let device = deviceDbOperation.executionResultObject;
+
 
         let tokenLoad: TokenLoad = {
             id: findUser.executionResultObject.id,
-            deviceId: deviceDataToSave.deviceId,
+            deviceId: device.id,
         };
 
-        // tokenLoad.id = findUser.executionResultObject.id;
-
-        // let accessToken = await this.tokenHandler.GenerateToken(tokenLoad, ACCESS_TOKEN_TIME);
-        // let refreshToken = await this.tokenHandler.GenerateToken(tokenLoad, REFRESH_TOKEN_TIME);
-        let accessToken = await this.tokenHandler.GenerateToken(tokenLoad, accessTokenexpireTime.getTime() * 1000);
-        let refreshToken = await this.tokenHandler.GenerateToken(tokenLoad, refreshTokenexpireTime.getTime() * 1000);
+        let accessToken = await this.tokenHandler.GenerateToken(tokenLoad, ACCESS_TOKEN_TIME);
+        let refreshToken = await this.tokenHandler.GenerateToken(tokenLoad, REFRESH_TOKEN_TIME);
 
         if (!accessToken || !refreshToken) {
             return new ExecutionResultContainer(UserServiceExecutionResult.ServiceFail);
@@ -182,12 +199,12 @@ export class AdminUserService {
         return new ExecutionResultContainer(UserServiceExecutionResult.Success, tokens);
     }
     public async GetUserByToken(token: Token): Promise<ExecutionResultContainer<UserServiceExecutionResult, UserResponse>> {
-        let parceUserId = await this.tokenHandler.DecodePropertyFromToken(token, "id");
+        let getTokenLoad = await this.tokenHandler.GetTokenLoad(token);
 
-        if (parceUserId.tokenStatus !== TokenStatus.Accepted || !parceUserId.propertyVal) {
+        if (getTokenLoad.tokenStatus !== TokenStatus.Accepted || !getTokenLoad.result) {
             return new ExecutionResultContainer(UserServiceExecutionResult.NotFound);
         }
-        let id = parceUserId.propertyVal as string;
+        let id = getTokenLoad.result.id;
 
         let userSearch = await this._db.GetOneById(this.userTable, id) as UserServiceDto;
         if (userSearch.executionStatus === ExecutionResult.Failed || !userSearch.executionResultObject) {
@@ -196,7 +213,7 @@ export class AdminUserService {
 
         return new ExecutionResultContainer(UserServiceExecutionResult.Success, userSearch.executionResultObject);
     }
-    public async RefreshUserAccess(refreshToken: Token, deviceData: DeviceRequest): Promise<ExecutionResultContainer<UserServiceExecutionResult, LoginTokens>> {
+    public async RefreshUserAccess(refreshToken: Token, deviceData: DeviceRequest, skipDeviceSaving: boolean = false): Promise<ExecutionResultContainer<UserServiceExecutionResult, LoginTokens | null>> {
 
         let findUser = await userService.GetUserByToken(refreshToken) as ExecutionResultContainer<UserServiceExecutionResult, UserResponse>;
         let user = findUser.executionResultObject;
@@ -210,40 +227,21 @@ export class AdminUserService {
         }
 
         let getTokenData = await this.tokenHandler.GetTokenLoad(refreshToken);
-        let tokenData = getTokenData.propertyVal;
+        let tokenData = getTokenData.result;
 
         if (!tokenData) {
             return new ExecutionResultContainer(UserServiceExecutionResult.Unauthorized);
         }
 
-        let tokenDeviceIdNotIncludeInUserDevices = user.devices.findIndex(device => device.deviceId === tokenData!.deviceId) === -1;
-
-        if (tokenDeviceIdNotIncludeInUserDevices) {
-            return new ExecutionResultContainer(UserServiceExecutionResult.Unauthorized);
-        }
-
-        let updateTime = new Date();
-        let expireTime_ms = updateTime.getTime() + ms(REFRESH_TOKEN_TIME);
-        let expireTime = new Date(expireTime_ms);
-
-        user.devices.map(device => {
-            if (device.deviceId === tokenData!.deviceId) {
-                device.ip = deviceData.ip;
-                device.lastActiveDate = updateTime.toISOString();
-                device.expireTime = expireTime.toISOString();
-            }
-            return device;
-        })
-
-        let appendToken = await this._db.AppendOneProperty(this.userTable, user.id, this.usedTokenName, refreshToken.accessToken);
-        let updateDeviceData = await this._db.UpdateOneProperty(this.userTable, user.id, "devices", user.devices)
-        if (appendToken.executionStatus === ExecutionResult.Failed)
-            return new ExecutionResultContainer(UserServiceExecutionResult.NotFound);
-
         let tokenLoad: TokenLoad = {
             id: user.id,
             deviceId: tokenData.deviceId,
         }
+
+        let saveUsedToken = await this._db.AppendOneProperty(this.userTable, user.id, this.usedTokenName, refreshToken.accessToken);
+
+        if (saveUsedToken.executionStatus === ExecutionResult.Failed)
+            return new ExecutionResultContainer(UserServiceExecutionResult.NotFound);
 
 
         let activationTime = new Date();
@@ -251,14 +249,19 @@ export class AdminUserService {
         let refreshTokenExpireTime_ms = activationTime.getTime() + ms(REFRESH_TOKEN_TIME);
         let refreshTokenexpireTime = new Date(refreshTokenExpireTime_ms);
 
-        let accessTokenExpireTime_ms = activationTime.getTime() + ms(ACCESS_TOKEN_TIME);
-        let accessTokenexpireTime = new Date(accessTokenExpireTime_ms);
+        let accessToken = await this.tokenHandler.GenerateToken(tokenLoad, ACCESS_TOKEN_TIME);
+        let newRefreshToken = await this.tokenHandler.GenerateToken(tokenLoad, REFRESH_TOKEN_TIME);
 
-        let accessToken = await this.tokenHandler.GenerateToken(tokenLoad, accessTokenexpireTime.getTime() * 1000);
-        let newRefreshToken = await this.tokenHandler.GenerateToken(tokenLoad, refreshTokenexpireTime.getTime() * 1000);
 
-        // let accessToken = await this.tokenHandler.GenerateToken(tokenLoad, ACCESS_TOKEN_TIME);
-        // let newRefreshToken = await this.tokenHandler.GenerateToken(tokenLoad, REFRESH_TOKEN_TIME);
+        if (skipDeviceSaving) {
+            let deleteUsedDevice = await deviceService.DeleteDeviceByDeviceId(tokenData.deviceId, user.id);
+            return new ExecutionResultContainer(UserServiceExecutionResult.Success, null);
+        }
+        else {
+            let deviceInfo = new DeviceDataBase(deviceData, user.id, activationTime.toISOString(), refreshTokenexpireTime.toISOString())
+            let updateDeviceInfo = await this._db.UpdateOne(this.deviceTable, tokenData.deviceId, deviceInfo);
+        }
+
 
         if (accessToken && newRefreshToken) {
             let tokens: LoginTokens = {

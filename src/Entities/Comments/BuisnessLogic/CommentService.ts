@@ -6,7 +6,7 @@ import { UserServiceExecutionResult, userService } from "../../Users/Common/Buis
 
 type CommentServiceDto = ExecutionResultContainer<ExecutionResult, CommentResponse>;
 
-export enum CommentServiceExecutionResult {
+export enum ServicesWithUsersExecutionResult {
     DataBaseFailed,
     Unauthorized,
     WrongUser,
@@ -20,72 +20,72 @@ class CommentService {
 
     constructor(private _db: MongoDb) { }
 
-    public async GetCommentById(id: string): Promise<ExecutionResultContainer<CommentServiceExecutionResult, CommentResponse | null>> {
+    public async GetCommentById(id: string): Promise<ExecutionResultContainer<ServicesWithUsersExecutionResult, CommentResponse | null>> {
         let foundObjectsOperation = await this._db.GetOneById(this.commentTable, id) as CommentServiceDto;
 
         if (foundObjectsOperation.executionStatus === ExecutionResult.Failed) {
-            return new ExecutionResultContainer(CommentServiceExecutionResult.DataBaseFailed);
+            return new ExecutionResultContainer(ServicesWithUsersExecutionResult.DataBaseFailed);
         }
 
         if (!foundObjectsOperation.executionResultObject)
-            return new ExecutionResultContainer(CommentServiceExecutionResult.NotFound);
+            return new ExecutionResultContainer(ServicesWithUsersExecutionResult.NotFound);
 
-        return new ExecutionResultContainer(CommentServiceExecutionResult.Success, foundObjectsOperation.executionResultObject);
+        return new ExecutionResultContainer(ServicesWithUsersExecutionResult.Success, foundObjectsOperation.executionResultObject);
     }
-    public async DeleteComment(id: string, userToken: Token): Promise<ExecutionResultContainer<CommentServiceExecutionResult, boolean | null>> {
+    public async DeleteComment(id: string, userToken: Token): Promise<ExecutionResultContainer<ServicesWithUsersExecutionResult, boolean | null>> {
 
         let findUser = await userService.GetUserByToken(userToken);
         let findComment = await this._db.GetOneById(this.commentTable, id) as CommentServiceDto;
 
         if (findUser.executionStatus === UserServiceExecutionResult.NotFound ||
             !findUser.executionResultObject)
-            return new ExecutionResultContainer(CommentServiceExecutionResult.Unauthorized);
+            return new ExecutionResultContainer(ServicesWithUsersExecutionResult.Unauthorized);
 
         if (findComment.executionStatus === ExecutionResult.Failed ||
             !findComment.executionResultObject)
-            return new ExecutionResultContainer(CommentServiceExecutionResult.NotFound);
+            return new ExecutionResultContainer(ServicesWithUsersExecutionResult.NotFound);
 
         let user = findUser.executionResultObject;
         let comment = findComment.executionResultObject;
 
         if (user.id !== comment.commentatorInfo.userId)
-            return new ExecutionResultContainer(CommentServiceExecutionResult.Unauthorized);
+            return new ExecutionResultContainer(ServicesWithUsersExecutionResult.WrongUser);
 
 
         let deleteOperation = await this._db.DeleteOne(this.commentTable, id);
 
         if (deleteOperation.executionStatus === ExecutionResult.Failed ||
             !deleteOperation.executionResultObject)
-            return new ExecutionResultContainer(CommentServiceExecutionResult.DataBaseFailed);
+            return new ExecutionResultContainer(ServicesWithUsersExecutionResult.DataBaseFailed);
 
 
-        return new ExecutionResultContainer(CommentServiceExecutionResult.Success, true);
+        return new ExecutionResultContainer(ServicesWithUsersExecutionResult.Success, true);
     }
 
-    public async UpdateComment(id: string, userToken: Token, content: string): Promise<ExecutionResultContainer<CommentServiceExecutionResult, CommentResponse | null>> {
+    public async UpdateComment(id: string, userToken: Token, content: string): Promise<ExecutionResultContainer<ServicesWithUsersExecutionResult, CommentResponse | null>> {
         let findUser = await userService.GetUserByToken(userToken);
         let findComment = await this._db.GetOneById(this.commentTable, id) as CommentServiceDto;
 
         if (findUser.executionStatus === UserServiceExecutionResult.NotFound ||
             !findUser.executionResultObject)
-            return new ExecutionResultContainer(CommentServiceExecutionResult.Unauthorized);
+            return new ExecutionResultContainer(ServicesWithUsersExecutionResult.Unauthorized);
 
         if (findComment.executionStatus === ExecutionResult.Failed ||
             !findComment.executionResultObject)
-            return new ExecutionResultContainer(CommentServiceExecutionResult.NotFound);
+            return new ExecutionResultContainer(ServicesWithUsersExecutionResult.NotFound);
 
         let user = findUser.executionResultObject;
         let comment = findComment.executionResultObject;
 
         if (user.id !== comment.commentatorInfo.userId)
-            return new ExecutionResultContainer(CommentServiceExecutionResult.Unauthorized);
+            return new ExecutionResultContainer(ServicesWithUsersExecutionResult.Unauthorized);
 
         let updateComment = await this._db.UpdateOneProperty(this.commentTable, id, "content", content) as CommentServiceDto;
         if (updateComment.executionStatus === ExecutionResult.Failed ||
             !updateComment.executionResultObject)
-            return new ExecutionResultContainer(CommentServiceExecutionResult.DataBaseFailed);
+            return new ExecutionResultContainer(ServicesWithUsersExecutionResult.DataBaseFailed);
 
-            return new ExecutionResultContainer(CommentServiceExecutionResult.Success, updateComment.executionResultObject);
+            return new ExecutionResultContainer(ServicesWithUsersExecutionResult.Success, updateComment.executionResultObject);
     }
 }
 

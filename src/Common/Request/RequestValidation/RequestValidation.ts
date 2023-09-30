@@ -53,17 +53,19 @@ export const CheckFormatErrors = (request: Request<{}, {}, {}, {}>, response: Re
 }
 
 export const RequestIsAllowed = async (request: Request, response: Response, next: NextFunction) => {
-    let ip = FormatRequestIp(request.ip);
+    
+    let ip = request.ip;
+
     let requestRoot = request.baseUrl + request.path;
-    let requestIsAllowed = await requestLogService.RequestIsAllowed(ip, requestRoot);
-    
-    let reqData = new RequestLogRequest(ip, requestRoot);
+    let reqData = new RequestLogRequest(ip, requestRoot, request.useragent?.source || "unknownDevice")
+
     let SaveRequest = await requestLogService.SaveRequest(reqData);
+    console.log("Запрос сохранен в бд", SaveRequest, requestRoot)
+    let requestIsAllowed = await requestLogService.RequestIsAllowed(reqData);
     
-    if(requestIsAllowed){
-        request.formatedIp = ip;
-        
-        request.deviceName = request.useragent?.platform || "unknownDevice";
+
+    if (requestIsAllowed) {    
+        request.deviceName = reqData.info;
         next();
         return;
     }
@@ -75,9 +77,9 @@ const FormatRequestIp = (reqIp: string): string => {
     let availableLetters: string[] = ["0", "1", "2", "3", "4", "5", "6", "7", "8", "9", "."];
     let resultVal = "";
 
-    for(let letterPos = 0; letterPos < reqIp.length; letterPos++){
-        if(availableLetters.includes(reqIp[letterPos]))
-        resultVal += reqIp[letterPos];
+    for (let letterPos = 0; letterPos < reqIp.length; letterPos++) {
+        if (availableLetters.includes(reqIp[letterPos]))
+            resultVal += reqIp[letterPos];
     }
     return resultVal;
 }

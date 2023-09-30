@@ -12,6 +12,7 @@ export class LogSorter extends Sorter<RequestLogResponse>{
         public sorterType: SorterType,
         public ip: string,
         public serviceRoot: string,
+        public deviceInfo: string,
         public sortBy: keyof RequestLogResponse & string = "requestTime",
         public sortDirection: "desc" | "asc" = "desc"
     ) {
@@ -25,8 +26,8 @@ class RequestLoggerService {
     constructor(private _db: MongoDb) { }
 
 
-    private async GetLogs(ip: string, serviceRoot: string, logsCount: number): Promise<ExecutionResultContainer<ServiseExecutionStatus, RequestLogResponse[] | null>> {
-        let sorter = new LogSorter(SorterType.LogSorter, ip, serviceRoot);
+    private async GetLogs(data: RequestLogRequest, logsCount: number): Promise<ExecutionResultContainer<ServiseExecutionStatus, RequestLogResponse[] | null>> {
+        let sorter = new LogSorter(SorterType.LogSorter, data.ip, data.root, data.info);
 
         let logs = await this._db.GetMany(this.logTable, sorter, 0, logsCount) as ExecutionResultContainer<ExecutionResult, RequestLogResponse[]>;
 
@@ -37,31 +38,37 @@ class RequestLoggerService {
         return new ExecutionResultContainer(ServiseExecutionStatus.Success, logs.executionResultObject);
     }
 
-    public async RequestIsAllowed(ip: string, serviceRoot: string): Promise<boolean> {
+    public async RequestIsAllowed(data: RequestLogRequest): Promise<boolean> {
         try {
-            let getLastLogs = await this.GetLogs(ip, serviceRoot, REQUEST_LIMIT_COUNT - 1);
-            if (getLastLogs.executionStatus !== ServiseExecutionStatus.Success) {
+            let getLastLogs = await this.GetLogs(data, REQUEST_LIMIT_COUNT);
+            if (getLastLogs.executionStatus !== ServiseExecutionStatus.Success || !getLastLogs.executionResultObject) {
                 return true;
             }
 
             let logs = getLastLogs.executionResultObject;
+            let logsCount = logs.length;
 
-            let logsCount = logs?.length || 0;
-
-            let nowRequestTime = new Date();
-
+            console.log("Имеющиеся логи по запросу:", logs, logsCount)
+            
+            let recentRequestTime = logs[0].requestTime;
             let lastRequestTime: string | undefined = logs?.pop()?.requestTime;
 
             if (!lastRequestTime) {
                 return true;
             }
 
-            let diff_ms = nowRequestTime.getTime() - (new Date(lastRequestTime)).getTime();
+            let actualRequestTime = new Date(recentRequestTime);
+            let earlyestRequestTime = new Date(lastRequestTime);
+            console.log("Текущее и самое раннее время")
 
-            let result = (logsCount < REQUEST_LIMIT_COUNT - 1) || (diff_ms / 1000 > REQUEST_LIMIT_SECONDS)
+            console.log(actualRequestTime.toISOString(), earlyestRequestTime.toISOString())
 
+            let diff_ms = actualRequestTime.getTime() - earlyestRequestTime.getTime();
+            console.log("Разница [ms]:", diff_ms)
+            let result = (logsCount < REQUEST_LIMIT_COUNT) || ((diff_ms / 1000) > REQUEST_LIMIT_SECONDS)
+
+            console.log("(logsCount < REQUEST_LIMIT_COUNT) || ((diff_ms / 1000) > REQUEST_LIMIT_SECONDS) =", result)
             return result;
-
         }
         catch {
             return true;

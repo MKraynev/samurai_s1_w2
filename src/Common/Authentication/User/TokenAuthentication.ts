@@ -15,14 +15,14 @@ type DeviceInfo = {
 }
 export type TokenLoad = {
     id: string;
-    deviceId: number;
+    deviceId: string;
 }
 
 
 export class TokenDecodeResult<T> {
     constructor(
         public tokenStatus: TokenStatus,
-        public propertyVal?: T) { }
+        public result?: T) { }
 }
 
 export class TokenHandler {
@@ -59,9 +59,9 @@ export class TokenHandler {
             // let decoded = await jwt.decode(token.accessToken) as JwtPayload;
             let decoded = await jwt.verify(token.accessToken, this.secret) as JwtPayload
             if (decoded && decoded.exp) {
-                let nowTime: number = Date.now()
+                let nowTime: number = new Date().getTime();
                 let tokenIsFresh = nowTime <= decoded.exp * 1000;
-
+                
                 let status: TokenStatus = tokenIsFresh ? TokenStatus.Accepted : TokenStatus.Expired;
                 return status;
             }
@@ -71,10 +71,10 @@ export class TokenHandler {
             return TokenStatus.Invalid;
         }
     }
-    public async GenerateToken(loadData: TokenLoad, timeExpireInSeconds: number): Promise<Token | null> {
+    public async GenerateToken(loadData: TokenLoad, timeExpire: string): Promise<Token | null> {
         try {
-            // let accessTokenVal = await jwt.sign(loadData, this.secret, { expiresIn: timeExpire });
-            let accessTokenVal = await jwt.sign({exp: timeExpireInSeconds,  id: loadData.id, deviceId: loadData.deviceId}, this.secret);
+            let accessTokenVal = await jwt.sign(loadData, this.secret, { expiresIn: timeExpire });
+
             let token: Token = {
                 accessToken: accessTokenVal
             }

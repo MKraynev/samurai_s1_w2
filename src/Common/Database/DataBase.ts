@@ -19,7 +19,8 @@ export enum AvailableDbTables {
     posts = "posts",
     users = "users",
     comments = "comments",
-    requestLogs = "requestsLog"
+    requestLogs = "requestsLog",
+    devices = "devices"
 }
 
 export abstract class DataBase<SaveObject, UpdateObject, ReturnObject> {
@@ -36,6 +37,7 @@ export abstract class DataBase<SaveObject, UpdateObject, ReturnObject> {
 
     abstract DeleteOne(tableName: AvailableDbTables, id: string): Promise<ExecutionResultContainer<ExecutionResult, boolean | undefined>>;
     abstract DeleteAll(tableName: AvailableDbTables): Promise<ExecutionResultContainer<ExecutionResult, boolean | undefined>>;
+    abstract DeleteMany(tableName: AvailableDbTables, sorter: Sorter<any>): Promise<ExecutionResultContainer<ExecutionResult, boolean | undefined>>;
 
     abstract Count(tableName: AvailableDbTables, sorter: Sorter<any>): Promise<ExecutionResultContainer<ExecutionResult, number | undefined>>;
     abstract RunDb(): Promise<ExecutionResultContainer<ExecutionResult, boolean | undefined>>;
