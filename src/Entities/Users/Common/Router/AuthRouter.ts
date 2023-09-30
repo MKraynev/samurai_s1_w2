@@ -7,7 +7,7 @@ import { emailSender } from "../../../../EmailHandler/EmailSender";
 import { Token } from "../Entities/Token";
 import { CONFIRM_ADRESS } from "../../../../settings";
 import { ValidUserFields } from "../../Admin/Router/Middleware/UserMiddleware";
-import { ParseAccessToken, ParseRefreshToken, ValidAuthFields } from "./Middleware/AuthMeddleware";
+import { ParseAccessToken, ParseRefreshToken, ValidAuthFields, ValidAuthRefreshPasswordFields } from "./Middleware/AuthMeddleware";
 import { UserServiceExecutionResult, userService } from "../BuisnessLogic/UserService";
 import { DeviceRequest } from "../../../Devices/Entities/DeviceForRequest";
 
@@ -209,3 +209,56 @@ authRouter.post("/logout",
                 response.sendStatus(204);
         }
     })
+
+// /hometask_10/api/auth/password-recovery
+authRouter.post("/password-recovery",
+    RequestIsAllowed,
+    ValidEmail,
+    CheckFormatErrors,
+    async (request: RequestWithBody<{ email: string }>, response: Response) => {
+        let email = request.body.email;
+
+        let getConfirmCode = await userService.RefreshUserPassword(email);
+
+        switch (getConfirmCode.executionStatus) {
+            case UserServiceExecutionResult.Success:
+                let refreshCode = getConfirmCode.executionResultObject;
+                if (refreshCode) {
+                    emailSender.SendRegistrationMail(email, CONFIRM_ADRESS, refreshCode);
+                    response.sendStatus(204);
+                }
+                else {
+                    response.sendStatus(404);
+                }
+                break;
+
+            case UserServiceExecutionResult.NotFound:
+                response.sendStatus(204);
+                break;
+
+            default:
+                response.sendStatus(400);
+                break;
+        }
+    })
+
+authRouter.post("/new-password",
+    ValidAuthRefreshPasswordFields,
+    CheckFormatErrors,
+    async (request: RequestWithBody<{ recoveryCode: string, newPassword: string }>, response: Response) => {
+        let code = request.body.recoveryCode;
+        let password = request.body.newPassword;
+
+        let updateUserPassword = await userService.ConfirmRefreshUserPassword(code, password);
+
+        switch (updateUserPassword.executionStatus) {
+            case UserServiceExecutionResult.Success:
+                response.sendStatus(204);
+                break;
+
+            default:
+                response.sendStatus(400);
+                break;
+        }
+    }
+)

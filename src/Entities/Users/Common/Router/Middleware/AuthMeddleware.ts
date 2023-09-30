@@ -65,6 +65,11 @@ export const ValidAuthFields = [
     FieldNotEmpty("password"), FieldMinLength("password", 6), FieldMaxLength("password", 20),
 ];
 
+export const ValidAuthRefreshPasswordFields = [
+    FieldNotEmpty("recoveryCode"),
+    FieldNotEmpty("newPassword"), FieldMinLength("newPassword", 6), FieldMaxLength("newPassword", 20)
+]
+
 export const ParseAccessToken = async (request: Request, response: Response, next: NextFunction) => {
     let headerString: string | undefined = request.header("authorization");
     if (headerString?.toLocaleLowerCase().startsWith("bearer ")) {
@@ -75,7 +80,7 @@ export const ParseAccessToken = async (request: Request, response: Response, nex
         request.accessToken = token;
         next();
     }
-    else{
+    else {
         response.sendStatus(401);
         return;
     }
@@ -83,8 +88,8 @@ export const ParseAccessToken = async (request: Request, response: Response, nex
 
 export const ParseRefreshToken = (request: Request, response: Response, next: NextFunction) => {
     let tokenVal = request.cookies[TOKEN_COOKIE_NAME];
-    
-    if(!tokenVal){
+
+    if (!tokenVal) {
         response.sendStatus(401);
         return;
     }

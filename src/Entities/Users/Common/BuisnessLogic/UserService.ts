@@ -2,7 +2,7 @@ import { UserRequest } from "../../Admin/Entities/UserForRequest";
 import { UserSorter } from "../../Repo/UserSorter";
 import { Paginator } from "../../../../Common/Paginator/PageHandler";
 import { Page } from "../../../../Common/Paginator/Page";
-import { ACCESS_TOKEN_TIME, JWT_SECRET, REFRESH_TOKEN_TIME } from "../../../../settings";
+import { ACCESS_TOKEN_TIME, JWT_SECRET, REFRESH_PASSWORD_TOKEN_TIME, REFRESH_TOKEN_TIME } from "../../../../settings";
 import { Token } from "../Entities/Token";
 import { UserResponse } from "../../Admin/Entities/UserForResponse";
 import bcrypt from "bcrypt";
@@ -11,7 +11,7 @@ import { UniqueValGenerator } from "../../../../Common/DataManager/HandleFunctio
 import { UserDataBase } from "../../Admin/Entities/UserForDataBase";
 import { MongoDb, mongoDb } from "../../../../Common/Database/MongoDb";
 import { AvailableDbTables, ExecutionResult, ExecutionResultContainer } from "../../../../Common/Database/DataBase";
-import { TokenHandler, TokenLoad, TokenStatus, tokenHandler } from "../../../../Common/Authentication/User/TokenAuthentication";
+import { RefreshUserPasswordToken, TokenHandler, TokenLoad, TokenStatus, tokenHandler } from "../../../../Common/Authentication/User/TokenAuthentication";
 import { ServiseExecutionStatus } from "../../../Blogs/BuisnessLogic/BlogService";
 import { AdminAuthentication, AuthenticationResult, IAuthenticator } from "../../../../Common/Authentication/Admin/AdminAuthenticator";
 import { Request } from "express"
@@ -299,6 +299,78 @@ export class AdminUserService {
             return new ExecutionResultContainer(UserServiceExecutionResult.Success, confirmUser.executionResultObject);
 
         return new ExecutionResultContainer(UserServiceExecutionResult.DataBaseFailed);
+    }
+
+    public async RefreshUserPassword(userEmail: string): Promise<ExecutionResultContainer<UserServiceExecutionResult, string>> {
+        let findUser = await this._db.GetOneByValueInOnePropery(this.userTable, "email", userEmail) as UserServiceDto;
+        let user = findUser.executionResultObject;
+
+        if (findUser.executionStatus !== ExecutionResult.Pass || !user) {
+            return new ExecutionResultContainer(UserServiceExecutionResult.NotFound);
+        }
+
+        let createTime = new Date().toISOString();
+        let tokenData: RefreshUserPasswordToken = {
+            email: userEmail,
+            createTime: createTime
+        }
+
+        let refreshPasswordToken = await this.tokenHandler.GenerateToken(tokenData, REFRESH_PASSWORD_TOKEN_TIME);
+        if (!refreshPasswordToken) {
+            return new ExecutionResultContainer(UserServiceExecutionResult.ServiceFail);
+        }
+
+
+        let updateObj: any;
+        updateObj[user.refreshPasswordTime!.toString()] = createTime;
+
+        let saveRefreshingProccessUserData = await this._db.UpdateOne(this.userTable, user.id, updateObj);
+        if (!saveRefreshingProccessUserData) {
+            return new ExecutionResultContainer(UserServiceExecutionResult.DataBaseFailed);
+        }
+
+        return new ExecutionResultContainer(UserServiceExecutionResult.Success, refreshPasswordToken.accessToken);
+    }
+
+    public async ConfirmRefreshUserPassword(refreshCode: string, newPassword: string): Promise<ExecutionResultContainer<UserServiceExecutionResult, boolean>> {
+        let token: Token = {
+            accessToken: refreshCode
+        }
+
+        let getTokenLoad = await this.tokenHandler.GetRefreshPasswordToken(token);
+
+
+        if (getTokenLoad.tokenStatus !== TokenStatus.Accepted || !getTokenLoad.result) {
+            return new ExecutionResultContainer(UserServiceExecutionResult.Unauthorized);
+        }
+
+        let userEmail = getTokenLoad.result.email;
+        let refreshTime = getTokenLoad.result.createTime;
+
+        let findUser = await this._db.GetOneByValueInOnePropery(this.userTable, "email", userEmail) as UserServiceDto;
+        let user = findUser.executionResultObject;
+        if (findUser.executionStatus !== ExecutionResult.Pass || !user) {
+            return new ExecutionResultContainer(UserServiceExecutionResult.DataBaseFailed);
+        }
+
+        if (user.refreshPasswordTime !== refreshTime) {
+            return new ExecutionResultContainer(UserServiceExecutionResult.Unauthorized);
+        }
+
+        let salt = await bcrypt.genSalt(10);
+        let hashedPass = await bcrypt.hash(newPassword, salt);
+
+        let updateObj: any;
+        updateObj[user.salt.toString()] = salt;
+        updateObj[user.hashedPass.toString()] = hashedPass;
+        updateObj[user.refreshPasswordTime.toString()] = null;
+        
+        let updateUserData = await this._db.UpdateOne(this.userTable, user.id, updateObj);
+        if(!updateUserData){
+            return new ExecutionResultContainer(UserServiceExecutionResult.DataBaseFailed);
+        }
+
+        return new ExecutionResultContainer(UserServiceExecutionResult.Success, true);
     }
 }
 export const userService = new AdminUserService(mongoDb, AdminAuthentication, tokenHandler)

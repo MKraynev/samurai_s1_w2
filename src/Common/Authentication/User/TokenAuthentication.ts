@@ -13,11 +13,17 @@ type DeviceInfo = {
     id: string;
     name: string;
 }
+
+
 export type TokenLoad = {
     id: string;
     deviceId: string;
 }
 
+export type RefreshUserPasswordToken = {
+    email: string;
+    createTime: string
+}
 
 export class TokenDecodeResult<T> {
     constructor(
@@ -61,7 +67,7 @@ export class TokenHandler {
             if (decoded && decoded.exp) {
                 let nowTime: number = new Date().getTime();
                 let tokenIsFresh = nowTime <= decoded.exp * 1000;
-                
+
                 let status: TokenStatus = tokenIsFresh ? TokenStatus.Accepted : TokenStatus.Expired;
                 return status;
             }
@@ -71,14 +77,14 @@ export class TokenHandler {
             return TokenStatus.Invalid;
         }
     }
-    public async GenerateToken(loadData: TokenLoad, timeExpire: string): Promise<Token | null> {
+    public async GenerateToken(loadData: TokenLoad | RefreshUserPasswordToken, timeExpire: string): Promise<Token | null> {
         try {
             let accessTokenVal = await jwt.sign(loadData, this.secret, { expiresIn: timeExpire });
 
             let token: Token = {
                 accessToken: accessTokenVal
             }
-            
+
             return token;
         }
         catch {
@@ -105,6 +111,34 @@ export class TokenHandler {
             let dataFromToken: TokenLoad = {
                 id: decodeRes["id"],
                 deviceId: decodeRes["deviceId"]
+            }
+
+            return new TokenDecodeResult(TokenStatus.Accepted, dataFromToken);;
+        }
+        catch {
+            return new TokenDecodeResult(TokenStatus.Invalid);
+        }
+    }
+    public async GetRefreshPasswordToken(token: Token): Promise<TokenDecodeResult<RefreshUserPasswordToken>>{
+        try {
+            let tokenStatus = await this.isTokenExpired(token);
+
+            switch (tokenStatus) {
+                case TokenStatus.Accepted:
+                    break;
+                case TokenStatus.Expired:
+                    return new TokenDecodeResult(TokenStatus.Expired);
+                case TokenStatus.Invalid:
+                default:
+                    return new TokenDecodeResult(TokenStatus.Invalid);
+                    break;
+            }
+
+            let decodeRes: any = await jwt.verify(token.accessToken, this.secret);
+
+            let dataFromToken: RefreshUserPasswordToken = {
+                email: decodeRes["email"],
+                createTime: decodeRes["createDate"]
             }
 
             return new TokenDecodeResult(TokenStatus.Accepted, dataFromToken);;

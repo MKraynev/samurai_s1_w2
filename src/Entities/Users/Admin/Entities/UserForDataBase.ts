@@ -10,7 +10,8 @@ export class UserDataBase {
         public emailConfirmId: string,
         public emailConfirmed: boolean = false,
         public createdAt: string = (new Date()).toISOString(),
-        public usedRefreshTokens: Array<string> = []
+        public usedRefreshTokens: Array<string> = [],
+        public refreshPasswordTime: string | null = null
     ) {
     }
 }
