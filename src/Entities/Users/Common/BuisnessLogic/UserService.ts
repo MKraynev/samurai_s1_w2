@@ -322,7 +322,7 @@ export class AdminUserService {
 
 
         let updateObj: any;
-        updateObj[user.refreshPasswordTime!.toString()] = createTime;
+        updateObj["refreshPasswordTime"] = createTime;
 
         let saveRefreshingProccessUserData = await this._db.UpdateOne(this.userTable, user.id, updateObj);
         if (!saveRefreshingProccessUserData) {
@@ -360,10 +360,11 @@ export class AdminUserService {
         let salt = await bcrypt.genSalt(10);
         let hashedPass = await bcrypt.hash(newPassword, salt);
 
+        //TODO updateObj[user.refreshPasswordTime.toString()] = null; так выдает ошибку - спросить
         let updateObj: any;
-        updateObj[user.salt.toString()] = salt;
-        updateObj[user.hashedPass.toString()] = hashedPass;
-        updateObj[user.refreshPasswordTime.toString()] = null;
+        updateObj["salt"] = salt;
+        updateObj["hashedPass"] = hashedPass;
+        updateObj["refreshPasswordTime"] = null;
         
         let updateUserData = await this._db.UpdateOne(this.userTable, user.id, updateObj);
         if(!updateUserData){
