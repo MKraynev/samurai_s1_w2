@@ -357,8 +357,16 @@ export class AdminUserService {
             return new ExecutionResultContainer(UserServiceExecutionResult.Unauthorized);
         }
 
+        let hashWithNewPassword = await bcrypt.hash(newPassword, user.salt);
+
+        if(hashWithNewPassword === user.hashedPass){
+            return new ExecutionResultContainer(UserServiceExecutionResult.WrongPassword);
+        }
+
         let salt = await bcrypt.genSalt(10);
         let hashedPass = await bcrypt.hash(newPassword, salt);
+
+        
 
         //TODO updateObj[user.refreshPasswordTime.toString()] = null; так выдает ошибку - спросить
         let updateObj: any = {};

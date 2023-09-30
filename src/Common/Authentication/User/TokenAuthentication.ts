@@ -138,7 +138,7 @@ export class TokenHandler {
 
             let dataFromToken: RefreshUserPasswordToken = {
                 email: decodeRes["email"],
-                createTime: decodeRes["createDate"]
+                createTime: decodeRes["createTime"]
             }
 
             return new TokenDecodeResult(TokenStatus.Accepted, dataFromToken);;

@@ -50,7 +50,11 @@ export class EmailSender{
         <a href='${destinationPath}?recoveryCode=${linkVal}'>recovery password</a>
         </p>`,
       };
-      //https://somesite.com/password-recovery?recoveryCode=your_recovery_code'
+      const info = await this.transporter.sendMail(sendObj, (err, data) =>{
+        if(err){
+          console.log("Some problems with sending email");
+        }
+      })
     }
 }
 

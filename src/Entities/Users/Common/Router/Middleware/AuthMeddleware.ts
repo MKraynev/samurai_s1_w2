@@ -66,7 +66,7 @@ export const ValidAuthFields = [
 ];
 
 export const ValidAuthRefreshPasswordFields = [
-    FieldNotEmpty("recoveryCode"),
+    FieldNotEmpty("recoveryCode"),FieldMinLength("recoveryCode", 40),
     FieldNotEmpty("newPassword"), FieldMinLength("newPassword", 6), FieldMaxLength("newPassword", 20)
 ]
 

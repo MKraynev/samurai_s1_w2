@@ -47,8 +47,6 @@ class RequestLoggerService {
 
             let logs = getLastLogs.executionResultObject;
             let logsCount = logs.length;
-
-            console.log("Имеющиеся логи по запросу:", logs, logsCount)
             
             let recentRequestTime = logs[0].requestTime;
             let lastRequestTime: string | undefined = logs?.pop()?.requestTime;
@@ -59,15 +57,10 @@ class RequestLoggerService {
 
             let actualRequestTime = new Date(recentRequestTime);
             let earlyestRequestTime = new Date(lastRequestTime);
-            console.log("Текущее и самое раннее время")
-
-            console.log(actualRequestTime.toISOString(), earlyestRequestTime.toISOString())
 
             let diff_ms = actualRequestTime.getTime() - earlyestRequestTime.getTime();
-            console.log("Разница [ms]:", diff_ms)
             let result = (logsCount < REQUEST_LIMIT_COUNT) || ((diff_ms / 1000) > REQUEST_LIMIT_SECONDS)
 
-            console.log("(logsCount < REQUEST_LIMIT_COUNT) || ((diff_ms / 1000) > REQUEST_LIMIT_SECONDS) =", result)
             return result;
         }
         catch {

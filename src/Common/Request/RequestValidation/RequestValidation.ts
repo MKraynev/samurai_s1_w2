@@ -60,7 +60,6 @@ export const RequestIsAllowed = async (request: Request, response: Response, nex
     let reqData = new RequestLogRequest(ip, requestRoot, request.useragent?.source || "unknownDevice")
 
     let SaveRequest = await requestLogService.SaveRequest(reqData);
-    console.log("Запрос сохранен в бд", SaveRequest, requestRoot)
     let requestIsAllowed = await requestLogService.RequestIsAllowed(reqData);
     
 
@@ -71,15 +70,4 @@ export const RequestIsAllowed = async (request: Request, response: Response, nex
     }
 
     response.sendStatus(429);
-}
-
-const FormatRequestIp = (reqIp: string): string => {
-    let availableLetters: string[] = ["0", "1", "2", "3", "4", "5", "6", "7", "8", "9", "."];
-    let resultVal = "";
-
-    for (let letterPos = 0; letterPos < reqIp.length; letterPos++) {
-        if (availableLetters.includes(reqIp[letterPos]))
-            resultVal += reqIp[letterPos];
-    }
-    return resultVal;
 }
