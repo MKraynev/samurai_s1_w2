@@ -6,7 +6,6 @@ import { ACCESS_TOKEN_TIME, JWT_SECRET, REFRESH_PASSWORD_TOKEN_TIME, REFRESH_TOK
 import { Token } from "../Entities/Token";
 import { UserResponse } from "../../Admin/Entities/UserForResponse";
 import bcrypt from "bcrypt";
-import jwt, { JwtPayload } from "jsonwebtoken"
 import { UniqueValGenerator } from "../../../../Common/DataManager/HandleFunctions/UniqueValGenerator";
 import { UserDataBase } from "../../Admin/Entities/UserForDataBase";
 import { MongoDb, mongoDb } from "../../../../Common/Database/MongoDb";
@@ -21,8 +20,6 @@ import { DeviceDataBase } from "../../../Devices/Entities/DeviceForDataBase";
 import ms from "ms"
 import { deviceService } from "../../../Devices/BuisnessLogic/DeviceService";
 import { DeviceResponse } from "../../../Devices/Entities/DeviceForResponse";
-import { ServicesWithUsersExecutionResult } from "../../../Comments/BuisnessLogic/CommentService";
-
 
 export enum LoginEmailStatus {
     LoginAndEmailFree,

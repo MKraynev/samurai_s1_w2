@@ -25,10 +25,7 @@ export const FieldIsUri = (fieldName: string) => body(fieldName).isURL().withMes
 export const FieldMinLength = (fieldName: string, minLength: number) => body(fieldName).trim().isLength({ min: minLength }).withMessage(`Wrong length, too short ${minLength}: ${fieldName}`)
 export const FieldMaxLength = (fieldName: string, maxLength: number) => body(fieldName).trim().isLength({ max: maxLength }).withMessage(`Wrong length, too long ${maxLength}: ${fieldName}`)
 
-
 export const ValidEmail = [FieldNotEmpty("email"), body("email").isEmail().withMessage("Wrong email: email")];
-
-
 
 export const CheckFormatErrors = (request: Request<{}, {}, {}, {}>, response: Response, next: NextFunction) => {
     let errorResult = validationResult(request);

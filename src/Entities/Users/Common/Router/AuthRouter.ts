@@ -11,8 +11,6 @@ import { ParseAccessToken, ParseRefreshToken, ValidAuthFields, ValidAuthRefreshP
 import { UserServiceExecutionResult, userService } from "../BuisnessLogic/UserService";
 import { DeviceRequest } from "../../../Devices/Entities/DeviceForRequest";
 
-
-
 export const authRouter = Router();
 
 authRouter.post("/login",
@@ -210,7 +208,6 @@ authRouter.post("/logout",
         }
     })
 
-// /hometask_10/api/auth/password-recovery
 authRouter.post("/password-recovery",
     RequestIsAllowed,
     ValidEmail,
