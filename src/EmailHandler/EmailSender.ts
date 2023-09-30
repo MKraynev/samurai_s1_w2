@@ -38,6 +38,20 @@ export class EmailSender{
         }
       });
     }
+
+    public async SendRefreshPasswordMail(mailTo: string, destinationPath: string, linkVal: string){
+      let sendObj = {
+        from: `"SAMURAI 🥷"<${this.login}@gmail.com>`,
+        to: mailTo,
+        subject: "Testing email registration",
+        html:`
+        <h1>Password recovery</h1>
+        <p>To finish password recovery please follow the link below:
+        <a href='${destinationPath}?recoveryCode=${linkVal}'>recovery password</a>
+        </p>`,
+      };
+      //https://somesite.com/password-recovery?recoveryCode=your_recovery_code'
+    }
 }
 
 export const emailSender = new EmailSender(MAIL_LOGIN, MAIL_PASSWORD);
