@@ -14,5 +14,6 @@ export enum SorterType {
     UserSorter,
     CommentSorter,
     LogSorter,
-    DeviceSorter
+    DeviceSorter,
+    LikeSorter
 }

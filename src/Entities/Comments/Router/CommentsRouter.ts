@@ -1,10 +1,14 @@
 import { Router, Response } from "express";
-import { CompleteRequest, RequestWithParams } from "../../../Common/Request/Entities/RequestTypes";
+import { CompleteRequest, RequestWithBody, RequestWithParams } from "../../../Common/Request/Entities/RequestTypes";
 import { ValidCommentFields } from "./Middleware/CommentMiddleware";
 import { ServicesWithUsersExecutionResult, commentService } from "../BuisnessLogic/CommentService";
 import { Token } from "../../Users/Common/Entities/Token";
 import { CheckFormatErrors } from "../../../Common/Request/RequestValidation/RequestValidation";
-import { ParseAccessToken } from "../../Users/Common/Router/Middleware/AuthMeddleware";
+import { ParseAccessToken, ParseRefreshToken } from "../../Users/Common/Router/Middleware/AuthMeddleware";
+import { likeService } from "../../Likes/BuisnessLogic/LikeService";
+import { AvailableLikeStatus, LikeRequest } from "../../Likes/Entities/LikeRequest";
+import { AvailableDbTables } from "../../../Common/Database/DataBase";
+import { UserServiceExecutionResult } from "../../Users/Common/BuisnessLogic/UserService";
 
 export const commentRouter = Router();
 
@@ -27,14 +31,32 @@ commentRouter.get("/:id",
                 response.sendStatus(404);
                 break;
         }
+    })
 
-        // let comment = await dataManager.commentRepo.TakeCertain(request.params.id);
-        // if (comment) {
-        //     response.status(200).send(comment);
-        //     return;
-        // }
-        // 
-        // return;
+commentRouter.put("/:id/like-status",
+    ParseAccessToken,
+    async (request: CompleteRequest<{ id: string }, { likeStatus: AvailableLikeStatus }, {}>, response: Response) => {
+        let commentId = request.params.id;
+        let likeData = new LikeRequest("comments", commentId, request.body.likeStatus);
+        let token = request.accessToken;
+
+        let saveLike = await likeService.Save(likeData, token);
+
+        switch (saveLike.executionStatus) {
+            case UserServiceExecutionResult.Success:
+                response.sendStatus(204);
+                break;
+
+            case UserServiceExecutionResult.Unauthorized:
+                response.sendStatus(401);
+                break;
+
+            case UserServiceExecutionResult.NotFound:
+                response.sendStatus(404);
+            default:
+                break;
+
+        }
     })
 
 commentRouter.delete("/:id",
