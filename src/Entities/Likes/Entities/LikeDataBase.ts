@@ -1,3 +1,4 @@
+import mongoose from "mongoose";
 import { LikeRequest } from "./LikeRequest";
 
 export class LikeDataBase extends LikeRequest {
@@ -5,3 +6,9 @@ export class LikeDataBase extends LikeRequest {
         super(likeData.target, likeData.targetId, likeData.status)
     }
 }
+
+export const likeSchema = new mongoose.Schema<LikeDataBase>({
+    target: String,
+    targetId: String,
+    status: {type: String, enum: ["Like", "Dislike", "None"], default: "None"}
+})

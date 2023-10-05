@@ -10,6 +10,8 @@ import { PORT_NUM } from "./settings";
 import { mongoDb } from "./Common/Database/MongoDb";
 import { authRouter } from "./Entities/Users/Common/Router/AuthRouter";
 import { deviceRouter } from "./Entities/Devices/Router/DeviceRouter";
+import { mongooseRepo } from "./Common/Mongoose/MongooseRepo";
+import { likeRouter } from "./Entities/Likes/TestRouter/LikeRouter";
 
 
 var useragent = require('express-useragent');
@@ -20,6 +22,7 @@ export const usersPath = "/users";
 export const authPath = "/auth";
 export const commentPath = "/comments";
 export const devicesPath = "/security/devices"
+export const likeTestPath = "/likes"
 
 export const TestClearAllPath = "/testing/all-data";
 
@@ -36,6 +39,8 @@ app.use(usersPath, userRouter);
 app.use(authPath, authRouter);
 app.use(devicesPath, deviceRouter);
 app.use(commentPath, commentRouter);
+// app.use(likeTestPath, likeRouter);
+
 app.use(TestClearAllPath, _NewTestClearAllRouter)
 
 // app.use(async (err, req, res, next) => {
@@ -52,6 +57,10 @@ const ngrokConnect = async (): Promise<string> => {
 const StartApp = async () => {
 
     await mongoDb.RunDb();
+    
+    let mongooseStatus = await mongooseRepo.Connect();
+    if(mongooseStatus)
+        console.log("Mongoose connected");
 
     app.listen(PORT, () => {
         console.log("app is running");
