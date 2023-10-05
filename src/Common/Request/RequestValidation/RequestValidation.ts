@@ -2,7 +2,7 @@ import { Request, Response, NextFunction, response } from "express";
 import { body, validationResult } from "express-validator"
 import { ErrorLog } from "./Error";
 import { Base64 } from "../../Authentication/Admin/Base64";
-import { ADMIN_PASSWORD } from "../../../settings";
+import { ADMIN_PASSWORD } from "../../../../settings";
 import { requestLogService } from "../../../RequestLogger/BuisnessLogic/RequestLoggerService";
 import { RequestLogRequest } from "../../../RequestLogger/Entities/RequestLogRequest";
 

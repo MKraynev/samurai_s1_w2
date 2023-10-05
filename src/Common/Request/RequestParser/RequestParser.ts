@@ -10,7 +10,7 @@ import { UserSorter } from "../../../Entities/Users/Repo/UserSorter";
 import { Token } from "../../../Entities/Users/Common/Entities/Token";
 import { CommentSorter } from "../../../Entities/Comments/Repo/CommentSorter";
 import { CommentDataBase } from "../../../Entities/Comments/Entities/CommentForDataBase";
-import { TOKEN_COOKIE_NAME } from "../../../settings";
+import { TOKEN_COOKIE_NAME } from "../../../../settings";
 
 export class RequestParser {
     static ReadQueryBlogSorter(request: Request): BlogSorter {

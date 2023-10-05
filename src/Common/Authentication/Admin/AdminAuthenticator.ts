@@ -1,6 +1,6 @@
 import { AuthorizationStatus } from "../../../Entities/Users/Admin/Router/Middleware/IAuthorizer";
 import { Request } from "express";
-import { ADMIN_PASSWORD } from "../../../settings";
+import { ADMIN_PASSWORD } from "../../../../settings";
 import { Base64 } from "./Base64";
 
 export enum AuthenticationResult {

@@ -3,7 +3,7 @@ import { MongoDb, mongoDb } from "../../Common/Database/MongoDb";
 import { Sorter, SorterType } from "../../Common/Database/Sort/Sorter";
 import { ServiseExecutionStatus } from "../../Entities/Blogs/BuisnessLogic/BlogService";
 import { RequestLogResponse } from "../Entities/RequestLogResponse";
-import { REQUEST_LIMIT_COUNT, REQUEST_LIMIT_SECONDS } from "../../settings";
+import { REQUEST_LIMIT_COUNT, REQUEST_LIMIT_SECONDS } from "../../../settings";
 import { RequestLogRequest } from "../Entities/RequestLogRequest";
 import { RequestLogDataBase } from "../Entities/RequestLogDataBase";
 

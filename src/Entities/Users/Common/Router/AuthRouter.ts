@@ -5,7 +5,7 @@ import { AuthRequest } from "../Entities/AuthRequest";
 import { UserRequest } from "../../Admin/Entities/UserForRequest";
 import { emailSender } from "../../../../EmailHandler/EmailSender";
 import { Token } from "../Entities/Token";
-import { CONFIRM_ADRESS, REFRESH_PASSWORD_ADRESS } from "../../../../settings";
+import { CONFIRM_ADRESS, REFRESH_PASSWORD_ADRESS } from "../../../../../settings";
 import { ValidUserFields } from "../../Admin/Router/Middleware/UserMiddleware";
 import { ParseAccessToken, ParseRefreshToken, ValidAuthFields, ValidAuthRefreshPasswordFields } from "./Middleware/AuthMeddleware";
 import { UserServiceExecutionResult, userService } from "../BuisnessLogic/UserService";

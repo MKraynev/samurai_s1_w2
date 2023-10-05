@@ -6,7 +6,7 @@ import { userRouter } from "./Entities/Users/Admin/Router/UserRouter";
 import { commentRouter } from "./Entities/Comments/Router/CommentsRouter";
 import cookieParser from "cookie-parser";
 import ngrok from "ngrok"
-import { PORT_NUM } from "./settings";
+import { PORT_NUM } from "../settings";
 import { mongoDb } from "./Common/Database/MongoDb";
 import { authRouter } from "./Entities/Users/Common/Router/AuthRouter";
 import { deviceRouter } from "./Entities/Devices/Router/DeviceRouter";

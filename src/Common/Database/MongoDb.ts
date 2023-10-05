@@ -4,7 +4,7 @@ import { SorterType } from "./Sort/Sorter";
 import { BlogSorter } from "../../Entities/Blogs/Repo/BlogSorter";
 import { PostSorter } from "../../Entities/Posts/Repo/PostSorter";
 import { UserSorter } from "../../Entities/Users/Repo/UserSorter";
-import { MONGO_URL } from "../../settings";
+import { MONGO_URL } from "../../../settings";
 import { CommentSorter } from "../../Entities/Comments/Repo/CommentSorter";
 import { BlogDataBase } from "../../Entities/Blogs/Entities/BlogForDataBase";
 import { PostDataBase } from "../../Entities/Posts/Entities/PostForDataBase";
@@ -117,7 +117,7 @@ export class MongoDb extends DataBase<AvailableInputDbTypes, AvailableUpdateType
                 .sort(mongoSorter)
                 .skip(skip)
                 .limit(maxTake)
-                .toArray() as WithId<AvailableReturnDbTypes>[] | null;
+                .toArray() as WithId<AvailableInputDbTypes>[] | null;
 
             let executionResult = new ExecutionResultContainer<ExecutionResult, Array<AvailableReturnDbTypes>>(ExecutionResult.Pass);
             executionResult.executionResultObject = foundDataBaseObjects ? foundDataBaseObjects.map(foundObj => this.ExtractDataObject(tableName, foundObj)) : null;

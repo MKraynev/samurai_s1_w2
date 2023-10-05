@@ -1,5 +1,6 @@
 import { CommentRequest } from "./CommentRequest";
 import { UserDataBase } from "../../Users/Admin/Entities/UserForDataBase";
+import { LikeStatistic } from "../../Likes/Entities/LikeStatistic";
 
 export type CommentatorInfo = {
     userId: string,
@@ -9,6 +10,11 @@ export type CommentatorInfo = {
 export class CommentDataBase extends CommentRequest{
     readonly commentatorInfo: CommentatorInfo;
     public postId: string;
+    public likesInfo: LikeStatistic = {
+        likesCount: 0,
+        dislikesCount: 0,
+        myStatus: "None"
+    }
     
     constructor(
         reqComment: CommentRequest,

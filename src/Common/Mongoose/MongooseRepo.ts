@@ -1,5 +1,5 @@
 import mongoose from "mongoose";
-import { MONGO_URL } from "../../settings";
+import { MONGO_URL } from "../../../settings";
 
 class MongooseRepo{
     private isConnected: boolean = false;

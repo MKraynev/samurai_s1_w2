@@ -1,6 +1,6 @@
 import { Token } from "../../../Entities/Users/Common/Entities/Token";
 import jwt, { JwtPayload } from "jsonwebtoken"
-import { JWT_SECRET } from "../../../settings";
+import { JWT_SECRET } from "../../../../settings";
 
 export enum TokenStatus {
     Invalid,

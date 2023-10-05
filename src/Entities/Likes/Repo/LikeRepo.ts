@@ -17,8 +17,8 @@ class LikeRepo{
         like.save();
     }
     
-    public async Delete(){
-        this.like.deleteOne();
+    public async DeleteAll(){
+        this.like.deleteMany({});
     }
     public async Get(){
         return this.like.find({});

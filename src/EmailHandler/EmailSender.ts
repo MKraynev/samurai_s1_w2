@@ -1,6 +1,6 @@
 import nodemailer from "nodemailer"
 import SMTPTransport from "nodemailer/lib/smtp-transport";
-import { MAIL_LOGIN, MAIL_PASSWORD } from "../settings";
+import { MAIL_LOGIN, MAIL_PASSWORD } from "../../settings";
 
 export class EmailSender{
   private login: string;

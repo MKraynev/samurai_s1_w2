@@ -2,7 +2,7 @@ import { NextFunction, Request, Response } from "express";
 import { body, oneOf } from "express-validator";
 import { FieldMaxLength, FieldMinLength, FieldNotEmpty } from "../../../../../Common/Request/RequestValidation/RequestValidation";
 import { Token } from "../../Entities/Token";
-import { TOKEN_COOKIE_NAME } from "../../../../../settings";
+import { TOKEN_COOKIE_NAME } from "../../../../../../settings";
 
 export const ValidAuthFields = [
     oneOf(

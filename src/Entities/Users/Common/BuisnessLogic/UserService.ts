@@ -2,7 +2,7 @@ import { UserRequest } from "../../Admin/Entities/UserForRequest";
 import { UserSorter } from "../../Repo/UserSorter";
 import { Paginator } from "../../../../Common/Paginator/PageHandler";
 import { Page } from "../../../../Common/Paginator/Page";
-import { ACCESS_TOKEN_TIME, JWT_SECRET, REFRESH_PASSWORD_TOKEN_TIME, REFRESH_TOKEN_TIME } from "../../../../settings";
+import { ACCESS_TOKEN_TIME, JWT_SECRET, REFRESH_PASSWORD_TOKEN_TIME, REFRESH_TOKEN_TIME } from "../../../../../settings";
 import { Token } from "../Entities/Token";
 import { UserResponse } from "../../Admin/Entities/UserForResponse";
 import bcrypt from "bcrypt";
