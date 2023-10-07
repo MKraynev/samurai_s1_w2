@@ -13,7 +13,7 @@ _NewTestClearAllRouter.delete("", async (request: Request, response: Response) =
     let commentDeleted = await mongoDb.DeleteAll(AvailableDbTables.comments);
     let logDeleted = await mongoDb.DeleteAll(AvailableDbTables.requestLogs);
     let deviceDeleted = await mongoDb.DeleteAll(AvailableDbTables.devices);
-    likeRepo.DeleteAll();
+    //likeRepo.DeleteAll();
 
     let results: ExecutionResult[] = [blogsDeleted.executionStatus, postsDeleted.executionStatus, usersDeleted.executionStatus, commentDeleted.executionStatus, logDeleted.executionStatus, deviceDeleted.executionStatus];
     if(results.includes(ExecutionResult.Failed)){

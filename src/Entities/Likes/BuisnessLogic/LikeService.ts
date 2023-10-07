@@ -8,6 +8,7 @@ import { Token } from "../../Users/Common/Entities/Token";
 import { LikeDataBase } from "../Entities/LikeDataBase";
 import { AvailableLikeStatus, AvailableLikeTarget, LikeRequest } from "../Entities/LikeRequest";
 import { LikeResponse } from "../Entities/LikeResponse";
+import { LikeRepo, likeRepo } from "../Repo/LikeRepo";
 
 export class LikeSorter extends Sorter<LikeResponse>{
     constructor(
@@ -27,97 +28,71 @@ export type LikeCount = {
 }
 
 
-// class LikeService {
-//     private likeTable = AvailableDbTables.likes;
+class LikeService {
+    constructor(private repo: LikeRepo, private tokenHandler: TokenHandler) { }
 
-//     constructor(private db: MongoDb, private tokenHandler: TokenHandler) { }
+    // public async Count(commentId: string): Promise<ExecutionResultContainer<UserServiceExecutionResult, LikeCount | null>> {
+    //     let findComment = await commentService.GetCommentById(commentId);
 
-//     public async Count(commentId: string): Promise<ExecutionResultContainer<UserServiceExecutionResult, LikeCount | null>> {
-//         let findComment = await commentService.GetCommentById(commentId);
+    //     if (findComment.executionStatus !== ServicesWithUsersExecutionResult.Success || !findComment.executionResultObject) {
+    //         return new ExecutionResultContainer(UserServiceExecutionResult.NotFound)
+    //     }
 
-//         if (findComment.executionStatus !== ServicesWithUsersExecutionResult.Success || !findComment.executionResultObject) {
-//             return new ExecutionResultContainer(UserServiceExecutionResult.NotFound)
-//         }
+    //     let likeSorter = new LikeSorter(SorterType.LikeSorter, undefined, "Like", "comments");
+    //     let findLikesNumber = await this.db.Count(this.likeTable, likeSorter);
 
-//         let likeSorter = new LikeSorter(SorterType.LikeSorter, undefined, "Like", "comments");
-//         let findLikesNumber = await this.db.Count(this.likeTable, likeSorter);
+    //     likeSorter.status = "Dislike";
+    //     let findDislikeNumber = await this.db.Count(this.likeTable, likeSorter);
 
-//         likeSorter.status = "Dislike";
-//         let findDislikeNumber = await this.db.Count(this.likeTable, likeSorter);
+    //     let result: LikeCount = {
+    //         likes: findLikesNumber.executionResultObject || 0,
+    //         dislikes: findDislikeNumber.executionResultObject || 0
+    //     }
 
-//         let result: LikeCount = {
-//             likes: findLikesNumber.executionResultObject || 0,
-//             dislikes: findDislikeNumber.executionResultObject || 0
-//         }
+    //     return new ExecutionResultContainer(UserServiceExecutionResult.Success, result);
+    // }
 
-//         return new ExecutionResultContainer(UserServiceExecutionResult.Success, result);
-//     }
+    // public async GetUserStatus(token: Token): Promise<ExecutionResultContainer<UserServiceExecutionResult, AvailableLikeStatus | null>> {
+    //     let getTokenData = await this.tokenHandler.GetTokenLoad(token);
 
-//     public async GetUserStatus(token: Token): Promise<ExecutionResultContainer<UserServiceExecutionResult, AvailableLikeStatus | null>> {
-//         let getTokenData = await this.tokenHandler.GetTokenLoad(token);
+    //     if (getTokenData.tokenStatus !== TokenStatus.Accepted || !getTokenData.result) {
+    //         return new ExecutionResultContainer(UserServiceExecutionResult.NotFound)
+    //     }
+    //     let tokenData = getTokenData.result;
 
-//         if (getTokenData.tokenStatus !== TokenStatus.Accepted || !getTokenData.result) {
-//             return new ExecutionResultContainer(UserServiceExecutionResult.NotFound)
-//         }
-//         let tokenData = getTokenData.result;
+    //     let userStatus: AvailableLikeStatus = "None";
 
-//         let userStatus: AvailableLikeStatus = "None";
-
-//         let findLike = await this.db.GetOneByValueInOnePropery(this.likeTable, "userId", tokenData.id) as ExecutionResultContainer<ExecutionResult, LikeResponse>;
-//         if(findLike.executionStatus === ExecutionResult.Pass && findLike.executionResultObject)
-//             userStatus = findLike.executionResultObject.status;
+    //     let findLike = await this.db.GetOneByValueInOnePropery(this.likeTable, "userId", tokenData.id) as ExecutionResultContainer<ExecutionResult, LikeResponse>;
+    //     if(findLike.executionStatus === ExecutionResult.Pass && findLike.executionResultObject)
+    //         userStatus = findLike.executionResultObject.status;
         
-//             return new ExecutionResultContainer(UserServiceExecutionResult.Success, userStatus);
-//     }
+    //         return new ExecutionResultContainer(UserServiceExecutionResult.Success, userStatus);
+    // }
 
-//     // public async Save(likeData: LikeRequest, token: Token): Promise<ExecutionResultContainer<UserServiceExecutionResult, LikeResponse | null>> {
-//     //     let getTokenData = await this.tokenHandler.GetTokenLoad(token);
+    public async Save(likeData: LikeRequest, token: Token): Promise<ExecutionResultContainer<UserServiceExecutionResult, LikeResponse | null>> {
+        let getTokenData = await this.tokenHandler.GetTokenLoad(token);
 
-//     //     if (getTokenData.tokenStatus !== TokenStatus.Accepted || !getTokenData.result) {
-//     //         return new ExecutionResultContainer(UserServiceExecutionResult.Unauthorized)
-//     //     }
-//     //     let tokenData = getTokenData.result;
+        if (getTokenData.tokenStatus !== TokenStatus.Accepted || !getTokenData.result) {
+            return new ExecutionResultContainer(UserServiceExecutionResult.Unauthorized)
+        }
+        let tokenData = getTokenData.result;
 
-//     //     let findComment = await commentService.GetCommentById(likeData.targetId);
+        let findComment = await commentService.GetCommentById(likeData.targetId);
 
-//     //     if (findComment.executionStatus !== ServicesWithUsersExecutionResult.Success || !findComment.executionResultObject) {
-//     //         return new ExecutionResultContainer(UserServiceExecutionResult.NotFound)
-//     //     }
+        if (findComment.executionStatus !== ServicesWithUsersExecutionResult.Success || !findComment.executionResultObject) {
+            return new ExecutionResultContainer(UserServiceExecutionResult.NotFound)
+        }
 
-//     //     let findLike = await this.db.GetOneByTwoProperties(this.likeTable, "target", likeData.target, "userId", tokenData.id) as ExecutionResultContainer<ExecutionResult, LikeResponse>;
+        let saveData = this.repo.GetEntity(new LikeDataBase(tokenData.id, likeData));
+        
+        let save = await this.repo.Save(saveData);
+        
+        if(save.executionStatus !== ExecutionResult.Pass){
+            return new ExecutionResultContainer(UserServiceExecutionResult.DataBaseFailed);
+        }
 
-//     //     if (findLike.executionStatus !== ExecutionResult.Pass) {
-//     //         return new ExecutionResultContainer(UserServiceExecutionResult.DataBaseFailed);
-//     //     }
+        return new ExecutionResultContainer(UserServiceExecutionResult.Success, save.executionResultObject?.toObject());
+    }
+}
 
-//     //     let foundLike = findLike.executionResultObject;
-//     //     let resultLikeData: LikeResponse;
-
-//     //     if (!foundLike) {
-//     //         let saveData = new LikeDataBase(tokenData.id, likeData);
-//     //         let saveNewLike = await this.db.SetOne(this.likeTable, saveData) as ExecutionResultContainer<ExecutionResult, LikeResponse>;
-
-//     //         if (saveNewLike.executionStatus !== ExecutionResult.Pass || !saveNewLike.executionResultObject) {
-//     //             return new ExecutionResultContainer(UserServiceExecutionResult.DataBaseFailed);
-//     //         }
-
-//     //         resultLikeData = saveNewLike.executionResultObject;
-//     //     }
-//     //     else if (foundLike.status !== likeData.status) {
-//     //         let updateExistedLike = await this.db.UpdateOne(this.likeTable, foundLike.id, likeData) as ExecutionResultContainer<ExecutionResult, LikeResponse>;
-//     //         if (updateExistedLike.executionStatus !== ExecutionResult.Pass || !updateExistedLike.executionResultObject) {
-//     //             return new ExecutionResultContainer(UserServiceExecutionResult.DataBaseFailed);
-//     //         }
-
-//     //         resultLikeData = updateExistedLike.executionResultObject;
-//     //     }
-//     //     else {
-//     //         resultLikeData = foundLike;
-//     //     }
-
-//     //     return new ExecutionResultContainer(UserServiceExecutionResult.Success, resultLikeData);
-//     // }
-
-// }
-
-// export const likeService = new LikeService(mongoDb, tokenHandler);
+export const likeService = new LikeService(likeRepo, tokenHandler);

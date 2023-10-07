@@ -1,26 +1,35 @@
 import mongoose, { HydratedDocument } from "mongoose";
 import { LikeDataBase, likeSchema } from "../Entities/LikeDataBase";
 import { mongooseRepo } from "../../../Common/Mongoose/MongooseRepo";
+import { ExecutionResult, ExecutionResultContainer } from "../../../Common/Database/DataBase";
 
 
-class LikeRepo{
-    constructor(private like: mongoose.Model<LikeDataBase>) {}
+export class LikeRepo {
+    constructor(private like: mongoose.Model<LikeDataBase>) { }
 
-    public async FindById(id: string){
-        return await this.like.find({_id: id})
+    public async FindById(id: string) {
+        return await this.like.find({ _id: id })
     }
 
-    public async GetCurrentLikeStatus(like: LikeDataBase){
-        
+    public async GetCurrentLikeStatus(like: LikeDataBase) {
+
     }
-    public async Save(like: HydratedDocument<LikeDataBase>){
-        like.save();
+    public async Save(like: HydratedDocument<LikeDataBase>): Promise<ExecutionResultContainer<ExecutionResult, HydratedDocument<LikeDataBase>>> {
+        try {
+            await like.save();
+            return new ExecutionResultContainer(ExecutionResult.Pass, like);
+
+        }
+        catch {
+            return new ExecutionResultContainer(ExecutionResult.Failed);
+        }
+
     }
-    
-    public async DeleteAll(){
+
+    public async DeleteAll() {
         this.like.deleteMany({});
     }
-    public async Get(){
+    public async Get() {
         return this.like.find({});
     }
 

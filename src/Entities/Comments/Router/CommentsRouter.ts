@@ -2,9 +2,12 @@ import { Router, Response } from "express";
 import { CompleteRequest, RequestWithParams } from "../../../Common/Request/Entities/RequestTypes";
 import { ValidCommentFields } from "./Middleware/CommentMiddleware";
 import { ServicesWithUsersExecutionResult, commentService } from "../BuisnessLogic/CommentService";
-import { Token } from "../../Users/Common/Entities/Token";
 import { CheckFormatErrors } from "../../../Common/Request/RequestValidation/RequestValidation";
 import { ParseAccessToken } from "../../Users/Common/Router/Middleware/AuthMeddleware";
+import { AvailableLikeStatus, LikeRequest } from "../../Likes/Entities/LikeRequest";
+import { likeService } from "../../Likes/BuisnessLogic/LikeService";
+import { UserServiceExecutionResult } from "../../Users/Common/BuisnessLogic/UserService";
+import { ValidLikeFields } from "../../Likes/Router/Middleware/LikeMiddleware";
 
 export const commentRouter = Router();
 
@@ -27,14 +30,34 @@ commentRouter.get("/:id",
                 response.sendStatus(404);
                 break;
         }
+    })
 
-        // let comment = await dataManager.commentRepo.TakeCertain(request.params.id);
-        // if (comment) {
-        //     response.status(200).send(comment);
-        //     return;
-        // }
-        // 
-        // return;
+    commentRouter.put("/:id/like-status",
+    ParseAccessToken,
+    ValidLikeFields,
+    CheckFormatErrors,
+    async (request: CompleteRequest<{ id: string }, {likeStatus: AvailableLikeStatus}, {}>, response: Response) => {
+        let token = request.accessToken;
+        let commentId = request.params.id;
+        let likeStatus = request.body.likeStatus;
+        let likeData = new LikeRequest("comments", commentId, likeStatus);
+
+        let saveLike = await likeService.Save(likeData, token);
+
+        switch(saveLike.executionStatus){
+            case UserServiceExecutionResult.Success:
+                response.sendStatus(204);
+                break;
+
+            case UserServiceExecutionResult.Unauthorized:
+                response.sendStatus(401);
+                break;
+
+            default:
+                response.sendStatus(404);
+                break;
+        }
+        
     })
 
 commentRouter.delete("/:id",
@@ -71,20 +94,6 @@ commentRouter.delete("/:id",
                 response.sendStatus(404);
                 break;
         }
-        // let deleteResult = await dataManager.commentRepo.DeleteCertainWithUserCheck(request.params.id, user.id);
-
-        // switch (deleteResult) {
-        //     case DeleteResult.WrongUser:
-        //         response.sendStatus(403);
-        //         break;
-        //     case DeleteResult.Deleted:
-        //         response.sendStatus(204);
-        //         break;
-        //     default:
-        //         response.sendStatus(404);
-        //         break;
-        // }
-        // return;
     })
 
 commentRouter.put("/:id",
@@ -119,22 +128,4 @@ commentRouter.put("/:id",
                 response.sendStatus(404);
                 break;
         }
-
-        // let user: UserResponse = request.user;
-        // let updateData: CommentRequest = new CommentRequest(request.body.content);
-
-        // let updateResult = await dataManager.commentRepo.UpdateWitchUserCheck(request.params.id, user.id, updateData);
-
-        // switch (updateResult) {
-        //     case UpdateResult.WrongUser:
-        //         response.sendStatus(403);
-        //         break;
-        //     case UpdateResult.Updated:
-        //         response.sendStatus(204);
-        //         break;
-        //     default:
-        //         response.sendStatus(404);
-        //         break;
-        // }
-        // return;
     })
