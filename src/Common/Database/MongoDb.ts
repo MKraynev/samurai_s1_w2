@@ -25,16 +25,20 @@ import { DeviceDataBase } from "../../Entities/Devices/Entities/DeviceForDataBas
 import { DeviceRequest } from "../../Entities/Devices/Entities/DeviceForRequest";
 import { DeviceSorter } from "../../Entities/Devices/BuisnessLogic/DeviceService";
 import { DeviceResponse } from "../../Entities/Devices/Entities/DeviceForResponse";
+import { LikeSorter } from "../../Entities/Likes/BuisnessLogic/LikeService";
+import { LikeDataBase } from "../../Entities/Likes/Entities/LikeDataBase";
+import { LikeResponse } from "../../Entities/Likes/Entities/LikeResponse";
+import { LikeRequest } from "../../Entities/Likes/Entities/LikeRequest";
 
 
 type MongoSearch = {
     [key: string]: { $regex: string, $options: string }
 }
 
-export type AvailableReturnDbTypes = BlogResponse | PostResponse | UserResponse | CommentResponse | RequestLogResponse | DeviceDataBase;
-export type AvailableUpdateTypes = BlogRequest | PostRequest | UserRequest | CommentRequest | DeviceRequest;
-export type AvailableInputDbTypes = BlogDataBase | PostDataBase | UserDataBase | CommentDataBase | RequestLogDataBase | DeviceDataBase;
-type AvailableSorterTypes = BlogSorter | PostSorter | UserSorter | CommentSorter | LogSorter | DeviceSorter;
+export type AvailableReturnDbTypes = BlogResponse | PostResponse | UserResponse | CommentResponse | RequestLogResponse | DeviceDataBase| LikeResponse;
+export type AvailableUpdateTypes = BlogRequest | PostRequest | UserRequest | CommentRequest | DeviceRequest | LikeRequest;
+export type AvailableInputDbTypes = BlogDataBase | PostDataBase | UserDataBase | CommentDataBase | RequestLogDataBase | DeviceDataBase | LikeDataBase;
+type AvailableSorterTypes = BlogSorter | PostSorter | UserSorter | CommentSorter | LogSorter | DeviceSorter | LikeSorter;
 
 export class MongoDb extends DataBase<AvailableInputDbTypes, AvailableUpdateTypes, AvailableReturnDbTypes> {
 
@@ -106,6 +110,27 @@ export class MongoDb extends DataBase<AvailableInputDbTypes, AvailableUpdateType
         }
 
     }
+    async GetOneByTwoProperties(tableName: AvailableDbTables, propName_1: keyof (AvailableReturnDbTypes) | string, propVal_1: string, propName_2: keyof (AvailableReturnDbTypes) | string, propVal_2: string): Promise<ExecutionResultContainer<ExecutionResult, AvailableReturnDbTypes>> {
+        try {
+            let query_1: any = {}
+            query_1[propName_1] = propVal_1;
+            let query_2: any = {}
+            query_2[propName_2] = propVal_2;
+
+            let dataBaseObject = await this._db.collection(tableName).findOne({ $and: [query_1, query_2] }) as WithId<AvailableInputDbTypes> | null;
+
+            let executionResult = new ExecutionResultContainer<ExecutionResult, AvailableReturnDbTypes>(ExecutionResult.Pass);
+            executionResult.executionResultObject = dataBaseObject ? this.ExtractDataObject(tableName, dataBaseObject) : null;
+
+            return executionResult;
+        }
+        catch {
+            return new ExecutionResultContainer(ExecutionResult.Failed);
+        }
+
+    }
+
+    
 
     async GetMany(tableName: AvailableDbTables, sorter: AvailableSorterTypes, skip: number, maxTake: number): Promise<ExecutionResultContainer<ExecutionResult, Array<AvailableReturnDbTypes>>> {
         try {
@@ -286,6 +311,7 @@ export class MongoDb extends DataBase<AvailableInputDbTypes, AvailableUpdateType
         try {
             await this._client.connect();
             this._dbIsRunning = true;
+            console.log("db connected");
         }
         catch {
             await this._client.close();
@@ -419,7 +445,26 @@ export class MongoDb extends DataBase<AvailableInputDbTypes, AvailableUpdateType
 
                 return searcherObj;
                 break;
-        }
+        
+            case SorterType.LikeSorter:
+                sorter = sorter as LikeSorter;
+                if(sorter.userId){
+                    let searcher: any = {
+                        "$or": [
+                            { "target": { $regex: sorter.target} },
+                            { "userId": { $regex: sorter.userId} }
+                        ]
+                    }
+                    return searcher;
+                }
+                else{
+                    let searcher: MongoSearch = {
+                        "target": { $regex: sorter.target, $options: 'i' }
+                    }
+                    return searcher;
+                }
+                break;
+            }
     }
 
     private ExtractDataObject(tableName: AvailableDbTables, object: WithId<AvailableInputDbTypes>): AvailableReturnDbTypes {
@@ -449,6 +494,10 @@ export class MongoDb extends DataBase<AvailableInputDbTypes, AvailableUpdateType
             case AvailableDbTables.devices:
                 object = object as WithId<DeviceDataBase>;
                 return new DeviceResponse(object._id, object);
+
+            case AvailableDbTables.likes:
+                object = object as WithId<LikeDataBase>
+                return new LikeResponse(object._id, object)
         }
     }
 }

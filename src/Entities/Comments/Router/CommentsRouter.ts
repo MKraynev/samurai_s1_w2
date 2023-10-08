@@ -1,5 +1,5 @@
 import { Router, Response } from "express";
-import { CompleteRequest, RequestWithParams } from "../../../Common/Request/Entities/RequestTypes";
+import { CompleteRequest, RequestWithBody, RequestWithParams } from "../../../Common/Request/Entities/RequestTypes";
 import { ValidCommentFields } from "./Middleware/CommentMiddleware";
 import { ServicesWithUsersExecutionResult, commentService } from "../BuisnessLogic/CommentService";
 import { CheckFormatErrors } from "../../../Common/Request/RequestValidation/RequestValidation";

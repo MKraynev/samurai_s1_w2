@@ -7,6 +7,7 @@ import { ServiseExecutionStatus, blogService } from "../../Blogs/BuisnessLogic/B
 import { CommentDataBase } from "../../Comments/Entities/CommentForDataBase";
 import { CommentResponse } from "../../Comments/Entities/CommentForResponse";
 import { CommentRequest } from "../../Comments/Entities/CommentRequest";
+import { CommentResponseExtended } from "../../Comments/Entities/CommentResponseExtended";
 import { CommentSorter } from "../../Comments/Repo/CommentSorter";
 import { UserServiceExecutionResult, userService } from "../../Users/Common/BuisnessLogic/UserService";
 import { Token } from "../../Users/Common/Entities/Token";
@@ -137,7 +138,7 @@ class PostService {
 
         return new ExecutionResultContainer(ServiseExecutionStatus.Success, saveComment.executionResultObject);
     }
-    public async GetPostComments(postId: string, sorter: CommentSorter, paginator: Paginator): Promise<ExecutionResultContainer<ServiseExecutionStatus, Page<CommentResponse[]> | null>> {
+    public async GetPostComments(postId: string, sorter: CommentSorter, paginator: Paginator): Promise<ExecutionResultContainer<ServiseExecutionStatus, Page<CommentResponseExtended[]> | null>> {
         let findPost = await this.GetPostById(postId);
         if (findPost.executionStatus !== ServiseExecutionStatus.Success || !findPost.executionResultObject) {
             return new ExecutionResultContainer(ServiseExecutionStatus.NotFound);
@@ -155,8 +156,11 @@ class PostService {
             return new ExecutionResultContainer(ServiseExecutionStatus.DataBaseFailed);
 
         let comments = getComments.executionResultObject;
+        
+        let extendedComments: CommentResponseExtended[] = await Promise.all(comments.map(async (comment) => await comment.UpgradeToExtended()))
+        
 
-        let pagedObjects = paginator.GetPaged<CommentResponse[]>(comments);
+        let pagedObjects = paginator.GetPaged<CommentResponseExtended[]>(extendedComments);
         let operationResult = new ExecutionResultContainer(ServiseExecutionStatus.Success, pagedObjects)
 
         return operationResult;
